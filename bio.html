@@ -751,6 +751,19 @@ main{max-width:1200px; margin:0 auto; padding:18px clamp(16px,3vw,32px) 40px;}
 .celebrate img{width:min(72vw, 340px); height:auto; filter:drop-shadow(0 12px 30px rgba(0,0,0,.35)); transform:scale(.6) rotate(-8deg); transition:transform .35s cubic-bezier(.2,1.6,.4,1);}
 .celebrate.show img{transform:scale(1) rotate(0);}
 @media (prefers-reduced-motion:reduce){ .celebrate img{transition:none; transform:none;} }
+/* Team list: each person is a card (name + badge, email, territories, then controls) so it fits on a phone. */
+.member{display:block; padding:12px 14px;}
+.member-top{display:flex; align-items:center; gap:8px; min-width:0;}
+.member-top b{flex:1; min-width:0; font-size:.95rem; overflow-wrap:anywhere;}
+.member-top .badge{flex:none;}
+.member-email{display:block; color:var(--sub); font-size:.8rem; overflow-wrap:anywhere; margin-top:2px;}
+.member .member-terrs{margin-top:6px;}
+.member-actions{display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; align-items:center;}
+.member-actions .role-sel{flex:1 1 170px; min-width:0; width:auto; min-height:40px;}
+.member-actions button{flex:0 0 auto; min-height:40px; padding:8px 14px;}
+.member .member-edit{margin-top:10px; padding-top:10px; border-top:1px dashed var(--line);}
+.member .member-edit .row{flex-wrap:wrap;}
+@media (max-width:480px){ .member-actions .role-sel{flex-basis:100%;} .member-actions button{flex:1 1 0;} }
 </style>
 </head>
 <body>
@@ -1790,14 +1803,15 @@ function memberRow(m){
   const isOwnerRow = m.owner || m.email===OWNER_EMAIL.toLowerCase();
   const u = Object.values(usersMap).find(x=>x.email===m.email);
   const el = document.createElement('div'); el.className='member';
-  el.innerHTML = `<div class="member-info"><b></b><small></small><div class="member-terrs"></div></div>`;
+  el.innerHTML = `<div class="member-top"><b></b></div><small class="member-email"></small><div class="member-terrs"></div><div class="member-actions"></div>`;
   el.querySelector('b').textContent = (u && u.name) || m.name || m.email;
   el.querySelector('small').textContent = m.email + (u ? '' : ' · hasn’t signed in yet');
+  const acts = el.querySelector('.member-actions');
   const tw = el.querySelector('.member-terrs');
   const terrs = (m.territories||[]).map(canonTerr);
   if(terrs.length) terrs.forEach(tr=>{ const s=document.createElement('span'); s.textContent=tr; tw.appendChild(s); });
   else { const s=document.createElement('span'); s.textContent='No territory'; tw.appendChild(s); }
-  if(isOwnerRow || m.admin){ const b=document.createElement('span'); b.className='badge admin'; b.textContent= isOwnerRow ? 'Owner' : 'Admin'; el.appendChild(b); }
+  if(isOwnerRow || m.admin){ const b=document.createElement('span'); b.className='badge admin'; b.textContent= isOwnerRow ? 'Owner' : 'Admin'; el.querySelector('.member-top').appendChild(b); }
   // Admins choose each person's role here; it decides which pages they see.
   const curRole = ROLES.includes(m.role) ? m.role : ((u && (u.role==='rep'||u.role==='inventory')) ? u.role : (isOwnerRow ? 'inventory' : 'rep'));
   const rs = document.createElement('select'); rs.className='role-sel'; rs.setAttribute('aria-label', 'Role for '+m.email);
@@ -1807,10 +1821,10 @@ function memberRow(m){
     try{ await db.doc('members/'+m.email).set({role: rs.value, ...(isOwnerRow ? {admin:true} : {})}, {merge:true}); toast(`${(u && u.name) || m.name || m.email} is now ${withArticle(roleLabel(rs.value))}.`); }
     catch(e){ console.error(e); rs.value = curRole; toast('Could not change the role. Only admins can.'); }
   };
-  el.appendChild(rs);
+  acts.appendChild(rs);
   const ed = document.createElement('button'); ed.type='button'; ed.className='edit-btn'; ed.textContent='Territories';
   ed.onclick = ()=>{ editingMember = editingMember===m.email ? null : m.email; renderTeam(); };
-  el.appendChild(ed);
+  acts.appendChild(ed);
   if(!isOwnerRow && m.email!==me.email){
     const rm = document.createElement('button'); rm.type='button'; rm.textContent='Remove';
     let armed = false;
@@ -1818,7 +1832,7 @@ function memberRow(m){
       if(!armed){ armed = true; rm.textContent='Tap to confirm'; setTimeout(()=>{ armed=false; rm.textContent='Remove'; }, 4000); return; }
       try{ await db.doc('members/'+m.email).delete(); toast(`Removed ${m.email}.`); }catch(e){ console.error(e); toast('Could not remove. Try again.'); }
     };
-    el.appendChild(rm);
+    acts.appendChild(rm);
   }
   if(editingMember===m.email){
     const box = document.createElement('div'); box.className='member-edit';

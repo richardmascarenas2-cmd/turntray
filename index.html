@@ -291,6 +291,13 @@ textarea{resize:vertical; min-height:64px;}
 .ps-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:6px; margin:4px 0 12px;}
 .ps-grid button{padding:0; border:1px solid var(--line); border-radius:8px; overflow:hidden; aspect-ratio:1; background:var(--bg);}
 .ps-grid img{width:100%; height:100%; object-fit:cover; display:block;}
+.ps-label{font-size:.78rem; font-weight:700; color:var(--sub); text-transform:uppercase; letter-spacing:.04em; margin:6px 0 2px;}
+.viewer .pv-split{flex:1; min-height:0; display:flex; flex-direction:column; gap:6px;}
+.viewer .pv-split[hidden]{display:none;}
+.viewer .pv-pane{flex:1; min-height:0; display:flex; flex-direction:column;}
+.viewer .pv-pane img{flex:1; min-height:0; width:100%; object-fit:contain;}
+.viewer .pv-cap{color:#fff; font-size:.78rem; font-weight:600; display:flex; align-items:center; gap:8px; padding:2px 0;}
+.viewer .pv-cap button{background:rgba(255,255,255,.15); color:#fff; border:0; border-radius:6px; padding:2px 10px; font-size:.9rem;}
 .ps-empty{grid-column:1 / -1; color:var(--sub); font-size:.86rem; padding:18px 12px; text-align:center; border:1px dashed var(--line); border-radius:10px;}
 .ps-add{display:flex; align-items:center; justify-content:center; gap:8px; margin-top:0;}
 .ps-add svg{width:18px; height:18px;}
@@ -910,6 +917,11 @@ textarea{resize:vertical; min-height:64px;}
       <div style="min-width:0;"><h2 id="ps-title" style="overflow-wrap:anywhere;"></h2><div class="hint" id="ps-sub" style="margin:3px 0 0;"></div></div>
       <button type="button" class="sheet-close" style="display:inline-block;" id="ps-close">Done</button>
     </div>
+    <div id="ps-compare" hidden>
+      <div class="ps-label">Delivery photos · how it went out</div>
+      <div class="ps-grid" id="ps-grid-delivery"></div>
+      <div class="ps-label">Return photos · how it came back</div>
+    </div>
     <div class="ps-grid" id="ps-grid"></div>
     <button type="button" class="btn-primary ps-add" id="ps-add"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13.5" r="3.5"/></svg>Add photo</button>
     <input type="file" id="ps-file" accept="image/*" multiple hidden>
@@ -944,7 +956,11 @@ textarea{resize:vertical; min-height:64px;}
 </div>
 <div class="viewer" id="photo-viewer" hidden>
   <img id="pv-img" alt="Delivery photo">
-  <div class="pv-bar"><span id="pv-meta"></span><button type="button" id="pv-delete">Delete</button><button type="button" id="pv-close">Close</button></div>
+  <div class="pv-split" id="pv-split" hidden>
+    <div class="pv-pane"><div class="pv-cap"><span id="pv-dcap">Delivery</span><button type="button" id="pv-dprev" aria-label="Previous delivery photo">‹</button><button type="button" id="pv-dnext" aria-label="Next delivery photo">›</button></div><img id="pv-dimg" alt="Delivery photo"></div>
+    <div class="pv-pane"><div class="pv-cap"><span>Return</span></div><img id="pv-rimg" alt="Return photo"></div>
+  </div>
+  <div class="pv-bar"><span id="pv-meta"></span><button type="button" id="pv-compare" hidden>Compare</button><button type="button" id="pv-delete">Delete</button><button type="button" id="pv-close">Close</button></div>
 </div>
 
 </div>
@@ -2758,17 +2774,19 @@ const PH_MODES = {
   return:   {count:'returnPhotoCount', flag:'returned', label:'Returned', title:'Return photos', empty:'No return photos yet. Add one when the tray comes back.', verb:'returned'}
 };
 let psMode = 'delivery';
-let psReqId = null, psUnsub = null, psPhotos = [], pvPhoto = null;
+let psReqId = null, psUnsub = null, psPhotos = [], psDelivery = [], pvPhoto = null;
 function openPhotoSheet(reqId, mode){
   closePhotoSheet();
   psMode = mode==='return' ? 'return' : 'delivery';
-  psReqId = reqId; psPhotos = [];
+  psReqId = reqId; psPhotos = []; psDelivery = [];
   psMissing = null; $('#ps-missing-note').value = '';
   $('#ps-msg').textContent=''; $('#ps-msg').className='status-msg';
   $('#photo-sheet').hidden = false;
   renderPhotoSheet();
   psUnsub = db.collection('requests/'+reqId+'/photos').onSnapshot(snap=>{
-    psPhotos = snap.docs.map(d=>({id:d.id, ...d.data()})).filter(ph=>(ph.kind||'delivery')===psMode).sort((a,b)=>(a.at||0)-(b.at||0));
+    const all = snap.docs.map(d=>({id:d.id, ...d.data()})).sort((a,b)=>(a.at||0)-(b.at||0));
+    psPhotos = all.filter(ph=>(ph.kind||'delivery')===psMode);
+    psDelivery = all.filter(ph=>(ph.kind||'delivery')==='delivery');
     renderPhotoSheet();
   }, err=>{ console.error(err); $('#ps-msg').textContent='Photos aren’t turned on yet. An admin needs to paste the latest security rules into Firebase.'; $('#ps-msg').className='status-msg err'; });
 }
@@ -2790,6 +2808,17 @@ function renderPhotoSheet(){
     const img = document.createElement('img'); img.src = ph.data; img.alt = M.title; img.loading='lazy';
     b.appendChild(img); b.onclick = ()=>openViewer(ph); grid.appendChild(b);
   });
+  // Returns: show how the tray went out, so it can be compared with how it came back.
+  $('#ps-compare').hidden = psMode!=='return';
+  if(psMode==='return'){
+    const dg = $('#ps-grid-delivery'); dg.innerHTML='';
+    if(!psDelivery.length) dg.innerHTML = '<div class="ps-empty">No delivery photos for this tray.</div>';
+    psDelivery.forEach(ph=>{
+      const b = document.createElement('button'); b.type='button';
+      const img = document.createElement('img'); img.src = ph.data; img.alt = 'Delivery photo'; img.loading='lazy';
+      b.appendChild(img); b.onclick = ()=>openViewer(ph); dg.appendChild(b);
+    });
+  }
   const count = Math.max(psPhotos.length, r[M.count]||0);
   $('#ps-deliver-row').hidden = psMode==='return';
   $('#ps-return').hidden = psMode!=='return';
@@ -2983,11 +3012,31 @@ function openViewer(ph){
   $('#pv-img').src = ph.data;
   const who = (usersMap[ph.authorId]?.name) || ph.authorName || 'Someone';
   $('#pv-meta').textContent = `${who} · ${new Date(ph.at).toLocaleString(undefined,{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})}`;
-  const canDelete = me && (ph.authorId===me.uid || me.isAdmin);
+  // Only photos from the list being worked on can be deleted here (keeps the photo counts right).
+  const ownList = (ph.kind||'delivery')===psMode;
+  const canDelete = ownList && me && (ph.authorId===me.uid || me.isAdmin);
+  pvCompareOn = false; showCompare();
+  $('#pv-compare').hidden = !(psMode==='return' && (ph.kind||'delivery')==='return' && psDelivery.length);
   $('#pv-delete').hidden = !canDelete; $('#pv-delete').textContent='Delete';
   $('#photo-viewer').hidden = false;
 }
-function closeViewer(){ $('#photo-viewer').hidden = true; pvPhoto = null; $('#pv-img').removeAttribute('src'); }
+function closeViewer(){ $('#photo-viewer').hidden = true; pvPhoto = null; pvCompareOn = false; $('#pv-img').removeAttribute('src'); $('#pv-dimg').removeAttribute('src'); $('#pv-rimg').removeAttribute('src'); }
+// Compare: delivery photo on top, return photo below. Arrows step through the delivery photos.
+let pvCompareOn = false, pvDIdx = 0;
+function showCompare(){
+  $('#pv-split').hidden = !pvCompareOn; $('#pv-img').hidden = pvCompareOn;
+  $('#pv-compare').textContent = pvCompareOn ? 'Single' : 'Compare';
+  if(!pvCompareOn || !pvPhoto || !psDelivery.length) return;
+  pvDIdx = (pvDIdx + psDelivery.length) % psDelivery.length;
+  $('#pv-dimg').src = psDelivery[pvDIdx].data;
+  $('#pv-rimg').src = pvPhoto.data;
+  $('#pv-dcap').textContent = `Delivery ${pvDIdx+1} of ${psDelivery.length}`;
+  const multi = psDelivery.length > 1;
+  $('#pv-dprev').hidden = !multi; $('#pv-dnext').hidden = !multi;
+}
+$('#pv-compare').addEventListener('click', ()=>{ pvCompareOn = !pvCompareOn; pvDIdx = 0; showCompare(); });
+$('#pv-dprev').addEventListener('click', ()=>{ pvDIdx--; showCompare(); });
+$('#pv-dnext').addEventListener('click', ()=>{ pvDIdx++; showCompare(); });
 $('#pv-close').addEventListener('click', closeViewer);
 let pvArmed = false;
 $('#pv-delete').addEventListener('click', ()=>{

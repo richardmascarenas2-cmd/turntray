@@ -470,6 +470,13 @@ textarea{resize:vertical; min-height:64px;}
 .xrow{min-height:52px; padding-top:6px; padding-bottom:6px; border-bottom:1px solid var(--line); cursor:pointer; font-size:.88rem;}
 .xrow:hover{background:var(--panel-2);}
 .case.expanded .xrow{background:var(--baby-soft);}
+/* Whole request highlighted by progress: yellow while partly sent / in progress, green once everything is delivered. */
+.case.st-prog > .case-row, .case.st-prog > .xrow{background:#fff6d6; box-shadow:inset 4px 0 0 #e3b008;}
+.case.st-prog > .case-row:hover, .case.st-prog > .xrow:hover{background:#ffefb8;}
+.case.st-done > .case-row, .case.st-done > .xrow{background:color-mix(in srgb, var(--good) 13%, var(--panel)); box-shadow:inset 4px 0 0 var(--good);}
+.case.st-done > .case-row:hover, .case.st-done > .xrow:hover{background:color-mix(in srgb, var(--good) 20%, var(--panel));}
+.case.st-prog .case-trays{background:#fffbea;}
+.case.st-done .case-trays{background:color-mix(in srgb, var(--good) 6%, var(--panel));}
 .xrow .x-status{justify-self:end;}
 .xrow .c-meta-m{display:none;}
 .day-sec{margin-bottom:18px;}
@@ -2125,7 +2132,7 @@ function buildCaseRow(c){
   if(c.trays.some(changedAfterPull)) tags.push('<span class="tag baby">Changed after pull</span>');
   if(c.trays.some(t=>t.sst)) tags.push('<span class="tag outline">SST</span>');
   const pct = total ? Math.round(done/total*100) : 0;
-  const el = document.createElement('div'); el.className = 'case' + (expandedCases.has(c.key) ? ' expanded' : '');
+  const el = document.createElement('div'); el.className = 'case' + (expandedCases.has(c.key) ? ' expanded' : '') + caseStage(c.trays);
   const pullTxt = c.pullBy===todayIso() ? 'Today' : fmtDate(c.pullBy);
   const sendTxt = c.sendBy===todayIso() ? 'Today' : fmtDate(c.sendBy);
   el.innerHTML = `<div class="case-row" role="button" tabindex="0" aria-expanded="${expandedCases.has(c.key)}">
@@ -2597,6 +2604,14 @@ function buildTrayRow(r){
 }
 /* Schedule and SST: one section per day, each case a dropdown row (same style as the pull queue). */
 const boardExpanded = new Set();
+// Yellow once any tray has been pulled, sent or delivered; green when every tray is delivered.
+function caseStage(trays){
+  const live = trays.filter(t=>t.status!=='cancelled');
+  if(!live.length) return '';
+  if(live.every(t=>t.delivered)) return ' st-done';
+  if(live.some(t=>t.delivered || t.outgoing || t.status==='fulfilled')) return ' st-prog';
+  return '';
+}
 function stagePill(list){
   if(list.every(r=>r.delivered)) return '<span class="pill done">Delivered</span>';
   if(list.every(r=>r.outgoing || r.delivered)) return '<span class="pill ip">Outgoing</span>';
@@ -2616,7 +2631,7 @@ function buildDayCaseRow(c, iso, prefix, mode){
   if(mode!=='sst' && c.trays.some(t=>t.sst)) tags.push('<span class="tag outline">SST</span>');
   const start = (c.trays.find(t=>t.sstStart)||{}).sstStart;
   const col2 = mode==='sst' ? `Surgery ${fmtDate(c.date)}${start?' · '+start:''}` : (c.procedure || c.type);
-  const el = document.createElement('div'); el.className = 'case' + (open ? ' expanded' : '');
+  const el = document.createElement('div'); el.className = 'case' + (open ? ' expanded' : '') + caseStage(c.trays);
   el.innerHTML = `<div class="xrow" role="button" tabindex="0" aria-expanded="${open}">
     <span class="c-name">${CHEV}<span>${escapeHtml(caseTitle(c))}</span>${caseNoTag(c)}${tags.join('')}</span>
     <span class="x-c1 c-sub">${escapeHtml(c.territory||'—')}</span>

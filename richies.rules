@@ -1,0 +1,96 @@
+rules_version = '2';
+
+// Who can use the Inventory Requests app.
+// - The owner (below) can always sign in and manage the team.
+// - Everyone else must be listed in the "members" collection (by email), which admins manage in the app under More -> Team.
+// - Email + password accounts must confirm their email first; Google accounts are already confirmed.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null
+        && request.auth.token.email != null
+        && request.auth.token.email_verified == true;
+    }
+    function myEmail() { return request.auth.token.email.lower(); }
+    function isOwner() { return signedIn() && myEmail() == 'richardmascarenas2@gmail.com'; }
+    function memberDoc() { return /databases/$(database)/documents/members/$(myEmail()); }
+    function isMember() { return isOwner() || (signedIn() && exists(memberDoc())); }
+    function isAdmin()  { return isOwner() || (isMember() && get(memberDoc()).data.admin == true); }
+
+    // Team list, keyed by lowercase email.
+    match /members/{email} {
+      allow read: if isMember() || (signedIn() && email == myEmail());
+      allow write: if isAdmin();
+    }
+
+    // Each person's name, email and role (Sales Rep / Inventory Team).
+    match /users/{uid} {
+      allow read: if isMember();
+      allow create, update: if isMember() && (request.auth.uid == uid || isAdmin());
+      allow delete: if isAdmin();
+    }
+
+    // A request can only be marked Delivered once it has at least one photo.
+    function wasDelivered() { return resource.data.get('delivered', false) == true; }
+    function deliveredOk() {
+      return request.resource.data.get('delivered', false) != true
+        || wasDelivered()
+        || request.resource.data.get('photoCount', 0) > 0;
+    }
+    // ...and can only be marked Returned once it has at least one return photo.
+    function returnedOk() {
+      return request.resource.data.get('returned', false) != true
+        || resource.data.get('returned', false) == true
+        || request.resource.data.get('returnPhotoCount', 0) > 0;
+    }
+
+    // Lets the person who made a cancelled request clear out its photos and comments when deleting it.
+    function ownsCancelled(reqId) {
+      let req = get(/databases/$(database)/documents/requests/$(reqId)).data;
+      return isMember() && req.get('status', '') == 'cancelled' && req.get('requestedById', '') == request.auth.uid;
+    }
+
+    match /requests/{id} {
+      allow read: if isMember();
+      allow create: if isMember() && (isAdmin() || request.resource.data.get('delivered', false) != true);
+      allow update: if isMember() && deliveredOk() && returnedOk();
+      // Admins can delete any request. Anyone can delete their own request once it's cancelled.
+      allow delete: if isAdmin()
+        || (isMember() && resource.data.get('status', '') == 'cancelled'
+            && resource.data.get('requestedById', '') == request.auth.uid);
+
+      // Delivery and return photos (compressed images stored as text, under 1 MB each).
+      match /photos/{photoId} {
+        allow read: if isMember();
+        allow create: if isMember()
+          && request.resource.data.authorId == request.auth.uid
+          && request.resource.data.data is string
+          && request.resource.data.data.size() < 900000;
+        allow delete: if isMember() && (resource.data.authorId == request.auth.uid || isAdmin() || ownsCancelled(id));
+      }
+
+      match /comments/{commentId} {
+        allow read: if isMember();
+        allow create: if isMember() && request.resource.data.authorId == request.auth.uid;
+        allow update: if isAdmin();
+        allow delete: if isAdmin() || ownsCancelled(id);
+      }
+    }
+
+    // Surgeon preference cards: usual trays per procedure.
+    match /prefCards/{id} {
+      allow read, write: if isMember();
+    }
+
+    match /inventory/{doc} {
+      allow read, write: if isMember();
+    }
+
+    // One-time import bookkeeping.
+    match /meta/{doc} {
+      allow read: if isMember();
+      allow write: if isAdmin();
+    }
+  }
+}

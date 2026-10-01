@@ -819,9 +819,9 @@ textarea{resize:vertical; min-height:64px;}
 
   <div class="view" id="view-returns">
     <div class="toolbar"><select id="returns-territory"><option value="All">All territories</option></select></div>
-    <p class="hint">Cases show up here once surgery day arrives. Trays are due back 1 business day after surgery. Tap a case, then Return a tray: add a photo and say whether anything is missing.</p>
+    <p class="hint">Cases show up here once surgery day arrives. Trays are due back 1 business day after surgery. Tap a case, then Return a tray: add a photo and say whether anything is missing. Once a case is back, it leaves this page unless something's missing. Past returns are in History.</p>
     <div id="returns-list"></div>
-    <div class="empty" id="returns-empty" hidden>No surgeries have come up yet for this territory.</div>
+    <div class="empty" id="returns-empty" hidden>Nothing to return right now.</div>
   </div>
 
   <div class="view" id="view-sst">
@@ -2404,7 +2404,6 @@ function renderHistory(){
 function todayIso(){ return isoDate(new Date()); }
 /* Returns: dropdown case rows, split into "Waiting to come back" and "Returned". */
 const returnsExpanded = new Set();
-let returnsShowAll = false;
 function renderReturns(){
   const terr = $('#returns-territory').value;
   const today = todayIso();
@@ -2412,9 +2411,11 @@ function renderReturns(){
   const cases = groupCases(rows, true);
   cases.forEach(c=>{ c.dueBack = returnDateFor(c.trays[0]); c.out = c.trays.filter(t=>!t.returned).length; });
   const waiting = cases.filter(c=>c.out).sort((a,b)=>a.dueBack.localeCompare(b.dueBack) || a.account.localeCompare(b.account));
-  const done = cases.filter(c=>!c.out).sort((a,b)=>b.date.localeCompare(a.date) || a.account.localeCompare(b.account));
+  // Fully returned cases drop off this page; they stay only while something is still missing.
+  // Only the trays still missing something are listed; the ones that came back fine are left off.
+  const missingCases = cases.filter(c=>!c.out && c.trays.some(missingOpen)).map(c=>({...c, trays: c.trays.filter(missingOpen)})).sort((a,b)=>b.date.localeCompare(a.date) || a.account.localeCompare(b.account));
   const wrap = $('#returns-list'); wrap.innerHTML = '';
-  $('#returns-empty').hidden = cases.length>0;
+  $('#returns-empty').hidden = (waiting.length + missingCases.length)>0;
   const section = (title, list, note)=>{
     const sec = document.createElement('section'); sec.className='day-sec';
     sec.innerHTML = `<div class="day-head"><b>${title}</b><span class="cnt">${list.length} case${list.length===1?'':'s'}</span></div>`;
@@ -2427,15 +2428,9 @@ function renderReturns(){
     sec.appendChild(table); wrap.appendChild(sec);
     return sec;
   };
+  if(!waiting.length && !missingCases.length) return;
   section('Waiting to come back', waiting, 'Everything is back.');
-  const shown = returnsShowAll ? done : done.slice(0, 25);
-  const sec = section('Returned', shown, 'Nothing returned yet.');
-  if(done.length > shown.length || returnsShowAll && done.length > 25){
-    const more = document.createElement('button'); more.type='button'; more.className='linkbtn';
-    more.textContent = returnsShowAll ? 'Show fewer' : `Show all ${done.length}`;
-    more.onclick = ()=>{ returnsShowAll = !returnsShowAll; renderReturns(); };
-    sec.appendChild(more);
-  }
+  section('Missing items', missingCases, 'Nothing missing.');
 }
 function buildReturnCase(c){
   const today = todayIso();

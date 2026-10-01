@@ -8,8 +8,9 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Biologics">
 <title>Biologics</title>
-<link rel="icon" href="icon-192.png">
-<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="bio-icon-192.png">
+<link rel="apple-touch-icon" href="bio-icon-180.png">
+<link rel="manifest" href="bio.webmanifest">
 <style>
 
 :root{
@@ -590,10 +591,29 @@ textarea{resize:vertical; min-height:64px;}
 
 /* ---------- Biologics ---------- */
 main{max-width:1200px; margin:0 auto; padding:18px clamp(16px,3vw,32px) 40px;}
-.app-switch{display:flex; gap:4px; background:rgba(255,255,255,.08); border-radius:10px; padding:3px; margin-left:12px;}
-.app-switch a{color:#c7d0da; text-decoration:none; font-size:.76rem; font-weight:700; padding:6px 10px; border-radius:8px; white-space:nowrap;}
-.app-switch a.on{background:#fff; color:#0b1320;}
-.appbar .signedin{margin-left:auto;}
+/* App header: title is a menu for switching apps; name + gear on the right open Account / Team. */
+.app-menu, .me-menu{position:relative;}
+.app-title{background:none; color:#fff; display:flex; align-items:center; gap:6px; padding:2px 4px; text-align:left; border-radius:8px;}
+.app-title:hover{background:rgba(255,255,255,.08);}
+.app-title .t{display:block; font-size:1.05rem; font-weight:800; letter-spacing:.01em; line-height:1.2;}
+.app-title small{display:block; color:#8fa0b2; font-size:.66rem; font-weight:600; letter-spacing:.08em; text-transform:uppercase;}
+.app-title svg, .me-btn svg.chev{width:16px; height:16px; color:#8fa0b2; flex:none; transition:transform .15s;}
+.app-title[aria-expanded=true] svg{transform:rotate(180deg);}
+.dd{position:absolute; top:calc(100% + 8px); z-index:60; background:var(--panel); color:var(--ink); border:1px solid var(--line); border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,.18); padding:6px; min-width:220px;}
+.dd a, .dd button{display:flex; align-items:center; gap:10px; width:100%; padding:9px 10px; border-radius:8px; background:none; color:var(--ink); text-decoration:none; font-size:.88rem; font-weight:600; text-align:left;}
+.dd a:hover, .dd button:hover{background:var(--panel-2);}
+.dd a.on{background:var(--baby-soft); color:var(--baby-ink);}
+.dd img{width:28px; height:28px; border-radius:7px; flex:none; object-fit:cover;}
+.dd svg{width:18px; height:18px; flex:none; color:var(--sub);}
+.dd small{display:block; color:var(--sub); font-weight:500; font-size:.72rem;}
+.app-menu .dd{left:0;}
+.me-menu{margin-left:auto; display:flex; align-items:center; gap:4px;}
+.me-menu .dd{right:0;}
+.me-name{background:none; color:#c7d0da; font-size:.8rem; font-weight:600; padding:6px 4px; max-width:220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.gear-btn{background:rgba(255,255,255,.08); color:#c7d0da; width:36px; height:36px; display:inline-flex; align-items:center; justify-content:center; padding:0; border-radius:9px;}
+.gear-btn:hover, .gear-btn[aria-expanded=true]{background:rgba(255,255,255,.18); color:#fff;}
+.gear-btn svg{width:19px; height:19px;}
+@media (max-width:820px){ .app-title .t{font-size:.95rem;} .me-name{max-width:34vw; font-size:.74rem;} .dd{min-width:200px;} }
 .b-table{width:100%; border-collapse:collapse; background:var(--panel); border:1px solid var(--line); border-radius:12px; overflow:hidden; font-size:.86rem;}
 .b-table th{background:var(--panel-2); text-align:left; font-size:.68rem; letter-spacing:.06em; text-transform:uppercase; color:var(--sub); padding:9px 10px; border-bottom:1px solid var(--line); white-space:nowrap;}
 .b-table td{padding:8px 10px; border-bottom:1px solid var(--line); vertical-align:middle;}
@@ -638,8 +658,6 @@ main{max-width:1200px; margin:0 auto; padding:18px clamp(16px,3vw,32px) 40px;}
 @media (min-width:821px){ .modal-overlay{align-items:center;} .sheet-card{border-radius:16px;} }
 @media (max-width:820px){
   .form-cols{grid-template-columns:1fr;}
-  .app-switch{margin-left:auto;} .appbar .signedin{display:none;}
-  .appbar h1{font-size:.95rem;}
   .grid3{grid-template-columns:1fr 1fr;}
   .b-table .hide-m{display:none;}
   /* Request tables become stacked cards on a phone. */
@@ -657,19 +675,31 @@ main{max-width:1200px; margin:0 auto; padding:18px clamp(16px,3vw,32px) 40px;}
 </head>
 <body>
 
-<section class="gate" id="screen-loading"><div class="gate-card"><div class="brand"><img src="icon-192.png" alt=""><div><small>Arthrex Portland</small><b>Biologics</b></div></div><p id="loading-msg">Loading…</p></div></section>
-<section class="gate" id="screen-signin" hidden><div class="gate-card"><div class="brand"><img src="icon-192.png" alt=""><div><small>Arthrex Portland</small><b>Biologics</b></div></div>
+<section class="gate" id="screen-loading"><div class="gate-card"><div class="brand"><img src="bio-icon-192.png" alt=""><div><small>Arthrex Portland</small><b>Biologics</b></div></div><p id="loading-msg">Loading…</p></div></section>
+<section class="gate" id="screen-signin" hidden><div class="gate-card"><div class="brand"><img src="bio-icon-192.png" alt=""><div><small>Arthrex Portland</small><b>Biologics</b></div></div>
   <h2>Sign in first</h2><p>Biologics uses the same sign-in as Inventory Requests.</p>
   <a class="btn-primary" style="display:block; text-align:center; text-decoration:none;" href="index.html?next=bio">Go to sign in</a></div></section>
-<section class="gate" id="screen-noaccess" hidden><div class="gate-card"><div class="brand"><img src="icon-192.png" alt=""><div><small>Arthrex Portland</small><b>Biologics</b></div></div>
+<section class="gate" id="screen-noaccess" hidden><div class="gate-card"><div class="brand"><img src="bio-icon-192.png" alt=""><div><small>Arthrex Portland</small><b>Biologics</b></div></div>
   <h2>No access</h2><p><strong id="noaccess-email"></strong> isn't on the team list. Ask an admin to add you.</p><a href="index.html">Back to Inventory Requests</a></div></section>
 
 <div id="app" hidden>
 <header class="appbar">
-  <img class="appbar-logo" src="icon-192.png" alt="">
-  <h1><small>Arthrex Portland</small>Biologics</h1>
-  <nav class="app-switch" aria-label="Switch app"><a href="index.html">Inventory</a><a href="bio.html" class="on" aria-current="page">Biologics</a></nav>
-  <span class="signedin" id="signed-in-as"></span>
+  <img class="appbar-logo" src="bio-icon-192.png" alt="">
+  <div class="app-menu">
+    <button type="button" class="app-title" id="app-title-btn" aria-haspopup="menu" aria-expanded="false"><span><small>Arthrex Portland</small><span class="t">Biologics</span></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></button>
+    <div class="dd" id="app-dd" role="menu" hidden>
+      <a href="index.html" role="menuitem"><img src="icon-192.png" alt=""><span>Inventory Requests<small>Trays, pulls, deliveries, returns</small></span></a>
+      <a href="bio.html" role="menuitem" class="on" aria-current="page"><img src="bio-icon-64.png" alt=""><span>Biologics<small>Grafts, stock, reorder, usage</small></span></a>
+    </div>
+  </div>
+  <div class="me-menu">
+    <button type="button" class="me-name" id="signed-in-as" title="Account">Signed in</button>
+    <button type="button" class="gear-btn" id="gear-btn" aria-label="Settings" aria-haspopup="menu" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
+    <div class="dd" id="gear-dd" role="menu" hidden>
+      <a href="index.html#account" role="menuitem"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4.2-6.5 8-6.5s7 2.5 8 6.5"/></svg><span>Account<small id="gear-account-sub">Your role and sign out</small></span></a>
+      <a href="index.html#team" role="menuitem" id="gear-team" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.5 3.4-5.5 6.5-5.5s5.7 2 6.5 5.5"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18 14.8c1.9.7 3.1 2.5 3.5 5.2"/></svg><span>Team<small>Who can sign in and their roles</small></span></a>
+    </div>
+  </div>
 </header>
 
 <nav class="tabs" id="tabs">
@@ -884,6 +914,9 @@ async function handleUser(user){
 function enterApp(){
   showScreen('app');
   $('#signed-in-as').textContent = me.name;
+  $('#gear-team').hidden = !me.isAdmin;
+  $('#gear-account-sub').textContent = `${me.email} · ${({rep:'Sales Rep',inventory:'Inventory Manager',product:'Product Manager'})[myRole]}`;
+  $('#signed-in-as').onclick = ()=>{ location.href='index.html#account'; };
   // Reps request and see their own; the inventory team (and Product Managers) run requests, stock, reorder and usage.
   const mgr = isManager();
   ['#tab-requests','#tab-stock','#tab-reorder','#tab-usage'].forEach(s=>{ $(s).hidden = !mgr; });
@@ -1258,6 +1291,17 @@ $('#u-export').addEventListener('click', ()=>{
   setTimeout(()=>URL.revokeObjectURL(a.href), 2000);
 });
 
+/* Header menus: app switcher (title) and settings (gear). */
+function wireMenu(btnSel, ddSel){
+  const btn=$(btnSel), dd=$(ddSel);
+  const close=()=>{ dd.hidden=true; btn.setAttribute('aria-expanded','false'); };
+  btn.addEventListener('click', e=>{ e.stopPropagation(); const open=dd.hidden; document.querySelectorAll('.dd').forEach(d=>d.hidden=true); document.querySelectorAll('[aria-haspopup=menu]').forEach(b=>b.setAttribute('aria-expanded','false')); dd.hidden=!open; btn.setAttribute('aria-expanded', String(open)); });
+  dd.addEventListener('click', e=>{ if(e.target.closest('a,button')) close(); });
+  document.addEventListener('click', e=>{ if(!dd.hidden && !e.target.closest(ddSel)) close(); });
+  document.addEventListener('keydown', e=>{ if(e.key==='Escape') close(); });
+}
+wireMenu('#app-title-btn', '#app-dd');
+wireMenu('#gear-btn', '#gear-dd');
 if(window.firebase) boot(); else $('#loading-msg').textContent = 'Could not load. Check your connection and reload.';
 </script>
 </body>

@@ -304,6 +304,9 @@ textarea{resize:vertical; min-height:64px;}
 .ps-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:6px; margin:4px 0 12px;}
 .ps-grid button{padding:0; border:1px solid var(--line); border-radius:8px; overflow:hidden; aspect-ratio:1; background:var(--bg);}
 .ps-grid img{width:100%; height:100%; object-fit:cover; display:block;}
+.fav-star{background:none; border:0; padding:0 4px; min-height:0; margin-left:4px; font-size:1.05rem; line-height:1; color:var(--sub); cursor:pointer; vertical-align:middle; font-weight:400;}
+.fav-star.on{color:#e3a008;}
+.fav-star:hover{color:#e3a008;}
 .ps-label{font-size:.78rem; font-weight:700; color:var(--sub); text-transform:uppercase; letter-spacing:.04em; margin:6px 0 2px;}
 .viewer .pv-split{flex:1; min-height:0; display:flex; flex-direction:column; gap:6px;}
 .viewer .pv-split[hidden]{display:none;}
@@ -659,6 +662,7 @@ textarea{resize:vertical; min-height:64px;}
   <button data-view="requests" id="tab-requests" class="active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h4"/></svg>Requests</button>
   <button data-view="board"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>Schedule</button>
   <button data-view="returns"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-3"/></svg>Returns</button>
+  <button data-view="mytrays" id="tab-mytrays" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.3 6.4 20.2l1.1-6.2L3 9.6l6.2-.9z"/></svg>My Trays</button>
   <button data-view="sst" id="tab-sst"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>SST</button>
   <button data-view="analysis" id="tab-analysis" class="tab-extra"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Analysis</button>
   <button data-view="inventory" id="tab-inventory" class="tab-extra"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8 12 3 3 8v8l9 5 9-5z"/><path d="m3 8 9 5 9-5M12 13v8"/></svg>Inventory</button>
@@ -806,6 +810,17 @@ textarea{resize:vertical; min-height:64px;}
     <div id="board"></div>
   </div>
 
+  <div class="view" id="view-mytrays">
+    <div class="week-nav">
+      <button id="fav-wk-prev" aria-label="Previous week">&larr; Prev</button>
+      <strong id="fav-wk-label"></strong>
+      <button id="fav-wk-next" aria-label="Next week">Next &rarr;</button>
+      <select id="fav-territory"><option value="All">All territories</option></select>
+    </div>
+    <p class="hint">Every case with one of your starred trays, by surgery date. Tap the ☆ next to any tray, anywhere in the app, to add it here.</p>
+    <div id="fav-board"></div>
+  </div>
+
   <div class="view" id="view-analysis">
     <div class="q-head">
       <div><h2 class="page-title">Analysis</h2><p class="hint">Which trays you keep running short on. The ones at the top are worth stocking more of.</p></div>
@@ -909,7 +924,7 @@ textarea{resize:vertical; min-height:64px;}
     <section class="panel narrow">
       <div class="section-head"><h2>Your account</h2></div>
       <dl class="kv"><dt>Name</dt><dd id="acct-name"></dd><dt>Email</dt><dd id="acct-email"></dd><dt>Role</dt><dd id="acct-role-text"></dd><dt>Access</dt><dd id="acct-access"></dd><dt>Territories</dt><dd id="acct-terrs"></dd></dl>
-      <p class="hint" style="margin-top:8px;">An admin sets your role under More → Team. Inventory Managers see the Requests pull queue, SST, Inventory and Analysis. Sales Reps see Add Request with their own request history.</p>
+      <p class="hint" style="margin-top:8px;">An admin sets your role under More → Team. Inventory Managers see the Requests pull queue, SST, Inventory and Analysis. Product Managers see the same except SST, plus My Trays. Sales Reps see Add Request with their own request history.</p>
       <button type="button" class="danger-btn" data-signout>Sign out</button>
     </section>
   </div>
@@ -921,7 +936,7 @@ textarea{resize:vertical; min-height:64px;}
       <form id="team-form" class="team-add">
         <input id="team-email" class="full" type="email" inputmode="email" autocapitalize="off" autocomplete="off" placeholder="name@example.com" required>
         <input id="team-name" placeholder="Name (optional)" autocomplete="off">
-        <select id="team-role" aria-label="Role"><option value="rep">Sales Rep</option><option value="inventory">Inventory Manager</option></select>
+        <select id="team-role" aria-label="Role"><option value="rep">Sales Rep</option><option value="inventory">Inventory Manager</option><option value="product">Product Manager</option></select>
         <label class="check full"><input type="checkbox" id="team-admin"> Admin (can manage the team and roles)</label>
         <div class="full"><label style="margin-top:4px;">Territories <span class="opt">(pick one or more)</span></label><div class="terr-picks" id="team-terrs"></div></div>
         <button type="submit" class="full">Add to team</button>
@@ -1020,7 +1035,7 @@ function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<
 let toastTimer;
 function toast(msg){ const t=$('#toast'); t.textContent=msg; t.hidden=false; clearTimeout(toastTimer); toastTimer=setTimeout(()=>{t.hidden=true;}, 3500); }
 
-for(const sel of ['#f-territory','#hist-territory','#board-territory','#returns-territory','#sst-territory']){
+for(const sel of ['#f-territory','#hist-territory','#board-territory','#returns-territory','#sst-territory','#fav-territory']){
   TERRITORIES.forEach(t=>{const o=document.createElement('option'); o.value=t; o.textContent=t; $(sel).appendChild(o);});
 }
 $('#dl-accounts').innerHTML = ACCOUNTS.map(a=>`<option value="${escapeHtml(a[0])}">${escapeHtml(a[1])}</option>`).join('');
@@ -1035,7 +1050,7 @@ function showScreen(name){
 /* ================= Firebase ================= */
 let auth = null, db = null;
 let me = null;          // {uid, email, name, isAdmin}
-let myRole = null;      // 'rep' | 'inventory'
+let myRole = null;      // 'rep' | 'inventory' | 'product'
 let unsubs = [];
 let inventoryMap = {};
 let allDocs = [];
@@ -1069,9 +1084,10 @@ async function boot(){
 
 function stopListeners(){ unsubs.forEach(u=>{ try{u();}catch(e){} }); unsubs = []; if(typeof closePhotoSheet==='function' && psReqId) closePhotoSheet(); }
 
+const ROLES = ['rep','inventory','product'];
 /* Admins set each person's role on their team record. Older accounts fall back to the role they picked themselves. */
 function roleFrom(member, selfRole, isOwner){
-  if(member && (member.role==='rep' || member.role==='inventory')) return member.role;
+  if(member && ROLES.includes(member.role)) return member.role;
   if(selfRole==='rep' || selfRole==='inventory') return selfRole;
   return isOwner ? 'inventory' : 'rep';
 }
@@ -1133,9 +1149,9 @@ function enterApp(){
     const role = roleFrom(s.exists ? s.data() : null, me.selfRole, me.isOwner);
     if(role!==myRole){
       myRole = role; applyRoleUI(); renderAccount();
-      if(role==='inventory' && activeViewId()==='add' && !editingReqId) showView('requests');
+      if(isManager() && activeViewId()==='add' && !editingReqId) showView('requests');
       renderAll();
-      toast(role==='inventory' ? 'An admin made you an Inventory Manager.' : 'An admin set you as a Sales Rep.');
+      toast(`An admin set you as ${withArticle(roleLabel(role))}.`);
     }
   }, ()=>{}));
 }
@@ -1708,7 +1724,7 @@ function buildCard(r, opts){
   const statusBadges = `<span class="badge ${escapeHtml(status)}">${escapeHtml(status)}</span>` + (opts.showReturned ? (returned ? `<span class="badge returned-yes">Returned</span>` : `<span class="badge returned-no">Not returned</span>`) : '');
   card.innerHTML = `
     <div class="req-top"><span class="req-date">${fmtDate(r.dateNeeded)}</span><span>${escapeHtml(r.territory||'')}</span><span class="badges">${statusBadges}</span></div>
-    <div class="req-tray">${escapeHtml(r.tray||'')}</div>
+    <div class="req-tray">${escapeHtml(r.tray||'')}${favStar(r.tray)}</div>
     ${r.dateRequired ? `<div class="req-by">Needed at the account ${escapeHtml(fmtDate(r.dateRequired))}</div>` : ''}
     <div class="req-meta"><span class="acct">${escapeHtml(r.account||'')}</span>${r.surgeon?`<span class="dot">·</span><span>${escapeHtml(r.surgeon)}</span>`:''}${r.procedure?`<span class="dot">·</span><span>${escapeHtml(r.procedure)}</span>`:''}
       <span class="badge type" style="background:var(${TYPE_VAR[type]||'--line'})">${escapeHtml(type)}</span>${loanerTag(r)}${urgentTag(r)}</div>
@@ -1775,7 +1791,31 @@ function matchesReqFilters(r){
 /* ================= Pull queue (inventory manager) ================= */
 /* Send-by = the rep's "date required at the account", or 1 business day before surgery if they left it blank.
    Pull-by = 1 business day before send-by. */
-function isManager(){ return myRole==='inventory'; }
+// Product Managers see what Inventory Managers see (minus SST), plus their own My Trays page.
+function isManager(){ return myRole==='inventory' || myRole==='product'; }
+function isProductMgr(){ return myRole==='product'; }
+/* Starred trays: saved on the Product Manager's own user record, by tray name. */
+function trayKey(name){ return String(name||'').trim().toUpperCase(); }
+function myFavs(){ return new Set(((me && usersMap[me.uid]) || {}).favTrays || []); }
+function favStar(tray){
+  if(!isProductMgr() || !tray) return '';
+  const on = myFavs().has(trayKey(tray));
+  return `<button type="button" class="fav-star${on?' on':''}" data-tray="${escapeHtml(trayKey(tray))}" aria-pressed="${on}" aria-label="${on?'Unstar':'Star'} ${escapeHtml(tray)}" title="${on?'Remove from My Trays':'Add to My Trays'}">${on?'★':'☆'}</button>`;
+}
+// One listener for every star; runs before the row's own click so tapping a star doesn't open or close the row.
+document.addEventListener('click', async e=>{
+  const b = e.target.closest && e.target.closest('.fav-star'); if(!b) return;
+  e.preventDefault(); e.stopPropagation();
+  if(!me || !isProductMgr()) return;
+  const key = b.dataset.tray, on = myFavs().has(key);
+  const FV = firebase.firestore.FieldValue;
+  // Show the change right away, then save it.
+  const u = usersMap[me.uid] || (usersMap[me.uid] = {});
+  u.favTrays = on ? (u.favTrays||[]).filter(k=>k!==key) : [...(u.favTrays||[]), key];
+  renderAll();
+  try{ await db.doc('users/'+me.uid).set({favTrays: on ? FV.arrayRemove(key) : FV.arrayUnion(key)}, {merge:true}); toast(on ? `Removed ${key} from My Trays.` : `Added ${key} to My Trays.`); }
+  catch(err){ console.error(err); toast('Couldn’t save the star. Try again.'); }
+}, true);
 function addBizDays(iso, n){
   const d = new Date(iso+'T00:00:00'); if(isNaN(d)) return iso;
   const step = n<0 ? -1 : 1; let k = Math.abs(n);
@@ -2179,7 +2219,7 @@ function buildTrayLine(r){
   if(changedAfterPull(r)) tags.push('<span class="tag baby">Changed</span>');
   if(r.sst) tags.push(`<span class="tag outline">SST${r.sstStart?' '+escapeHtml(r.sstStart):''}</span>`);
   el.innerHTML = `${status!=='cancelled' ? `<input type="checkbox" ${status==='fulfilled'?'checked':''} aria-label="Pulled">` : ''}
-    <span class="tl-name"><span>${escapeHtml(r.tray||'')}</span>${tags.join('')}</span>
+    <span class="tl-name"><span>${escapeHtml(r.tray||'')}</span>${favStar(r.tray)}${tags.join('')}</span>
     <span class="tl-actions"></span>
     ${urgentNote(r) ? `<div class="urgent-note">${escapeHtml(urgentNote(r))}</div>` : ''}
     ${r.notes ? `<div class="tl-note">${escapeHtml(r.notes)}</div>` : ''}
@@ -2393,6 +2433,7 @@ function renderHistory(){
       trays.forEach(r=>{
         const t = document.createElement('span'); t.className='h-tray';
         t.textContent = r.tray || '—';
+        if(isProductMgr() && r.tray) t.insertAdjacentHTML('beforeend', favStar(r.tray));
         const st = r.returned ? 'Returned' : (r.delivered ? 'Delivered' : (d > today ? 'Upcoming' : ''));
         if(st){ const i=document.createElement('i'); i.textContent=st; t.appendChild(i); }
         row.querySelector('.h-trays').appendChild(t);
@@ -2473,7 +2514,7 @@ function buildReturnCase(c){
       const line = document.createElement('div'); line.className='tline' + (r.returned ? ' done' : '');
       const status = r.returned ? (missingOpen(r) ? '<span class="tag dark">Missing items</span>' : '<span class="pill done">Returned</span>') : '<span class="pill ns">Not back</span>';
       const pc = r.returnPhotoCount||0;
-      line.innerHTML = `<span class="tl-name"><span>${escapeHtml(r.tray||'')}</span>${status}</span><span class="tl-actions"></span>
+      line.innerHTML = `<span class="tl-name"><span>${escapeHtml(r.tray||'')}</span>${favStar(r.tray)}${status}</span><span class="tl-actions"></span>
         ${r.returned && r.returnMissing ? `<div class="urgent-note">${r.missingResolved ? 'Was missing, now found' : 'Missing'}: ${escapeHtml(r.returnMissingNote||'')}</div>` : ''}
         <div class="comments-box" hidden></div>`;
       const acts = line.querySelector('.tl-actions');
@@ -2586,7 +2627,7 @@ function buildTrayRow(r){
   const row = document.createElement('div'); row.className='tray-row';
   const meta = (r.sstPtId || r.sstStart) ? `<span class="sst-meta">${r.sstPtId?'Pt '+escapeHtml(r.sstPtId):''}${r.sstPtId && r.sstStart?' · ':''}${r.sstStart?escapeHtml(r.sstStart):''}</span>` : '';
   row.innerHTML = `
-    <span class="tray-name">${escapeHtml(r.tray||'')}</span>
+    <span class="tray-name">${escapeHtml(r.tray||'')}${favStar(r.tray)}</span>
     <span class="badge type" style="background:var(${TYPE_VAR[type]||'--line'})">${escapeHtml(type)}</span>
     ${loanerTag(r)}${urgentTag(r)}
     ${meta}
@@ -2642,7 +2683,7 @@ function buildDayCaseRow(c, iso, prefix, mode){
     <span class="x-status">${stagePill(c.trays)}</span>
   </div>`;
   const row = el.querySelector('.xrow');
-  const toggle = ()=>{ open ? boardExpanded.delete(key) : boardExpanded.add(key); mode==='sst' ? renderSst() : renderBoard(); };
+  const toggle = ()=>{ open ? boardExpanded.delete(key) : boardExpanded.add(key); ({sst:renderSst, fav:renderMyTrays}[mode] || renderBoard)(); };
   row.addEventListener('click', toggle);
   row.addEventListener('keydown', e=>{ if(e.key==='Enter' || e.key===' '){ e.preventDefault(); toggle(); } });
   if(open){
@@ -2672,7 +2713,7 @@ function renderDayCases(docs, boardEl, days, dateFn, prefix, mode){
     const sec = document.createElement('section'); sec.className='day-sec';
     sec.innerHTML = `<div class="day-head"><b>${escapeHtml(day.toLocaleDateString(undefined,{weekday:'long', month:'short', day:'numeric'}))}</b>${iso===today?'<span class="tag baby">Today</span>':''}<span class="cnt">${cases.length ? `${cases.length} case${cases.length===1?'':'s'} · ${dayDocs.length} tray${dayDocs.length===1?'':'s'}` : ''}</span></div>`;
     const table = document.createElement('div'); table.className='q-table';
-    if(!cases.length) table.innerHTML = `<div class="day-none">${mode==='sst' ? 'Nothing to send.' : 'No trays scheduled.'}</div>`;
+    if(!cases.length) table.innerHTML = `<div class="day-none">${mode==='sst' ? 'Nothing to send.' : (mode==='fav' ? 'None of your trays.' : 'No trays scheduled.')}</div>`;
     else {
       table.innerHTML = `<div class="x-cols"><span>Case</span><span>Territory</span><span>${mode==='sst'?'Surgery':'Procedure'}</span><span>Trays</span><span>Delivered</span><span></span></div>`;
       numberCases(cases);
@@ -2697,6 +2738,18 @@ function renderSst(){
   renderDayCases(allDocs.filter(r=> r.status!=='cancelled' && r.sst===true && (t==='All' || canonTerr(r.territory)===t)), $('#sst-board'), days, sendByFor, 's', 'sst');
 }
 
+/* My Trays (Product Managers): the schedule, limited to cases that include a starred tray. */
+function renderMyTrays(){
+  const days = weekDays();
+  $('#fav-wk-label').textContent = weekLabel(days);
+  const t = $('#fav-territory').value;
+  const favs = myFavs();
+  const caseHasFav = new Set(allDocs.filter(r=>r.status!=='cancelled' && favs.has(trayKey(r.tray))).map(r=>caseKey(r)));
+  renderDayCases(allDocs.filter(r=> r.status!=='cancelled' && caseHasFav.has(caseKey(r)) && (t==='All' || canonTerr(r.territory)===t)), $('#fav-board'), days, r=>r.dateNeeded, 'f', 'fav');
+}
+$('#fav-wk-prev').addEventListener('click', ()=>{ weekOffset--; renderBoard(); renderSst(); renderMyTrays(); });
+$('#fav-wk-next').addEventListener('click', ()=>{ weekOffset++; renderBoard(); renderSst(); renderMyTrays(); });
+$('#fav-territory').addEventListener('change', renderMyTrays);
 $('#wk-prev').addEventListener('click', ()=>{ weekOffset--; renderBoard(); renderSst(); });
 $('#wk-next').addEventListener('click', ()=>{ weekOffset++; renderBoard(); renderSst(); });
 $('#board-territory').addEventListener('change', renderBoard);
@@ -3177,7 +3230,8 @@ function renderCards(){
 $('#card-search').addEventListener('input', renderCards);
 
 /* ---- account ---- */
-function roleLabel(r){ return r==='inventory' ? 'Inventory Manager' : 'Sales Rep'; }
+function roleLabel(r){ return r==='inventory' ? 'Inventory Manager' : (r==='product' ? 'Product Manager' : 'Sales Rep'); }
+function withArticle(label){ return (/^[AEIOU]/i.test(label) ? 'an ' : 'a ') + label; }
 function renderAccount(){
   if(!me) return;
   $('#acct-name').textContent = me.name;
@@ -3216,12 +3270,12 @@ function memberRow(m){
   else { const s=document.createElement('span'); s.textContent='No territory'; tw.appendChild(s); }
   if(isOwnerRow || m.admin){ const b=document.createElement('span'); b.className='badge admin'; b.textContent= isOwnerRow ? 'Owner' : 'Admin'; el.appendChild(b); }
   // Admins choose each person's role here; it decides which pages they see.
-  const curRole = (m.role==='rep' || m.role==='inventory') ? m.role : ((u && (u.role==='rep'||u.role==='inventory')) ? u.role : (isOwnerRow ? 'inventory' : 'rep'));
+  const curRole = ROLES.includes(m.role) ? m.role : ((u && (u.role==='rep'||u.role==='inventory')) ? u.role : (isOwnerRow ? 'inventory' : 'rep'));
   const rs = document.createElement('select'); rs.className='role-sel'; rs.setAttribute('aria-label', 'Role for '+m.email);
-  rs.innerHTML = '<option value="rep">Sales Rep</option><option value="inventory">Inventory Manager</option>';
+  rs.innerHTML = '<option value="rep">Sales Rep</option><option value="inventory">Inventory Manager</option><option value="product">Product Manager</option>';
   rs.value = curRole;
   rs.onchange = async ()=>{
-    try{ await db.doc('members/'+m.email).set({role: rs.value, ...(isOwnerRow ? {admin:true} : {})}, {merge:true}); toast(`${(u && u.name) || m.name || m.email} is now ${roleLabel(rs.value)==='Inventory Manager'?'an':'a'} ${roleLabel(rs.value)}.`); }
+    try{ await db.doc('members/'+m.email).set({role: rs.value, ...(isOwnerRow ? {admin:true} : {})}, {merge:true}); toast(`${(u && u.name) || m.name || m.email} is now ${withArticle(roleLabel(rs.value))}.`); }
     catch(e){ console.error(e); rs.value = curRole; toast('Could not change the role. Only admins can.'); }
   };
   el.appendChild(rs);
@@ -3292,7 +3346,7 @@ $('#team-form').addEventListener('submit', async e=>{
   if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ msg.textContent='Enter a full email address.'; msg.className='status-msg err'; return; }
   try{
     await db.doc('members/'+email).set({name, admin, role, territories, addedBy: me.email, addedAt: Date.now()}, {merge:true});
-    msg.textContent = `Added ${email} as ${roleLabel(role)==='Inventory Manager'?'an':'a'} ${roleLabel(role)}${territories.length ? ' ('+territories.join(', ')+')' : ''}. Send them the app link and tell them to sign in with this email.`; msg.className='status-msg ok';
+    msg.textContent = `Added ${email} as ${withArticle(roleLabel(role))}${territories.length ? ' ('+territories.join(', ')+')' : ''}. Send them the app link and tell them to sign in with this email.`; msg.className='status-msg ok';
     e.target.reset(); terrPicker($('#team-terrs'), []);
   }catch(err){ console.error(err); msg.textContent='Could not add. Only admins can change the team.'; msg.className='status-msg err'; }
 });
@@ -3310,27 +3364,37 @@ function renderAll(){
   if(psReqId) renderPhotoSheet();
   const v = activeViewId();
   if(v==='board') renderBoard();
+  if(v==='mytrays') renderMyTrays();
   if(v==='sst') renderSst();
   if(v==='inventory') renderInventory();
 }
 document.addEventListener('focusout', ()=>{ if(renderPending) setTimeout(renderAll, 0); });
 
 /* Requests (the pull queue) and SST are for the inventory team; sales reps get Add Request instead. */
-const MANAGER_ONLY = ['requests','sst','inventory','analysis'];
+const MANAGER_ONLY = ['requests','sst','inventory','analysis','mytrays'];
+// Who may open a page: SST is for Inventory Managers only; My Trays is for Product Managers only.
+function canSee(view){
+  if(MANAGER_ONLY.includes(view) && !isManager()) return false;
+  if(view==='sst' && isProductMgr()) return false;
+  if(view==='mytrays' && !isProductMgr()) return false;
+  return true;
+}
 function applyRoleUI(){
   const mgr = isManager();
   ['#tab-requests','#tab-sst','#tab-inventory','#tab-analysis','#more-inventory','#more-analysis'].forEach(sel=>{ $(sel).hidden = !mgr; });
+  $('#tab-sst').hidden = !canSee('sst');
+  $('#tab-mytrays').hidden = !canSee('mytrays');
   $('#tab-add').hidden = mgr;
   // Phone bottom bar: one column per tab that shows there.
   const n = [...document.querySelectorAll('nav.tabs button')].filter(b=>!b.hidden && !b.classList.contains('tab-extra')).length;
   $('#tabs').style.setProperty('--ncol', n);
-  if(!mgr && MANAGER_ONLY.includes(activeViewId())) showView('add');
+  if(!canSee(activeViewId())) showView(mgr ? 'requests' : 'add');
 }
 
 const MORE_VIEWS = ['more','account','team'];
 function showView(view){
   if(view==='team' && !(me && me.isAdmin)) view = 'more';
-  if(MANAGER_ONLY.includes(view) && !isManager()) view = 'add';
+  if(!canSee(view)) view = isManager() ? 'requests' : 'add';
   document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active', v.id==='view-'+view));
   const mobile = matchMedia('(max-width:820px)').matches;
   // Pages without their own tab (Territory History, Team, Account, and on a phone Inventory etc.) light up More.
@@ -3344,6 +3408,7 @@ function showView(view){
   if(view==='add'){ if(!editingReqId && !$('#view-add').classList.contains('m-list')) setAddMode('form'); renderMine(); refreshSurgeonList(); }
   if(view==='requests'){ computeLoaners(); renderRequests(); renderChart(); renderAlerts(); }
   if(view==='board') renderBoard();
+  if(view==='mytrays') renderMyTrays();
   if(view==='analysis') renderAnalysis();
   if(view==='history') renderHistory();
   if(view==='returns') renderReturns();

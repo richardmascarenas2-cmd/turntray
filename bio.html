@@ -683,6 +683,67 @@ main{max-width:1200px; margin:0 auto; padding:18px clamp(16px,3vw,32px) 40px;}
   .req-t td:nth-child(n+3){grid-column:1 / -1;}
   .req-t .b-actions{justify-content:flex-start;}
 }
+
+/* ---- biologic cases ---- */
+.bcase{background:var(--panel); border:1px solid var(--line); border-radius:12px; margin-bottom:8px; overflow:hidden;}
+.bcase.drop{outline:2px dashed var(--accent); outline-offset:-2px; background:var(--baby-soft);}
+.bcase.st-prog > .bc-head{background:#fff6d6; box-shadow:inset 4px 0 0 #e3b008;}
+.bcase.st-done > .bc-head{background:color-mix(in srgb, var(--good) 11%, var(--panel)); box-shadow:inset 4px 0 0 var(--good);}
+.bc-head{display:flex; gap:10px; align-items:flex-start; padding:11px 12px; cursor:pointer;}
+.po-head{cursor:default;}
+.bc-head .chev{width:16px; height:16px; color:var(--sub); flex:none; margin-top:2px; transition:transform .15s;}
+.bcase.open .bc-head .chev{transform:rotate(90deg);}
+.bc-main{flex:1; min-width:0;}
+.bc-main b{display:block; font-size:.92rem;}
+.bc-main small{display:block; color:var(--sub); font-size:.78rem; margin-top:1px;}
+.bc-grafts{display:flex; flex-wrap:wrap; gap:4px; margin-top:6px;}
+.bc-grafts span{font-size:.72rem; font-weight:700; background:var(--panel-2); border:1px solid var(--line); border-radius:6px; padding:1px 6px;}
+.bc-side{display:flex; flex-direction:column; align-items:flex-end; gap:4px; flex:none; text-align:right;}
+.bc-side small{color:var(--sub); font-size:.72rem;}
+.pdf-chip{font-size:.66rem; font-weight:800; color:#b42318; border:1px solid currentColor; border-radius:5px; padding:1px 5px; background:none; letter-spacing:.04em;}
+.bc-body{border-top:1px solid var(--line); padding:10px 12px 12px; background:var(--panel);}
+.bc-note{font-size:.82rem; color:var(--sub); margin-bottom:8px;}
+.bc-lines{display:grid; gap:6px;}
+.bc-line{display:flex; align-items:center; gap:10px; margin:0; padding:8px 10px; border:1px solid var(--line); border-radius:10px; background:var(--panel); color:var(--ink); cursor:pointer; font-size:.86rem;}
+.bc-line.cx{opacity:.55;}
+.bc-line input{width:20px; height:20px; flex:none;}
+.bc-nocheck{width:20px; flex:none;}
+.bc-g{flex:1; min-width:0;}
+.bc-g b{font-size:.88rem;}
+.bc-g .qty{font-weight:700; color:var(--sub);}
+.bc-g small{display:block; color:var(--sub); font-size:.74rem;}
+.exp-past{color:var(--danger); font-weight:700;}
+.exp-soon{color:#a15c00; font-weight:700;}
+.bc-bar{display:flex; flex-wrap:wrap; gap:6px; align-items:center; margin-top:10px;}
+.bc-bar button, .bc-tools button, .po-form button{background:var(--panel); border:1px solid var(--line); padding:8px 12px; font-size:.8rem;}
+.bc-bar button.go, .po-form button.go{background:var(--accent); border-color:var(--accent); color:#fff;}
+.bc-bar button.warn, .bc-tools button.warn{color:var(--danger); border-color:color-mix(in srgb, var(--danger) 40%, var(--line));}
+.bc-bar .bc-all{font-size:.76rem; padding:6px 10px;}
+.bc-tools{display:flex; flex-wrap:wrap; gap:6px; margin-top:10px; padding-top:10px; border-top:1px dashed var(--line);}
+.bc-tools .pdf-open{display:inline-flex; align-items:center; gap:6px; color:#b42318; border-color:color-mix(in srgb, #b42318 35%, var(--line)); max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.bc-tools .pdf-open svg{width:16px; height:16px; flex:none;}
+.bc-photos{margin-top:10px;}
+.bc-thumbs, .ret-thumbs{display:flex; flex-wrap:wrap; gap:6px; margin-top:6px;}
+.bc-thumbs button{padding:0; border:1px solid var(--line); border-radius:8px; overflow:hidden; width:72px; height:72px; background:var(--bg);}
+.bc-thumbs img, .ret-thumbs img{width:72px; height:72px; object-fit:cover; display:block; border-radius:8px;}
+.ps-label{font-size:.72rem; font-weight:700; color:var(--sub); text-transform:uppercase; letter-spacing:.04em;}
+.bc-none{padding:12px 14px; color:var(--sub); font-size:.84rem; border:1px solid var(--line); border-radius:12px; background:var(--panel);}
+.case-locked{background:var(--panel-2); border:1px solid var(--line); border-radius:10px; padding:10px 12px; margin:12px 0 4px;}
+.case-locked b{display:block;} .case-locked small{color:var(--sub);}
+.g-line{margin-bottom:8px;}
+.g-row{display:flex; gap:6px; align-items:flex-start;}
+.g-row .g-search{flex:1; min-width:0;}
+.g-qty-in{width:70px; flex:none; text-align:center;}
+.g-rm{width:40px; min-height:44px; flex:none; background:var(--panel); border:1px solid var(--line); font-size:1.1rem; color:var(--danger);}
+.pk-line{border:1px solid var(--line); border-radius:10px; padding:10px 12px; margin-bottom:8px;}
+.pk-line b{display:block;} .pk-line small{color:var(--sub);}
+.pk-line label{margin-top:8px;}
+.po-form{display:flex; flex-wrap:wrap; gap:6px; align-items:center; padding:0 12px 12px 12px;}
+.po-form input{flex:1 1 180px; width:auto; min-height:38px; padding:7px 10px;}
+.po-num{font-size:.86rem; margin-right:auto;} .po-num small{color:var(--sub);}
+.seg button.active[data-v=no]{background:var(--danger); color:#fff;}
+.seg button.active[data-v=yes]{background:var(--good); color:#fff;}
+@media (max-width:820px){ .bc-side small{display:none;} .po-form{padding:0 12px 12px;} }
 </style>
 </head>
 <body>
@@ -708,8 +769,8 @@ main{max-width:1200px; margin:0 auto; padding:18px clamp(16px,3vw,32px) 40px;}
     <button type="button" class="me-name" id="signed-in-as" title="Account">Signed in</button>
     <button type="button" class="gear-btn" id="gear-btn" aria-label="Settings" aria-haspopup="menu" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
     <div class="dd" id="gear-dd" role="menu" hidden>
-      <a href="index.html#account" role="menuitem"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4.2-6.5 8-6.5s7 2.5 8 6.5"/></svg><span>Account<small id="gear-account-sub">Your role and sign out</small></span></a>
-      <a href="index.html#team" role="menuitem" id="gear-team" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.5 3.4-5.5 6.5-5.5s5.7 2 6.5 5.5"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18 14.8c1.9.7 3.1 2.5 3.5 5.2"/></svg><span>Team<small>Who can sign in and their roles</small></span></a>
+      <button type="button" role="menuitem" data-go="account"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4.2-6.5 8-6.5s7 2.5 8 6.5"/></svg><span>Account<small id="gear-account-sub">Your role and sign out</small></span></button>
+      <button type="button" role="menuitem" data-go="team" id="gear-team" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.5 3.4-5.5 6.5-5.5s5.7 2 6.5 5.5"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18 14.8c1.9.7 3.1 2.5 3.5 5.2"/></svg><span>Team<small>Who can sign in and their roles</small></span></button>
     </div>
   </div>
 </header>
@@ -717,52 +778,51 @@ main{max-width:1200px; margin:0 auto; padding:18px clamp(16px,3vw,32px) 40px;}
 <nav class="tabs" id="tabs">
   <button data-view="requests" id="tab-requests"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h4"/></svg>Requests</button>
   <button data-view="add" id="tab-add"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M12 8v8M8 12h8"/></svg>New Request</button>
-  <button data-view="stock" id="tab-stock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8 12 3 3 8v8l9 5 9-5z"/><path d="m3 8 9 5 9-5M12 13v8"/></svg>Stock</button>
-  <button data-view="reorder" id="tab-reorder"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h2l2.4 11h11.2L21 7H6.2"/><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/></svg>Reorder</button>
-  <button data-view="usage" id="tab-usage"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Usage</button>
+  <button data-view="schedule"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>Schedule</button>
+  <button data-view="returns"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-3"/></svg>Returns</button>
+  <button data-view="po"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M8 13h8M8 17h5"/></svg>PO</button>
+  <button data-view="stock" id="tab-stock" class="tab-extra"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8 12 3 3 8v8l9 5 9-5z"/><path d="m3 8 9 5 9-5M12 13v8"/></svg>Stock</button>
+  <button data-view="reorder" id="tab-reorder" class="tab-extra"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h2l2.4 11h11.2L21 7H6.2"/><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/></svg>Reorder</button>
+  <button data-view="usage" id="tab-usage" class="tab-extra"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Usage</button>
+  <button data-view="more" id="tab-more" class="m-only"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg>More</button>
 </nav>
 
 <main>
-  <!-- Requests -->
+  <!-- Requests (inventory team): everything still to pack or out on a case -->
   <div class="view" id="view-requests">
     <div class="toolbar">
-      <div class="seg" id="req-status">
-        <button data-s="open" class="active">Open</button><button data-s="used">Used</button><button data-s="returned">Returned</button><button data-s="cancelled">Cancelled</button><button data-s="all">All</button>
-      </div>
+      <div class="seg" id="req-status"><button data-s="pack" class="active">To pack</button><button data-s="out">Packed</button><button data-s="all">All open</button></div>
       <select id="req-territory"><option value="All">All territories</option></select>
       <input type="search" id="req-search" placeholder="Search biologic, account, surgeon…">
     </div>
-    <p class="hint" id="req-hint">Pack it, then mark it Used (with the sales order and lot) or Returned. Used grafts come off stock automatically.</p>
+    <p class="hint">Tap a case to open it. Tick the grafts, then Pack (add lot and expiration), Used or Returned. Drag a PDF onto a case to attach it.</p>
     <div id="req-list"></div>
-    <div class="empty" id="req-empty" hidden>No requests here.</div>
+    <div class="empty" id="req-empty" hidden>Nothing here.</div>
   </div>
 
   <!-- New request -->
   <div class="view" id="view-add">
     <div class="form-cols">
       <section class="panel">
-        <div class="section-head"><h2 id="form-title" style="margin:0;">New biologic request</h2><button type="button" class="linkbtn" id="form-cancel-edit" hidden>Stop editing</button></div>
+        <div class="section-head"><h2 id="form-title" style="margin:0;">New biologic request</h2><button type="button" class="linkbtn" id="form-cancel" hidden>Cancel</button></div>
         <form id="req-form" autocomplete="off">
-          <label for="f-graft">Biologic</label>
-          <div class="g-search">
-            <input id="f-graft" placeholder="ABS number or description, e.g. biocartilage" autocomplete="off" spellcheck="false" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="g-list" required>
-            <div class="g-list" id="g-list" role="listbox" hidden></div>
+          <div id="case-fields">
+            <div class="grid2">
+              <div><label for="f-date">Surgery date</label><input id="f-date" type="date" required></div>
+              <div><label for="f-ampm">AM / PM</label><select id="f-ampm"><option value="">—</option><option>AM</option><option>PM</option></select></div>
+            </div>
+            <label for="f-account">Account</label>
+            <input id="f-account" list="dl-accounts" placeholder="e.g. STV" autocapitalize="characters" required>
+            <div class="grid2">
+              <div><label for="f-territory">Territory</label><select id="f-territory" required><option value="">Select…</option></select></div>
+              <div><label for="f-surgeon">Surgeon</label><input id="f-surgeon" list="dl-surgeons" placeholder="e.g. A. Herzka"></div>
+            </div>
+            <label for="f-packon">Pack on <span class="opt">(optional, default is the business day before surgery)</span></label><input id="f-packon" type="date">
           </div>
-          <div class="avail-note" id="f-avail"></div>
-          <div class="grid2">
-            <div><label for="f-qty">Qty</label><input id="f-qty" type="number" inputmode="numeric" min="1" step="1" value="1" required></div>
-            <div><label for="f-ampm">AM / PM</label><select id="f-ampm"><option value="">—</option><option>AM</option><option>PM</option></select></div>
-          </div>
-          <div class="grid2">
-            <div><label for="f-date">Surgery date</label><input id="f-date" type="date" required></div>
-            <div><label for="f-packon">Pack on (optional)</label><input id="f-packon" type="date"></div>
-          </div>
-          <label for="f-account">Account</label>
-          <input id="f-account" list="dl-accounts" placeholder="e.g. STV" autocapitalize="characters" required>
-          <div class="grid2">
-            <div><label for="f-territory">Territory</label><select id="f-territory" required><option value="">Select…</option></select></div>
-            <div><label for="f-surgeon">Surgeon</label><input id="f-surgeon" list="dl-surgeons" placeholder="e.g. A. Herzka"></div>
-          </div>
+          <div class="case-locked" id="case-locked" hidden></div>
+          <label>Biologics</label>
+          <div id="g-lines"></div>
+          <button type="button" class="linkbtn" id="g-add-line">+ Add another biologic</button>
           <label for="f-notes">Notes</label>
           <textarea id="f-notes" rows="2"></textarea>
           <button type="submit" class="btn-primary" id="f-submit">Submit request</button>
@@ -775,6 +835,38 @@ main{max-width:1200px; margin:0 auto; padding:18px clamp(16px,3vw,32px) 40px;}
         <div class="empty" id="mine-empty" hidden>You haven't requested any biologics yet.</div>
       </section>
     </div>
+  </div>
+
+  <!-- Schedule: every case by surgery date, week by week -->
+  <div class="view" id="view-schedule">
+    <div class="week-nav">
+      <button id="wk-prev" aria-label="Previous week">&larr; Prev</button>
+      <strong id="wk-label"></strong>
+      <button id="wk-next" aria-label="Next week">Next &rarr;</button>
+      <select id="sch-territory"><option value="All">All territories</option></select>
+    </div>
+    <p class="hint">Every biologic case by surgery date. Tap a case to see its grafts.</p>
+    <div id="sch-list"></div>
+  </div>
+
+  <!-- Returns: after surgery, mark what was used and what came back -->
+  <div class="view" id="view-returns">
+    <div class="toolbar"><select id="ret-territory"><option value="All">All territories</option></select></div>
+    <p class="hint">After surgery, open the case, tick what was used and tap <b>Used</b> (it moves to the PO page). Tick what came back and tap <b>Returned</b>.</p>
+    <div id="ret-list"></div>
+    <div class="empty" id="ret-empty" hidden>Nothing waiting to be used or returned.</div>
+  </div>
+
+  <!-- PO: used grafts, rep adds the PO, admin closes -->
+  <div class="view" id="view-po">
+    <div class="toolbar">
+      <div class="seg" id="po-status"><button data-s="need" class="active">Needs PO</button><button data-s="ready">Ready to close</button><button data-s="closed">Closed</button></div>
+      <select id="po-territory"><option value="All">All territories</option></select>
+      <input type="search" id="po-search" placeholder="Search biologic, account, surgeon, PO…">
+    </div>
+    <p class="hint" id="po-hint"></p>
+    <div id="po-list"></div>
+    <div class="empty" id="po-empty" hidden>Nothing here.</div>
   </div>
 
   <!-- Stock -->
@@ -793,7 +885,7 @@ main{max-width:1200px; margin:0 auto; padding:18px clamp(16px,3vw,32px) 40px;}
       <input type="search" id="stock-search" placeholder="Search reference or description…">
       <label class="chip" style="font-size:.78rem; padding:6px 10px;"><input type="checkbox" id="stock-below"> Below target only</label>
     </div>
-    <p class="hint">On hand is what's on the shelf. Reserved is what open requests are holding. Available = on hand − reserved, compared to your target (par).</p>
+    <p class="hint">On hand is what's on the shelf or in the freezer. Reserved is what open cases are holding. Available = on hand − reserved, compared to your target (par).</p>
     <div class="b-wrap"><table class="b-table" id="stock-table"></table></div>
     <div class="empty" id="stock-empty" hidden>No biologics yet. Add one above.</div>
   </div>
@@ -801,10 +893,9 @@ main{max-width:1200px; margin:0 auto; padding:18px clamp(16px,3vw,32px) 40px;}
   <!-- Reorder -->
   <div class="view" id="view-reorder">
     <div class="section-head"><h2 style="margin:0;">To order</h2></div>
-    <p class="hint">Everything where available stock is below target, plus anything open requests are short on.</p>
+    <p class="hint">Everything where available stock is below target, plus anything open cases are short on.</p>
     <div class="b-wrap"><table class="b-table" id="order-table"></table></div>
     <div class="empty" id="order-empty" hidden>Everything is at or above target.</div>
-
     <div class="section-head" style="margin-top:22px;"><h2 style="margin:0;">Notes &amp; items of concern</h2></div>
     <form id="note-form" class="toolbar" autocomplete="off">
       <select id="n-kind" style="flex:0 0 150px;"><option value="concern">Item of concern</option><option value="order">Order note</option></select>
@@ -829,30 +920,85 @@ main{max-width:1200px; margin:0 auto; padding:18px clamp(16px,3vw,32px) 40px;}
     <div class="b-wrap"><table class="b-table" id="u-table"></table></div>
     <div class="empty" id="u-empty" hidden>No biologics used in this range.</div>
   </div>
+
+  <!-- More (phones) -->
+  <div class="view" id="view-more">
+    <div class="more-list">
+      <button data-go="stock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8 12 3 3 8v8l9 5 9-5z"/><path d="m3 8 9 5 9-5M12 13v8"/></svg><span>Stock<small>On hand, reserved and targets</small></span></button>
+      <button data-go="reorder"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h2l2.4 11h11.2L21 7H6.2"/><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/></svg><span>Reorder<small>Below target and items of concern</small></span></button>
+      <button data-go="usage"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><span>Usage<small>What was used, by date</small></span></button>
+    </div>
+  </div>
+
+  <!-- Account & Team (from the gear menu) -->
+  <div class="view" id="view-account">
+    <section class="panel narrow">
+      <div class="section-head"><h2>Your account</h2></div>
+      <dl class="kv"><dt>Name</dt><dd id="acct-name"></dd><dt>Email</dt><dd id="acct-email"></dd><dt>Role</dt><dd id="acct-role-text"></dd><dt>Access</dt><dd id="acct-access"></dd><dt>Territories</dt><dd id="acct-terrs"></dd></dl>
+      <p class="hint" style="margin-top:8px;">An admin sets your role under ⚙ → Team. Sales Reps request biologics, see the schedule, mark grafts used or returned and add POs. Inventory and Product Managers also pack, and see Stock, Reorder and Usage.</p>
+      <button type="button" class="danger-btn" id="sign-out">Sign out</button>
+    </section>
+  </div>
+  <div class="view" id="view-team">
+    <section class="panel narrow">
+      <div class="section-head"><h2>Add someone</h2></div>
+      <p class="hint">Only people on this list can sign in, to both Inventory Requests and Biologics. They must use this exact email, with Google or with an email and password.</p>
+      <form id="team-form" class="team-add">
+        <input id="team-email" class="full" type="email" inputmode="email" autocapitalize="off" autocomplete="off" placeholder="name@example.com" required>
+        <input id="team-name" placeholder="Name (optional)" autocomplete="off">
+        <select id="team-role" aria-label="Role"><option value="rep">Sales Rep</option><option value="inventory">Inventory Manager</option><option value="product">Product Manager</option></select>
+        <label class="check full"><input type="checkbox" id="team-admin"> Admin (can manage the team and roles)</label>
+        <div class="full"><label style="margin-top:4px;">Territories <span class="opt">(pick one or more)</span></label><div class="terr-picks" id="team-terrs"></div></div>
+        <button type="submit" class="full">Add to team</button>
+      </form>
+      <div class="status-msg" id="team-msg"></div>
+    </section>
+    <div class="section-head narrow" style="margin-top:18px;"><h2>Team</h2><span class="hint" id="team-count" style="margin:0;"></span></div>
+    <div class="narrow" id="team-list"></div>
+  </div>
 </main>
 </div>
 
-<!-- Mark used -->
+<!-- Pack: lot and expiration for each graft -->
+<div class="modal-overlay" id="pack-sheet" hidden>
+  <form class="sheet-card" id="pack-form" autocomplete="off">
+    <div class="section-head"><h2 style="margin:0;">Pack</h2><button type="button" class="linkbtn" data-close>Cancel</button></div>
+    <p class="hint" id="pack-sub"></p>
+    <div id="pack-lines"></div>
+    <button type="submit" class="btn-primary">Mark packed</button>
+  </form>
+</div>
+<!-- Used: pick sizes where the request was for "any size" -->
 <div class="modal-overlay" id="used-sheet" hidden>
   <form class="sheet-card" id="used-form" autocomplete="off">
-    <div class="section-head"><h2 style="margin:0;" id="used-title">Mark used</h2><button type="button" class="linkbtn" id="used-close">Cancel</button></div>
-    <p class="hint" id="used-sub"></p>
-    <div class="grid2">
-      <div><label for="u-qty">Qty used</label><input id="u-qty" type="number" min="1" step="1" required></div>
-      <div><label for="u-lot">Lot number</label><input id="u-lot"></div>
-    </div>
-    <div id="u-size-wrap" hidden><label for="u-size">Size used</label><select id="u-size"></select></div>
-    <label for="u-so">Sales order (number or RedSpot link)</label><input id="u-so">
-    <label for="u-po">PO</label><input id="u-po">
+    <div class="section-head"><h2 style="margin:0;">Mark used</h2><button type="button" class="linkbtn" data-close>Cancel</button></div>
+    <p class="hint">These come off stock and move to the PO page.</p>
+    <div id="used-lines"></div>
     <button type="submit" class="btn-primary">Mark used</button>
   </form>
 </div>
+<!-- Returned: back on the shelf/freezer? + optional photo -->
+<div class="modal-overlay" id="ret-sheet" hidden>
+  <form class="sheet-card" id="ret-form" autocomplete="off">
+    <div class="section-head"><h2 style="margin:0;">Returned</h2><button type="button" class="linkbtn" data-close>Cancel</button></div>
+    <p class="hint" id="ret-sub"></p>
+    <label style="margin-top:4px;">Returned to shelf/freezer?</label>
+    <div class="seg" id="ret-shelf" style="display:flex;"><button type="button" data-v="yes" style="flex:1;">Yes</button><button type="button" data-v="no" style="flex:1;">No</button></div>
+    <p class="hint" id="ret-shelf-hint" style="margin:6px 0 0;"></p>
+    <label>Photo <span class="opt">(optional)</span></label>
+    <input type="file" id="ret-photo" accept="image/*" capture="environment" multiple>
+    <div class="ret-thumbs" id="ret-thumbs"></div>
+    <button type="submit" class="btn-primary" id="ret-submit">Mark returned</button>
+  </form>
+</div>
+<!-- Photo viewer -->
+<div class="viewer" id="photo-viewer" hidden><img id="pv-img" alt="Return photo"><div class="pv-bar"><span id="pv-meta"></span><button type="button" id="pv-close">Close</button></div></div>
+<input type="file" id="pdf-input" accept="application/pdf" hidden>
 
 <datalist id="dl-grafts"></datalist>
 <datalist id="dl-accounts"></datalist>
 <datalist id="dl-surgeons"></datalist>
 <div class="toast" id="toast" hidden></div>
-
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
@@ -888,17 +1034,18 @@ function todayIso(){ return isoDate(new Date()); }
 
 /* ================= State ================= */
 let auth=null, db=null, me=null, myRole='rep';
-let stock = [];        // {id, ref, desc, qty, target}
-let bioReqs = [];      // biologic requests
+let stock = [];        // {id, ref, type, desc, qty, target}
+let bioReqs = [];      // one doc per graft line; lines of one case share caseId
 let notes = [];        // reorder notes / items of concern
+let usersMap = {}, membersList = [];
 let surgeonNames = [];
-let reqStatus = 'open';
-let editingId = null;
-let usedFor = null;
 const ROLES = ['rep','inventory','product'];
 const isManager = ()=> myRole==='inventory' || myRole==='product';
 const refKey = ref => String(ref||'').trim().toUpperCase();
 const docIdFor = ref => refKey(ref).replace(/\//g,'∕').slice(0,200) || 'BLANK';
+function roleLabel(r){ return r==='inventory' ? 'Inventory Manager' : (r==='product' ? 'Product Manager' : 'Sales Rep'); }
+function withArticle(label){ return (/^[AEIOU]/i.test(label) ? 'an ' : 'a ') + label; }
+function myTerrs(){ return (me && me.territories || []).map(canonTerr).filter(t=>TERRITORIES.includes(t)); }
 
 /* ================= Screens & sign-in ================= */
 function showScreen(name){
@@ -912,7 +1059,9 @@ async function boot(){
   auth = firebase.auth(); db = firebase.firestore();
   auth.onAuthStateChanged(handleUser);
 }
+let unsubs = [];
 async function handleUser(user){
+  unsubs.forEach(u=>{ try{u();}catch(e){} }); unsubs = [];
   if(!user){ showScreen('signin'); return; }
   const email = (user.email||'').toLowerCase();
   const isOwner = email===OWNER_EMAIL.toLowerCase();
@@ -922,38 +1071,56 @@ async function handleUser(user){
   let selfRole = null;
   try{ const u = await db.doc('users/'+user.uid).get(); if(u.exists) selfRole = u.data().role || null; }catch(e){}
   myRole = (member && ROLES.includes(member.role)) ? member.role : ((selfRole==='rep'||selfRole==='inventory') ? selfRole : (isOwner ? 'inventory' : 'rep'));
-  me = { uid:user.uid, email, name: user.displayName || (member && member.name) || email.split('@')[0], isAdmin: isOwner || !!(member && member.admin),
+  me = { uid:user.uid, email, isOwner, name: user.displayName || (member && member.name) || email.split('@')[0], isAdmin: isOwner || !!(member && member.admin),
          territories: (member && Array.isArray(member.territories)) ? member.territories.map(canonTerr) : [] };
   enterApp();
 }
+let started = false;
 function enterApp(){
   showScreen('app');
   $('#signed-in-as').textContent = me.name;
   $('#gear-team').hidden = !me.isAdmin;
-  $('#gear-account-sub').textContent = `${me.email} · ${({rep:'Sales Rep',inventory:'Inventory Manager',product:'Product Manager'})[myRole]}`;
-  $('#signed-in-as').onclick = ()=>{ location.href='index.html#account'; };
-  // Reps request and see their own; the inventory team (and Product Managers) run requests, stock, reorder and usage.
-  const mgr = isManager();
-  ['#tab-requests','#tab-stock','#tab-reorder','#tab-usage'].forEach(s=>{ $(s).hidden = !mgr; });
-  $('#tabs').style.setProperty('--ncol', [...document.querySelectorAll('nav.tabs button')].filter(b=>!b.hidden).length);
-  for(const sel of ['#f-territory','#req-territory','#u-territory']) TERRITORIES.forEach(t=>{ const o=document.createElement('option'); o.value=t; o.textContent=t; $(sel).appendChild(o); });
-  $('#dl-accounts').innerHTML = ACCOUNTS.map(a=>`<option value="${escapeHtml(a[0])}">${escapeHtml(a[1])}</option>`).join('');
-  if(me.territories.length) $('#f-territory').value = me.territories[0];
-  if(!mgr && me.territories.length===1) $('#req-territory').value = me.territories[0];
-  showView(mgr ? 'requests' : 'add');
-  db.collection('bioStock').onSnapshot(snap=>{ stock = snap.docs.map(d=>({id:d.id, ...d.data()})); refreshGraftList(); renderAll(); }, listenErr);
-  db.collection('bioRequests').onSnapshot(snap=>{ bioReqs = snap.docs.map(d=>({id:d.id, ...d.data()})); refreshSurgeons(); renderAll(); }, listenErr);
-  if(mgr) db.collection('bioNotes').onSnapshot(snap=>{ notes = snap.docs.map(d=>({id:d.id, ...d.data()})); renderAll(); }, listenErr);
-  // Surgeon names already used on tray requests, so the list isn't empty on day one.
+  applyRoleUI();
+  if(!started){
+    started = true;
+    for(const sel of ['#f-territory','#req-territory','#sch-territory','#ret-territory','#po-territory','#u-territory']) TERRITORIES.forEach(t=>{ const o=document.createElement('option'); o.value=t; o.textContent=t; $(sel).appendChild(o); });
+    $('#dl-accounts').innerHTML = ACCOUNTS.map(a=>`<option value="${escapeHtml(a[0])}">${escapeHtml(a[1])}</option>`).join('');
+    terrPicker($('#team-terrs'), []);
+  }
+  // Reps start on their own territory; the menus still offer every territory.
+  const mine = myTerrs();
+  if(mine.length) $('#f-territory').value = mine[0];
+  if(myRole==='rep' && mine.length===1) ['#sch-territory','#ret-territory','#po-territory'].forEach(s=>$(s).value = mine[0]);
+  resetForm();
+  const hv = location.hash.replace('#','');
+  showView(['account','team'].includes(hv) ? hv : (isManager() ? 'requests' : 'add'));
+  if(hv) history.replaceState(null, '', location.pathname + location.search);
+  unsubs.push(db.collection('bioStock').onSnapshot(snap=>{ stock = snap.docs.map(d=>({id:d.id, ...d.data()})); refreshGraftList(); renderAll(); }, listenErr));
+  unsubs.push(db.collection('bioRequests').onSnapshot(snap=>{ bioReqs = snap.docs.map(d=>({id:d.id, ...d.data()})); refreshSurgeons(); renderAll(); }, listenErr));
+  unsubs.push(db.collection('users').onSnapshot(snap=>{ usersMap = {}; snap.docs.forEach(d=>{ usersMap[d.id] = d.data(); }); if(activeViewId()==='team') renderTeam(); }, console.error));
+  if(isManager()) unsubs.push(db.collection('bioNotes').onSnapshot(snap=>{ notes = snap.docs.map(d=>({id:d.id, ...d.data()})); renderAll(); }, listenErr));
+  if(me.isAdmin) unsubs.push(db.collection('members').onSnapshot(snap=>{ membersList = snap.docs.map(d=>({email:d.id, ...d.data()})); if(activeViewId()==='team') renderTeam(); }, console.error));
+  // Pick up role or territory changes an admin makes while the page is open.
+  unsubs.push(db.doc('members/'+me.email).onSnapshot(s=>{
+    if(!s.exists) return; const d = s.data();
+    const role = ROLES.includes(d.role) ? d.role : myRole;
+    const tr = Array.isArray(d.territories) ? d.territories.map(canonTerr) : [];
+    if(role!==myRole || JSON.stringify(tr)!==JSON.stringify(me.territories)){ myRole = role; me.territories = tr; me.isAdmin = me.isOwner || !!d.admin; $('#gear-team').hidden = !me.isAdmin; applyRoleUI(); renderAll(); }
+  }, ()=>{}));
   db.collection('requests').get().then(s=>{ surgeonNames = s.docs.map(d=>d.data().surgeon).filter(Boolean); refreshSurgeons(); }).catch(()=>{});
 }
 function listenErr(err){
   console.error(err);
   if(err && err.code==='permission-denied') toast('Biologics isn’t turned on yet. An admin needs to publish the latest security rules in Firebase.');
 }
+$('#sign-out').addEventListener('click', ()=>{ unsubs.forEach(u=>{ try{u();}catch(e){} }); unsubs=[]; auth.signOut().then(()=>{ location.href='index.html'; }); });
+$('#signed-in-as').addEventListener('click', ()=>showView('account'));
+document.querySelectorAll('#gear-dd [data-go]').forEach(b=>b.addEventListener('click', ()=>showView(b.dataset.go)));
 
 /* ================= Stock math ================= */
 const OPEN = s => s==='requested' || s==='pulled';
+// A graft is spoken for while it's requested, packed, or back but not yet on the shelf/freezer.
+const HOLDS = r => OPEN(r.status) || (r.status==='returned' && r.onShelf===false);
 /* Grafts can be stocked by size (e.g. "FQL [10 x 63 mm]") under one graft type ("FQL").
    The target (par) belongs to the type; on-hand is counted per size and added up per type. */
 function stockFor(ref){ return stock.find(s=>refKey(s.ref)===refKey(ref)); }
@@ -963,15 +1130,11 @@ function rowsOfType(t){ return stock.filter(s=>typeOf(s)===refKey(t)); }
 function typeForRef(ref){ const s=stockFor(ref); if(s) return typeOf(s); const k=refKey(ref); return allTypes().includes(k) ? k : null; }
 function targetOfType(t){ const r=rowsOfType(t).find(s=>typeof s.target==='number'); return r ? r.target : null; }
 function onHandOfType(t){ return rowsOfType(t).reduce((n,s)=>n+(+s.qty||0),0); }
-function reservedFor(ref, excludeId){ return bioReqs.filter(r=>OPEN(r.status) && r.id!==excludeId && refKey(r.graft)===refKey(ref)).reduce((n,r)=>n+(+r.qty||0),0); }
-function reservedOfType(t, excludeId){ return bioReqs.filter(r=>OPEN(r.status) && r.id!==excludeId && typeForRef(r.graft)===refKey(t)).reduce((n,r)=>n+(+r.qty||0),0); }
-function availableOfType(t, excludeId){ return onHandOfType(t) - reservedOfType(t, excludeId); }
-function availableFor(ref, excludeId){ const t=typeForRef(ref); return t===null ? null : availableOfType(t, excludeId); }
+function reservedFor(ref, excludeIds){ const ex = new Set(excludeIds||[]); return bioReqs.filter(r=>HOLDS(r) && !ex.has(r.id) && refKey(r.graft)===refKey(ref)).reduce((n,r)=>n+(+r.qty||0),0); }
+function reservedOfType(t, excludeIds){ const ex = new Set(excludeIds||[]); return bioReqs.filter(r=>HOLDS(r) && !ex.has(r.id) && typeForRef(r.graft)===refKey(t)).reduce((n,r)=>n+(+r.qty||0),0); }
+function availableOfType(t, excludeIds){ return onHandOfType(t) - reservedOfType(t, excludeIds); }
 function refreshGraftList(){
-  // Every size, plus each graft type on its own for "any size".
-  const opts = stock.map(s=>({v:s.ref, d:s.desc||''}));
-  allTypes().forEach(t=>{ if(!stockFor(t)){ const r=rowsOfType(t)[0]; opts.push({v:t, d:`${r.desc||''} · any size`}); } });
-  $('#dl-grafts').innerHTML = opts.sort((a,b)=>refKey(a.v).localeCompare(refKey(b.v))).map(o=>`<option value="${escapeHtml(o.v)}">${escapeHtml(o.d)}</option>`).join('');
+  $('#dl-grafts').innerHTML = stock.slice().sort((a,b)=>refKey(a.ref).localeCompare(refKey(b.ref))).map(s=>`<option value="${escapeHtml(s.ref)}">${escapeHtml(s.desc||'')}</option>`).join('');
 }
 function refreshSurgeons(){
   const names = [...new Set(bioReqs.map(r=>r.surgeon).concat(surgeonNames).map(s=>String(s||'').trim()).filter(Boolean))].sort();
@@ -979,145 +1142,470 @@ function refreshSurgeons(){
 }
 
 /* ================= Navigation ================= */
-const MANAGER_ONLY = ['requests','stock','reorder','usage'];
+const MANAGER_ONLY = ['requests','stock','reorder','usage','more'];
+function applyRoleUI(){
+  const mgr = isManager();
+  ['#tab-requests','#tab-stock','#tab-reorder','#tab-usage','#tab-more'].forEach(s=>{ $(s).hidden = !mgr; });
+  $('#tabs').style.setProperty('--ncol', [...document.querySelectorAll('nav.tabs button')].filter(b=>!b.hidden && !b.classList.contains('tab-extra')).length);
+  if(MANAGER_ONLY.includes(activeViewId()) && !mgr) showView('add');
+}
 function activeViewId(){ const v=document.querySelector('.view.active'); return v ? v.id.replace('view-','') : ''; }
 function showView(view){
   if(MANAGER_ONLY.includes(view) && !isManager()) view = 'add';
+  if(view==='team' && !(me && me.isAdmin)) view = 'account';
   document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active', v.id==='view-'+view));
-  document.querySelectorAll('nav.tabs button').forEach(b=>b.classList.toggle('active', b.dataset.view===view));
-  if(view!=='add' && editingId) stopEditing();
+  const mobile = matchMedia('(max-width:820px)').matches;
+  document.querySelectorAll('nav.tabs button').forEach(b=>b.classList.toggle('active', b.dataset.view===view || (b.dataset.view==='more' && mobile && ['stock','reorder','usage'].includes(view))));
   renderAll(); window.scrollTo(0,0);
 }
 document.querySelectorAll('nav.tabs button').forEach(b=>b.addEventListener('click', ()=>showView(b.dataset.view)));
+document.querySelectorAll('.more-list [data-go]').forEach(b=>b.addEventListener('click', ()=>showView(b.dataset.go)));
 function renderAll(){
   if(!me) return;
   const v = activeViewId();
   if(v==='requests') renderRequests();
-  if(v==='add'){ renderMine(); refreshAvail(); }
+  if(v==='add'){ renderMine(); refreshAllAvail(); }
+  if(v==='schedule') renderSchedule();
+  if(v==='returns') renderReturns();
+  if(v==='po') renderPO();
   if(v==='stock') renderStock();
   if(v==='reorder') renderReorder();
   if(v==='usage') renderUsage();
+  if(v==='account') renderAccount();
+  if(v==='team') renderTeam();
 }
 
-/* ================= Requests ================= */
+/* ================= Cases ================= */
+/* One request (case) can hold several grafts. Each graft is its own line so it can be packed,
+   used or returned on its own; the case keeps one PDF and one PO. */
 const ST_LABEL = {requested:'Requested', pulled:'Packed', used:'Used', returned:'Returned', cancelled:'Cancelled'};
-function packOnFor(r){ return r.packOn || (r.dateNeeded ? addBizDays(r.dateNeeded, -1) : ''); }
-function matchesSearch(r, q){ return !q || [r.graft, r.desc, r.account, (accMap.get(refKey(r.account))||{}).name, r.surgeon, r.person, r.notes, r.salesOrder, r.lot].join(' ').toLowerCase().includes(q); }
-function reqRow(r, opts){
-  opts = opts || {};
-  const tr = document.createElement('tr');
-  const s = stockFor(r.graft);
-  const avail = OPEN(r.status) ? availableFor(r.graft) : null;
-  const short = avail!==null && avail < 0;
-  const so = r.salesOrder ? (/^https?:\/\//.test(r.salesOrder) ? `<a href="${escapeHtml(r.salesOrder)}" target="_blank" rel="noopener">Sales order</a>` : `SO ${escapeHtml(r.salesOrder)}`) : '';
-  tr.innerHTML = `
-    <td><div class="ref">${escapeHtml(r.graft||'')}</div><div class="desc">${escapeHtml(r.desc || (s&&s.desc) || '')}</div>${short?'<div class="short" style="font-size:.74rem;">Not enough in stock</div>':''}</td>
-    <td class="num">${+r.qty||0}</td>
-    <td><div>${escapeHtml([r.account, r.surgeon].filter(Boolean).join(' · '))}</div><div class="desc">${escapeHtml([canonTerr(r.territory), r.person].filter(Boolean).join(' · '))}</div></td>
-    <td class="hide-m"><div>${escapeHtml(fmtDate(r.dateNeeded))}${r.ampm?' · '+escapeHtml(r.ampm):''}</div><div class="desc">Pack ${escapeHtml(fmtDate(packOnFor(r)))}</div></td>
-    <td><span class="st ${r.status}">${ST_LABEL[r.status]||r.status}</span>${r.status==='used' ? `<div class="desc">${[r.lot?'Lot '+escapeHtml(r.lot):'', so, r.po?'PO '+escapeHtml(r.po):''].filter(Boolean).join(' · ')}</div>` : ''}${r.notes?`<div class="desc">${escapeHtml(r.notes)}</div>`:''}</td>
-    <td><div class="b-actions"></div></td>`;
-  const box = tr.querySelector('.b-actions');
-  const add = (label, cls, fn)=>{ const b=document.createElement('button'); b.type='button'; b.textContent=label; if(cls) b.className=cls; b.onclick=fn; box.appendChild(b); };
-  const mgr = isManager(), mine = r.requestedById===me.uid;
-  if(mgr){
-    if(r.status==='requested') add('Packed','go',()=>setStatus(r,'pulled'));
-    if(r.status==='pulled'){ add('Used','go',()=>openUsed(r)); add('Returned','',()=>setStatus(r,'returned')); add('Unpack','',()=>setStatus(r,'requested')); }
-    if(r.status==='used') add('Undo used','',()=>undoUsed(r));
-    if(r.status==='returned' || r.status==='cancelled') add('Reopen','',()=>setStatus(r,'requested'));
+const caseIdOf = r => r.caseId || r.id;
+function packOnFor(c){ return c.packOn || (c.date ? addBizDays(c.date, -1) : ''); }
+function groupCases(lines){
+  const m = new Map();
+  lines.forEach(r=>{
+    const k = caseIdOf(r);
+    if(!m.has(k)) m.set(k, {id:k, date:r.dateNeeded||'', account:r.account||'', surgeon:r.surgeon||'', territory:canonTerr(r.territory)||'', ampm:r.ampm||'', packOn:r.packOn||'', person:r.person||'', requestedById:r.requestedById||'', notes:r.notes||'', lines:[]});
+    m.get(k).lines.push(r);
+  });
+  for(const c of m.values()){
+    c.lines.sort((a,b)=>(a.createdAt||0)-(b.createdAt||0) || refKey(a.graft).localeCompare(refKey(b.graft)));
+    const f = c.lines.find(l=>l.pdfName); c.pdfName = f ? f.pdfName : ''; c.pdfByName = f ? f.pdfByName : '';
+    const p = c.lines.find(l=>l.poNumber); c.poNumber = p ? p.poNumber : '';
   }
-  if(OPEN(r.status) && (mgr || mine)){ add('Edit','',()=>startEditing(r)); add('Cancel','warn',()=>setStatus(r,'cancelled')); }
-  if(r.status==='cancelled' && (me.isAdmin || mine)) add('Delete','warn',()=>deleteReq(r));
-  return tr;
+  return [...m.values()];
 }
-function tableHead(){ return '<thead><tr><th>Biologic</th><th class="num">Qty</th><th>Account · Surgeon</th><th class="hide-m">Surgery</th><th>Status</th><th></th></tr></thead>'; }
-function renderReqTable(container, list, emptyEl){
+function linesOfCase(id){ return bioReqs.filter(r=>caseIdOf(r)===id); }
+function caseMatches(c, q){ return !q || [c.account, (accMap.get(refKey(c.account))||{}).name, c.surgeon, c.person, c.notes, c.poNumber, ...c.lines.flatMap(l=>[l.graft, l.desc, l.lot, l.usedRef, l.poNumber, l.salesOrder])].join(' ').toLowerCase().includes(q); }
+function expClass(iso){ if(!iso) return ''; const days = (new Date(iso+'T00:00:00') - new Date(todayIso()+'T00:00:00'))/86400000; return days < 0 ? 'exp-past' : (days <= 7 ? 'exp-soon' : ''); }
+function fmtShort(iso){ if(!iso) return ''; const d=new Date(iso+'T00:00:00'); return isNaN(d) ? iso : d.toLocaleDateString(undefined,{month:'short', day:'numeric', year: d.getFullYear()!==new Date().getFullYear() ? 'numeric' : undefined}); }
+function caseStatus(c){
+  const live = c.lines.filter(l=>l.status!=='cancelled');
+  if(!live.length) return {cls:'cancelled', text:'Cancelled'};
+  if(live.some(l=>l.status==='returned' && l.onShelf===false)) return {cls:'pulled', text:'Not on shelf yet'};
+  if(live.every(l=>l.status==='used' || l.status==='returned')) return live.some(l=>l.status==='used') ? {cls:'used', text:'Done'} : {cls:'returned', text:'Returned'};
+  if(live.some(l=>l.status==='requested')) return live.some(l=>l.status!=='requested') ? {cls:'pulled', text:'Partly packed'} : {cls:'requested', text:'Requested'};
+  return {cls:'pulled', text:'Packed'};
+}
+const openCases = new Set();          // which cases are expanded
+const picked = new Map();             // caseId -> Set of selected line ids
+const photoCache = new Map();         // caseId -> [{data, authorName, at}]
+function pickSet(id){ if(!picked.has(id)) picked.set(id, new Set()); return picked.get(id); }
+
+/* A case card: tap to open; inside, tick grafts and act on them. Used everywhere (Requests, Schedule, Returns, My requests). */
+function buildCase(c, opts){
+  opts = opts || {};
+  const el = document.createElement('div'); el.className='bcase';
+  const st = caseStatus(c), isOpen = openCases.has(c.id) || opts.alwaysOpen;
+  const live = c.lines.filter(l=>l.status!=='cancelled');
+  const n = live.reduce((k,l)=>k+(+l.qty||0),0);
+  const done = live.filter(l=>l.status==='used' || (l.status==='returned' && l.onShelf!==false)).length;
+  el.classList.toggle('open', isOpen);
+  el.classList.toggle('st-prog', st.cls==='pulled');
+  el.classList.toggle('st-done', st.cls==='used' || st.cls==='returned');
+  el.innerHTML = `<div class="bc-head" role="button" tabindex="0" aria-expanded="${isOpen}">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>
+      <div class="bc-main"><b>${escapeHtml([c.account||'—', c.surgeon].filter(Boolean).join(' · '))}</b>
+        <small>${escapeHtml([opts.showDate===false ? '' : 'Surgery '+fmtDate(c.date)+(c.ampm?' '+c.ampm:''), 'pack '+fmtShort(packOnFor(c)), c.territory, c.person].filter(Boolean).join(' · '))}</small>
+        <div class="bc-grafts">${live.slice(0,4).map(l=>`<span>${escapeHtml(l.usedRef||l.graft)}${+l.qty>1?' ×'+l.qty:''}</span>`).join('')}${live.length>4?`<span>+${live.length-4} more</span>`:''}</div></div>
+      <div class="bc-side">${c.pdfName?'<span class="pdf-chip" title="PDF attached">PDF</span>':''}<span class="st ${st.cls}">${st.text}</span><small>${done}/${live.length} done · ${n} graft${n===1?'':'s'}</small></div>
+    </div>`;
+  const head = el.querySelector('.bc-head');
+  const toggle = ()=>{ openCases.has(c.id) ? openCases.delete(c.id) : openCases.add(c.id); renderAll(); };
+  if(!opts.alwaysOpen){ head.addEventListener('click', toggle); head.addEventListener('keydown', e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); toggle(); } }); }
+  // Admins can drop a PDF anywhere on the case.
+  if(me.isAdmin){
+    el.addEventListener('dragover', e=>{ if([...e.dataTransfer.types].includes('Files')){ e.preventDefault(); el.classList.add('drop'); } });
+    el.addEventListener('dragleave', e=>{ if(!el.contains(e.relatedTarget)) el.classList.remove('drop'); });
+    el.addEventListener('drop', e=>{ e.preventDefault(); el.classList.remove('drop'); const f=[...e.dataTransfer.files].find(f=>f.type==='application/pdf' || /\.pdf$/i.test(f.name)); if(f) uploadPdf(c, f); else toast('Drop a PDF file.'); });
+  }
+  if(isOpen) el.appendChild(caseBody(c, opts));
+  return el;
+}
+function caseBody(c, opts){
+  const box = document.createElement('div'); box.className='bc-body';
+  const sel = pickSet(c.id);
+  // Drop selections for lines that changed state or vanished.
+  [...sel].forEach(id=>{ if(!c.lines.some(l=>l.id===id)) sel.delete(id); });
+  const mgr = isManager();
+  const mineCase = c.requestedById===me.uid;
+  const actionable = l => l.status==='requested' || l.status==='pulled' || (mgr && (l.status==='used' || l.status==='returned'));
+  if(c.notes) box.insertAdjacentHTML('beforeend', `<div class="bc-note">${escapeHtml(c.notes)}</div>`);
+  const list = document.createElement('div'); list.className='bc-lines';
+  c.lines.forEach(l=>{
+    const row = document.createElement('label'); row.className='bc-line' + (l.status==='cancelled'?' cx':'');
+    const s = stockFor(l.usedRef||l.graft);
+    const desc = l.desc || (s && s.desc) || '';
+    const avail = OPEN(l.status) ? availableOfType(typeForRef(l.graft)||'') : null;
+    const meta = [
+      l.lot ? 'Lot '+escapeHtml(l.lot) : '',
+      l.expiresAt ? `<span class="${expClass(l.expiresAt)}">Exp ${escapeHtml(fmtShort(l.expiresAt))}</span>` : '',
+      l.status==='used' && l.poNumber ? 'PO '+escapeHtml(l.poNumber) : '',
+      l.status==='returned' ? (l.onShelf===false ? '<span class="exp-soon">Not on shelf yet</span>' : 'On shelf') : '',
+      (l.status==='requested' && typeForRef(l.graft)!==null && avail<0) ? '<span class="exp-past">Not enough in stock</span>' : (l.status==='requested' && typeForRef(l.graft)===null ? '<span class="exp-past">Not in stock list</span>' : '')
+    ].filter(Boolean).join(' · ');
+    row.innerHTML = `${actionable(l) ? `<input type="checkbox" ${sel.has(l.id)?'checked':''} aria-label="Select ${escapeHtml(l.graft)}">` : '<span class="bc-nocheck"></span>'}
+      <span class="bc-g"><b>${escapeHtml(l.usedRef||l.graft)}</b>${+l.qty>1?` <span class="qty">×${+l.qty}</span>`:''}<small>${escapeHtml(desc)}</small>${meta?`<small>${meta}</small>`:''}</span>
+      <span class="st ${l.status}">${ST_LABEL[l.status]||l.status}</span>`;
+    const cb = row.querySelector('input');
+    if(cb) cb.addEventListener('change', ()=>{ cb.checked ? sel.add(l.id) : sel.delete(l.id); updateBar(); });
+    list.appendChild(row);
+  });
+  box.appendChild(list);
+  // Action bar for the ticked grafts.
+  const bar = document.createElement('div'); bar.className='bc-bar';
+  const selected = ()=>c.lines.filter(l=>sel.has(l.id));
+  const fitsFor = show => l => show.split(',').includes(l.status) || (show.includes('notshelf') && l.status==='returned' && l.onShelf===false);
+  // Each button acts on the ticked grafts it applies to (e.g. Returned skips ones already used).
+  const btn = (label, cls, fn, show)=>{ const b=document.createElement('button'); b.type='button'; b.textContent=label; if(cls) b.className=cls; b.onclick=()=>fn(selected().filter(fitsFor(show))); b.dataset.show=show; bar.appendChild(b); return b; };
+  const openish = l => OPEN(l.status) || (l.status==='returned' && l.onShelf===false);
+  const allBox = document.createElement('label'); allBox.className='chip bc-all'; allBox.innerHTML='<input type="checkbox"> All'; bar.appendChild(allBox);
+  // "All" ticks the grafts still in play; used/returned ones can still be ticked one by one (to undo).
+  const allTargets = ()=>{ const o=c.lines.filter(openish); return o.length ? o : c.lines.filter(actionable); };
+  allBox.querySelector('input').addEventListener('change', e=>{ if(e.target.checked) allTargets().forEach(l=>sel.add(l.id)); else c.lines.forEach(l=>sel.delete(l.id)); renderAll(); });
+  if(mgr) btn('Pack','go', packLines, 'requested');
+  btn('Used','go', usedLines, 'requested,pulled');
+  btn('Returned','', returnLines, 'pulled');
+  if(mgr) btn('Put away','', putAway, 'notshelf');
+  if(mgr || mineCase) btn('Cancel','warn', cancelLines, 'requested,pulled');
+  if(mgr) btn('Undo','', undoLines, 'used,returned');
+  function updateBar(){
+    const s = selected();
+    bar.querySelectorAll('button[data-show]').forEach(b=>{
+      const fits = fitsFor(b.dataset.show);
+      b.disabled = !s.some(fits);
+      b.hidden = !c.lines.some(fits);
+    });
+    allBox.querySelector('input').checked = allTargets().length>0 && allTargets().every(l=>sel.has(l.id));
+    allBox.hidden = allTargets().length < 2;
+    bar.hidden = !c.lines.some(actionable);
+  }
+  box.appendChild(bar); updateBar();
+  // Case tools: PDF, photos, add more grafts, edit.
+  const tools = document.createElement('div'); tools.className='bc-tools';
+  if(c.pdfName){ const a=document.createElement('button'); a.type='button'; a.className='pdf-open'; a.innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6"/></svg>${escapeHtml(c.pdfName)}`; a.onclick=()=>openPdf(c); tools.appendChild(a); }
+  if(me.isAdmin){ const u=document.createElement('button'); u.type='button'; u.textContent = c.pdfName ? 'Replace PDF' : 'Attach PDF'; u.onclick=()=>pickPdf(c); tools.appendChild(u);
+    if(c.pdfName){ const r=document.createElement('button'); r.type='button'; r.className='warn'; r.textContent='Remove PDF'; r.onclick=()=>removePdf(c); tools.appendChild(r); } }
+  if(c.lines.some(l=>l.status!=='cancelled') && (mgr || mineCase)){
+    const add=document.createElement('button'); add.type='button'; add.textContent='+ Add biologics'; add.onclick=()=>startAddToCase(c); tools.appendChild(add);
+    if(c.lines.some(l=>l.status==='requested')){ const ed=document.createElement('button'); ed.type='button'; ed.textContent='Edit'; ed.onclick=()=>startEditCase(c); tools.appendChild(ed); }
+  }
+  box.appendChild(tools);
+  // Return photos for this case.
+  const ph = document.createElement('div'); ph.className='bc-photos'; box.appendChild(ph);
+  loadPhotos(c.id, ph);
+  if(me.isAdmin && !c.pdfName) box.insertAdjacentHTML('beforeend', '<p class="hint" style="margin:8px 0 0;">Tip: drag a PDF onto this case to attach it.</p>');
+  return box;
+}
+function caseList(container, cases, emptyEl, opts){
   container.innerHTML = '';
-  emptyEl.hidden = list.length>0;
-  // One table per surgery date, soonest first for open requests, newest first otherwise.
-  const byDate = new Map();
-  list.forEach(r=>{ const d=r.dateNeeded||''; if(!byDate.has(d)) byDate.set(d, []); byDate.get(d).push(r); });
-  const dates = [...byDate.keys()].sort((a,b)=> reqStatus==='open' && container.id==='req-list' ? a.localeCompare(b) : b.localeCompare(a));
+  if(emptyEl) emptyEl.hidden = cases.length>0;
+  cases.forEach(c=>container.appendChild(buildCase(c, opts)));
+}
+function byDateSections(container, cases, emptyEl, dateOf, opts){
+  container.innerHTML = ''; if(emptyEl) emptyEl.hidden = cases.length>0;
+  const m = new Map(); cases.forEach(c=>{ const d=dateOf(c)||''; if(!m.has(d)) m.set(d, []); m.get(d).push(c); });
   const today = todayIso();
-  dates.forEach(d=>{
-    const rows = byDate.get(d).sort((a,b)=>(a.account||'').localeCompare(b.account||'') || (a.createdAt||0)-(b.createdAt||0));
+  [...m.keys()].sort().forEach(d=>{
+    const list = m.get(d);
     const h = document.createElement('div'); h.className='day-label';
-    h.innerHTML = `${escapeHtml(d ? new Date(d+'T00:00:00').toLocaleDateString(undefined,{weekday:'long', month:'short', day:'numeric'}) : 'No date')}${d===today?' <span class="tag baby">Today</span>':''}<span class="cnt">${rows.reduce((n,r)=>n+(+r.qty||0),0)} graft${rows.length===1&&+rows[0].qty===1?'':'s'}</span>`;
+    h.innerHTML = `${escapeHtml(d ? new Date(d+'T00:00:00').toLocaleDateString(undefined,{weekday:'long', month:'short', day:'numeric'}) : 'No date')}${d===today?' <span class="tag baby">Today</span>':''}${d && d<today ? ' <span class="tag dark">Late</span>' : ''}<span class="cnt">${list.length} case${list.length===1?'':'s'}</span>`;
     container.appendChild(h);
-    const wrap = document.createElement('div'); wrap.className='b-wrap';
-    const t = document.createElement('table'); t.className='b-table req-t'; t.innerHTML = tableHead();
-    const tb = document.createElement('tbody'); rows.forEach(r=>tb.appendChild(reqRow(r))); t.appendChild(tb);
-    wrap.appendChild(t); container.appendChild(wrap);
+    list.sort((a,b)=>(a.account||'').localeCompare(b.account||'')).forEach(c=>container.appendChild(buildCase(c, opts)));
   });
 }
+
+/* ---- Requests (inventory team) ---- */
+let reqFilter = 'pack';
 function renderRequests(){
   const terr = $('#req-territory').value, q = $('#req-search').value.trim().toLowerCase();
-  const list = bioReqs.filter(r=>{
-    if(reqStatus==='open' ? !OPEN(r.status) : (reqStatus!=='all' && r.status!==reqStatus)) return false;
-    if(terr!=='All' && canonTerr(r.territory)!==terr) return false;
-    return matchesSearch(r, q);
+  const cases = groupCases(bioReqs).filter(c=>{
+    const live = c.lines.filter(l=>l.status!=='cancelled');
+    if(reqFilter==='pack' && !live.some(l=>l.status==='requested')) return false;
+    if(reqFilter==='out' && !live.some(l=>l.status==='pulled')) return false;
+    if(reqFilter==='all' && !live.some(HOLDS)) return false;
+    return (terr==='All' || c.territory===terr) && caseMatches(c, q);
   });
-  renderReqTable($('#req-list'), list, $('#req-empty'));
+  byDateSections($('#req-list'), cases, $('#req-empty'), c=>reqFilter==='pack' ? packOnFor(c) : c.date, {});
 }
-$('#req-status').addEventListener('click', e=>{ const b=e.target.closest('button'); if(!b) return; reqStatus=b.dataset.s; document.querySelectorAll('#req-status button').forEach(x=>x.classList.toggle('active', x===b)); renderRequests(); });
+$('#req-status').addEventListener('click', e=>{ const b=e.target.closest('button'); if(!b) return; reqFilter=b.dataset.s; document.querySelectorAll('#req-status button').forEach(x=>x.classList.toggle('active', x===b)); renderRequests(); });
 $('#req-territory').addEventListener('change', renderRequests);
 $('#req-search').addEventListener('input', renderRequests);
+
+/* ---- Schedule (everyone) ---- */
+let weekOffset = 0;
+function mondayOf(date){ const d=new Date(date); const day=d.getDay(); d.setDate(d.getDate()+(day===0?-6:1-day)); d.setHours(0,0,0,0); return d; }
+function weekDays(){ const base=mondayOf(new Date()); base.setDate(base.getDate()+weekOffset*7); return [0,1,2,3,4,5,6].map(i=>{const d=new Date(base); d.setDate(d.getDate()+i); return d;}); }
+function renderSchedule(){
+  const days = weekDays(), terr = $('#sch-territory').value, today = todayIso();
+  $('#wk-label').textContent = `${days[0].toLocaleDateString(undefined,{month:'short',day:'numeric'})} – ${days[6].toLocaleDateString(undefined,{month:'short',day:'numeric'})}`;
+  const cases = groupCases(bioReqs).filter(c=>c.lines.some(l=>l.status!=='cancelled') && (terr==='All' || c.territory===terr));
+  const wrap = $('#sch-list'); wrap.innerHTML = '';
+  days.forEach(day=>{
+    const iso = isoDate(day), list = cases.filter(c=>c.date===iso);
+    if((day.getDay()===0 || day.getDay()===6) && !list.length) return;
+    const sec = document.createElement('section'); sec.className='day-sec';
+    sec.innerHTML = `<div class="day-head"><b>${escapeHtml(day.toLocaleDateString(undefined,{weekday:'long', month:'short', day:'numeric'}))}</b>${iso===today?'<span class="tag baby">Today</span>':''}<span class="cnt">${list.length ? `${list.length} case${list.length===1?'':'s'}` : ''}</span></div>`;
+    if(!list.length) sec.insertAdjacentHTML('beforeend', '<div class="day-none bc-none">No biologics scheduled.</div>');
+    list.sort((a,b)=>(a.territory||'').localeCompare(b.territory||'') || (a.account||'').localeCompare(b.account||'')).forEach(c=>sec.appendChild(buildCase(c, {showDate:false})));
+    wrap.appendChild(sec);
+  });
+}
+$('#wk-prev').addEventListener('click', ()=>{ weekOffset--; renderSchedule(); });
+$('#wk-next').addEventListener('click', ()=>{ weekOffset++; renderSchedule(); });
+$('#sch-territory').addEventListener('change', renderSchedule);
+
+/* ---- Returns (everyone) ---- */
+function renderReturns(){
+  const terr = $('#ret-territory').value, today = todayIso();
+  // Packed grafts once surgery day comes, plus anything back but not on the shelf yet.
+  const cases = groupCases(bioReqs).filter(c=>(terr==='All' || c.territory===terr) && c.lines.some(l=>(l.status==='pulled' && (c.date||'')<=today) || (l.status==='returned' && l.onShelf===false)));
+  byDateSections($('#ret-list'), cases, $('#ret-empty'), c=>c.date, {});
+}
+$('#ret-territory').addEventListener('change', renderReturns);
+
+/* ---- My requests ---- */
 function renderMine(){
-  const list = bioReqs.filter(r=>r.requestedById===me.uid && r.status!=='cancelled').sort((a,b)=>(b.dateNeeded||'').localeCompare(a.dateNeeded||''));
-  renderReqTable($('#mine-list'), list.slice(0, 60), $('#mine-empty'));
+  const cases = groupCases(bioReqs.filter(r=>r.requestedById===me.uid)).filter(c=>c.lines.some(l=>l.status!=='cancelled'))
+    .sort((a,b)=>(b.date||'').localeCompare(a.date||'')).slice(0, 40);
+  caseList($('#mine-list'), cases, $('#mine-empty'), {});
 }
 
-async function setStatus(r, status){
-  const patch = {status, [status+'At']: Date.now(), [status+'ByName']: me.name};
-  try{ await db.doc('bioRequests/'+r.id).update(patch); toast(`${r.graft}: ${ST_LABEL[status]}.`); }
-  catch(e){ console.error(e); toast('That change didn’t save. Try again.'); }
+/* ================= Line actions ================= */
+const FV = ()=>firebase.firestore.FieldValue;
+function openSheet(id){ $(id).hidden = false; }
+document.querySelectorAll('.modal-overlay [data-close]').forEach(b=>b.addEventListener('click', ()=>{ b.closest('.modal-overlay').hidden = true; }));
+document.querySelectorAll('.modal-overlay').forEach(o=>o.addEventListener('click', e=>{ if(e.target===o) o.hidden = true; }));
+function clearPicks(lines){ lines.forEach(l=>picked.forEach(s=>s.delete(l.id))); }
+
+// Pack: inventory adds lot and expiration for each graft.
+let packing = [];
+function packLines(lines){
+  packing = lines.filter(l=>l.status==='requested'); if(!packing.length) return;
+  $('#pack-sub').textContent = `${packing.length} graft${packing.length===1?'':'s'} · add the lot and expiration from each label.`;
+  $('#pack-lines').innerHTML = packing.map((l,i)=>`<div class="pk-line"><b>${escapeHtml(l.graft)}${+l.qty>1?' ×'+l.qty:''}</b><small>${escapeHtml(l.desc||'')}</small>
+    <div class="grid2"><div><label for="pk-lot-${i}">Lot</label><input id="pk-lot-${i}" value="${escapeHtml(l.lot||'')}"></div><div><label for="pk-exp-${i}">Expires</label><input id="pk-exp-${i}" type="date" value="${escapeHtml(l.expiresAt||'')}"></div></div></div>`).join('');
+  openSheet('#pack-sheet');
 }
-async function deleteReq(r){
-  if(!confirm(`Delete this cancelled request for ${r.graft}?`)) return;
-  try{ await db.doc('bioRequests/'+r.id).delete(); toast('Deleted.'); }catch(e){ console.error(e); toast('Couldn’t delete.'); }
-}
-/* Used: record the sales order / lot and take the grafts off stock in one step. */
-function openUsed(r){
-  usedFor = r;
-  $('#used-title').textContent = `Mark ${r.graft} used`;
-  $('#used-sub').textContent = [r.account, r.surgeon, fmtDate(r.dateNeeded)].filter(Boolean).join(' · ');
-  const exact = stockFor(r.graft), t = typeForRef(r.graft);
-  const sizes = !exact && t ? rowsOfType(t) : [];
-  $('#u-size-wrap').hidden = !sizes.length;
-  $('#u-size').innerHTML = sizes.map(s=>`<option value="${escapeHtml(s.id)}">${escapeHtml(s.ref)} (${+s.qty||0} on hand)</option>`).join('');
-  $('#u-qty').value = r.qty || 1; $('#u-lot').value = r.lot||''; $('#u-so').value = r.salesOrder||''; $('#u-po').value = r.po||'';
-  $('#used-sheet').hidden = false; $('#u-lot').focus();
-}
-$('#used-close').onclick = ()=>{ $('#used-sheet').hidden = true; usedFor = null; };
-$('#used-form').addEventListener('submit', async e=>{
-  e.preventDefault(); const r = usedFor; if(!r) return;
-  const qty = Math.max(1, parseInt($('#u-qty').value,10)||1);
-  const batch = db.batch();
-  batch.update(db.doc('bioRequests/'+r.id), {status:'used', usedQty:qty, qty, lot:$('#u-lot').value.trim(), salesOrder:$('#u-so').value.trim(), po:$('#u-po').value.trim(), usedAt:Date.now(), usedByName:me.name});
-  const s = stockFor(r.graft) || (!$('#u-size-wrap').hidden ? stock.find(x=>x.id===$('#u-size').value) : null);
-  if(s) batch.update(db.doc('bioStock/'+s.id), {qty: firebase.firestore.FieldValue.increment(-qty)});
-  if(s && refKey(s.ref)!==refKey(r.graft)) batch.update(db.doc('bioRequests/'+r.id), {usedRef: s.ref});
-  try{ await batch.commit(); $('#used-sheet').hidden = true; usedFor = null; toast(`${r.graft} marked used${s?' and taken off stock':''}.`); }
-  catch(err){ console.error(err); toast('That didn’t save. Try again.'); }
+$('#pack-form').addEventListener('submit', async e=>{
+  e.preventDefault();
+  const b = db.batch(), now = Date.now();
+  packing.forEach((l,i)=>b.update(db.doc('bioRequests/'+l.id), {status:'pulled', lot:$('#pk-lot-'+i).value.trim(), expiresAt:$('#pk-exp-'+i).value||'', pulledAt:now, pulledByName:me.name}));
+  try{ await b.commit(); $('#pack-sheet').hidden = true; clearPicks(packing); toast(`Packed ${packing.length}.`); }catch(err){ console.error(err); toast('That didn’t save. Try again.'); }
 });
-async function undoUsed(r){
-  const qty = +r.usedQty || +r.qty || 0;
-  const batch = db.batch();
-  batch.update(db.doc('bioRequests/'+r.id), {status:'pulled', usedAt:null, usedQty:null});
-  const s = stockFor(r.usedRef || r.graft);
-  if(s && qty) batch.update(db.doc('bioStock/'+s.id), {qty: firebase.firestore.FieldValue.increment(qty)});
-  try{ await batch.commit(); toast(`Undid used. ${qty} put back on stock.`); }catch(e){ console.error(e); toast('Couldn’t undo.'); }
+
+// Used: off stock, onto the PO page. "Any size" lines ask which size was used.
+let using = [];
+function usedLines(lines){
+  using = lines.filter(l=>OPEN(l.status)); if(!using.length) return;
+  $('#used-lines').innerHTML = using.map((l,i)=>{
+    const exact = stockFor(l.graft), t = typeForRef(l.graft);
+    const sizes = !exact && t ? rowsOfType(t) : [];
+    return `<div class="pk-line"><b>${escapeHtml(l.graft)}${+l.qty>1?' ×'+l.qty:''}</b><small>${escapeHtml(l.desc||'')}${l.lot?' · Lot '+escapeHtml(l.lot):''}</small>
+      ${sizes.length ? `<label for="us-size-${i}">Size used</label><select id="us-size-${i}">${sizes.map(s=>`<option value="${escapeHtml(s.id)}">${escapeHtml(s.ref)} (${+s.qty||0} on hand)</option>`).join('')}</select>` : ''}
+      ${+l.qty>1 ? `<label for="us-qty-${i}">How many were used?</label><input id="us-qty-${i}" type="number" min="1" max="${+l.qty}" value="${+l.qty}">` : ''}</div>`;
+  }).join('');
+  openSheet('#used-sheet');
+}
+$('#used-form').addEventListener('submit', async e=>{
+  e.preventDefault();
+  const b = db.batch(), now = Date.now();
+  using.forEach((l,i)=>{
+    const sizeSel = $('#us-size-'+i), qtyIn = $('#us-qty-'+i);
+    const s = stockFor(l.graft) || (sizeSel ? stock.find(x=>x.id===sizeSel.value) : null);
+    const usedQty = qtyIn ? Math.min(+l.qty, Math.max(1, parseInt(qtyIn.value,10)||1)) : (+l.qty||1);
+    const patch = {status:'used', usedQty, usedAt:now, usedByName:me.name};
+    if(s && refKey(s.ref)!==refKey(l.graft)) patch.usedRef = s.ref;
+    // Part of a multi-pack used: the rest stays on the case as its own line, still out.
+    if(usedQty < +l.qty){
+      patch.qty = usedQty;
+      const rest = {...l}; delete rest.id; rest.qty = +l.qty - usedQty; rest.createdAt = (l.createdAt||now)+1; rest.splitFrom = l.id;
+      b.set(db.collection('bioRequests').doc(), rest);
+    }
+    b.update(db.doc('bioRequests/'+l.id), patch);
+    if(s) b.update(db.doc('bioStock/'+s.id), {qty: FV().increment(-usedQty)});
+  });
+  try{ await b.commit(); $('#used-sheet').hidden = true; clearPicks(using); toast(`Marked used. ${using.length===1?'It is':'They are'} on the PO page now.`); }catch(err){ console.error(err); toast('That didn’t save. Try again.'); }
+});
+
+// Returned: asks if it's back on the shelf/freezer; optional photo.
+let returning = [], retShelf = null, retFiles = [];
+function returnLines(lines){
+  returning = lines.filter(l=>l.status==='pulled'); if(!returning.length) return;
+  retShelf = null; retFiles = []; $('#ret-photo').value=''; $('#ret-thumbs').innerHTML='';
+  $('#ret-sub').textContent = returning.map(l=>l.graft+(+l.qty>1?' ×'+l.qty:'')).join(', ');
+  document.querySelectorAll('#ret-shelf button').forEach(b=>b.classList.remove('active')); $('#ret-shelf-hint').textContent='';
+  openSheet('#ret-sheet');
+}
+$('#ret-shelf').addEventListener('click', e=>{ const b=e.target.closest('button'); if(!b) return; retShelf=b.dataset.v; document.querySelectorAll('#ret-shelf button').forEach(x=>x.classList.toggle('active', x===b));
+  $('#ret-shelf-hint').textContent = retShelf==='no' ? 'It stays on Returns as "Not on shelf yet" until inventory puts it away.' : ''; });
+$('#ret-photo').addEventListener('change', e=>{ retFiles = [...e.target.files]; $('#ret-thumbs').innerHTML = retFiles.map(f=>`<img src="${URL.createObjectURL(f)}" alt="">`).join(''); });
+$('#ret-form').addEventListener('submit', async e=>{
+  e.preventDefault();
+  if(!retShelf){ toast('Pick Yes or No: is it back on the shelf/freezer?'); return; }
+  const btn = $('#ret-submit'); btn.disabled = true;
+  try{
+    const b = db.batch(), now = Date.now(), onShelf = retShelf==='yes';
+    returning.forEach(l=>b.update(db.doc('bioRequests/'+l.id), {status:'returned', onShelf, returnedAt:now, returnedByName:me.name, ...(onShelf ? {putAwayAt:now, putAwayByName:me.name} : {})}));
+    await b.commit();
+    const caseId = caseIdOf(returning[0]);
+    for(const f of retFiles){ const {data, w, h} = await compressPhoto(f); await db.collection('bioPhotos').add({caseId, lineIds: returning.map(l=>l.id), data, w, h, authorId:me.uid, authorName:me.name, at:Date.now()}); }
+    photoCache.delete(caseId);
+    $('#ret-sheet').hidden = true; clearPicks(returning);
+    toast(onShelf ? 'Returned to the shelf/freezer.' : 'Returned. Marked not on shelf yet.');
+  }catch(err){ console.error(err); toast('That didn’t save. Try again.'); }
+  btn.disabled = false;
+});
+async function putAway(lines){
+  const b = db.batch(), now = Date.now();
+  lines.forEach(l=>b.update(db.doc('bioRequests/'+l.id), {onShelf:true, putAwayAt:now, putAwayByName:me.name}));
+  try{ await b.commit(); clearPicks(lines); toast('Put away.'); }catch(e){ console.error(e); toast('That didn’t save.'); }
+}
+async function cancelLines(lines){
+  if(!confirm(`Cancel ${lines.length===1 ? lines[0].graft : lines.length+' grafts'}?`)) return;
+  const b = db.batch(), now = Date.now();
+  lines.forEach(l=>b.update(db.doc('bioRequests/'+l.id), {status:'cancelled', cancelledAt:now, cancelledByName:me.name}));
+  try{ await b.commit(); clearPicks(lines); toast('Cancelled.'); }catch(e){ console.error(e); toast('That didn’t save.'); }
+}
+// Undo (inventory): used or returned back to packed; used grafts go back on stock.
+async function undoLines(lines){
+  const b = db.batch();
+  lines.forEach(l=>{
+    b.update(db.doc('bioRequests/'+l.id), {status:'pulled', usedAt:null, usedQty:null, usedRef:null, returnedAt:null, onShelf:null, poNumber:null, poClosed:null});
+    if(l.status==='used'){ const s = stockFor(l.usedRef || l.graft); const q = +l.usedQty || +l.qty || 0; if(s && q) b.update(db.doc('bioStock/'+s.id), {qty: FV().increment(q)}); }
+  });
+  try{ await b.commit(); clearPicks(lines); toast('Undone.'); }catch(e){ console.error(e); toast('Couldn’t undo.'); }
 }
 
-/* ================= Request form ================= */
-/* Biologic search: type the ABS number or any words from the description (e.g. "biocart", "quadlink 10"). */
-let gOpts = [], gActive = -1;
+/* ================= PDFs (one per case, admins attach) ================= */
+let pdfFor = null;
+function pickPdf(c){ pdfFor = c; $('#pdf-input').value=''; $('#pdf-input').click(); }
+$('#pdf-input').addEventListener('change', e=>{ const f=e.target.files[0]; if(f && pdfFor) uploadPdf(pdfFor, f); });
+function readAsDataURL(f){ return new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=rej; r.readAsDataURL(f); }); }
+async function uploadPdf(c, f){
+  if(!me.isAdmin) return;
+  if(!(f.type==='application/pdf' || /\.pdf$/i.test(f.name))){ toast('That isn’t a PDF.'); return; }
+  // Files are kept in the database, which holds up to about 700 KB per file.
+  if(f.size > 700*1024){ toast(`That PDF is ${(f.size/1024/1024).toFixed(1)} MB. The limit is 700 KB. Try “Reduce file size” or print it to PDF again.`); return; }
+  toast('Attaching PDF…');
+  try{
+    const data = await readAsDataURL(f);
+    await db.doc('bioFiles/'+c.id).set({caseId:c.id, name:f.name, size:f.size, data, byName:me.name, at:Date.now()});
+    const b = db.batch(); linesOfCase(c.id).forEach(l=>b.update(db.doc('bioRequests/'+l.id), {pdfName:f.name, pdfByName:me.name, pdfAt:Date.now()})); await b.commit();
+    toast(`Attached ${f.name}.`);
+  }catch(err){ console.error(err); toast('Couldn’t attach the PDF. Only admins can, and the latest security rules need to be published.'); }
+}
+async function openPdf(c){
+  const w = window.open('', '_blank');
+  try{
+    const snap = await db.doc('bioFiles/'+c.id).get();
+    if(!snap.exists){ if(w) w.close(); toast('PDF not found.'); return; }
+    const blob = await (await fetch(snap.data().data)).blob();
+    const url = URL.createObjectURL(blob);
+    if(w) w.location = url; else location.href = url;
+  }catch(err){ console.error(err); if(w) w.close(); toast('Couldn’t open the PDF.'); }
+}
+async function removePdf(c){
+  if(!confirm('Remove the PDF from this case?')) return;
+  try{ await db.doc('bioFiles/'+c.id).delete(); const b=db.batch(); linesOfCase(c.id).forEach(l=>b.update(db.doc('bioRequests/'+l.id), {pdfName:null, pdfByName:null, pdfAt:null})); await b.commit(); toast('PDF removed.'); }
+  catch(err){ console.error(err); toast('Couldn’t remove it.'); }
+}
+
+/* ================= Return photos ================= */
+function loadImage(file){ return new Promise((res, rej)=>{ const url = URL.createObjectURL(file); const img = new Image(); img.onload = ()=>{ URL.revokeObjectURL(url); res(img); }; img.onerror = ()=>{ URL.revokeObjectURL(url); rej(new Error('unreadable')); }; img.src = url; }); }
+async function compressPhoto(file){
+  const img = await loadImage(file);
+  for(const [max,q] of [[1600,0.75],[1280,0.7],[1024,0.6],[800,0.5]]){
+    const scale = Math.min(1, max/Math.max(img.naturalWidth, img.naturalHeight));
+    const w = Math.max(1, Math.round(img.naturalWidth*scale)), h = Math.max(1, Math.round(img.naturalHeight*scale));
+    const c = document.createElement('canvas'); c.width=w; c.height=h; c.getContext('2d').drawImage(img, 0, 0, w, h);
+    const data = c.toDataURL('image/jpeg', q);
+    if(data.length < 800000) return {data, w, h};
+  }
+  throw new Error('too big');
+}
+async function loadPhotos(caseId, el){
+  if(!photoCache.has(caseId)){
+    photoCache.set(caseId, null);
+    try{ const s = await db.collection('bioPhotos').where('caseId','==',caseId).get(); photoCache.set(caseId, s.docs.map(d=>d.data()).sort((a,b)=>(a.at||0)-(b.at||0))); }
+    catch(e){ photoCache.set(caseId, []); }
+  }
+  const list = photoCache.get(caseId);
+  if(!list){ setTimeout(()=>loadPhotos(caseId, el), 300); return; }
+  if(!list.length){ el.hidden = true; return; }
+  el.hidden = false;
+  el.innerHTML = '<div class="ps-label">Return photos</div><div class="bc-thumbs"></div>';
+  list.forEach(p=>{ const b=document.createElement('button'); b.type='button'; b.innerHTML=`<img src="${p.data}" alt="Return photo" loading="lazy">`; b.onclick=()=>{ $('#pv-img').src=p.data; $('#pv-meta').textContent=`${p.authorName||''} · ${new Date(p.at).toLocaleString(undefined,{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})}`; $('#photo-viewer').hidden=false; }; el.querySelector('.bc-thumbs').appendChild(b); });
+}
+$('#pv-close').addEventListener('click', ()=>{ $('#photo-viewer').hidden = true; });
+
+/* ================= PO page ================= */
+let poFilter = 'need';
+function renderPO(){
+  const terr = $('#po-territory').value, q = $('#po-search').value.trim().toLowerCase();
+  $('#po-hint').textContent = poFilter==='need' ? 'Used grafts waiting for a PO. Enter the PO number for the case and save.' : (poFilter==='ready' ? (me.isAdmin ? 'PO entered. Add the sales order if you have it, then close.' : 'PO entered, waiting for an admin to close it.') : 'Closed.');
+  const used = bioReqs.filter(l=>l.status==='used' && (poFilter==='need' ? !l.poNumber : poFilter==='ready' ? (l.poNumber && !l.poClosed) : l.poClosed));
+  const cases = groupCases(used).filter(c=>(terr==='All' || c.territory===terr) && caseMatches(c, q)).sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  const wrap = $('#po-list'); wrap.innerHTML=''; $('#po-empty').hidden = cases.length>0;
+  cases.forEach(c=>{
+    const el = document.createElement('div'); el.className='bcase po-case';
+    const all = linesOfCase(c.id).filter(l=>l.status==='used');
+    const l0 = c.lines[0];
+    el.innerHTML = `<div class="bc-head po-head"><div class="bc-main"><b>${escapeHtml([c.account||'—', c.surgeon].filter(Boolean).join(' · '))}</b>
+        <small>${escapeHtml(['Surgery '+fmtDate(c.date), c.territory, c.person].filter(Boolean).join(' · '))}</small>
+        <div class="bc-grafts">${c.lines.map(l=>`<span>${escapeHtml(l.usedRef||l.graft)}${(+l.usedQty||+l.qty)>1?' ×'+(+l.usedQty||+l.qty):''}${l.lot?' · Lot '+escapeHtml(l.lot):''}</span>`).join('')}</div></div>
+        <div class="bc-side">${c.pdfName?'<button type="button" class="pdf-chip">PDF</button>':''}${l0.poClosed?`<span class="st used">Closed</span><small>${escapeHtml(l0.closedByName||'')}</small>`:''}</div></div>
+      <div class="po-form"></div>`;
+    const pdf = el.querySelector('.pdf-chip'); if(pdf) pdf.onclick = ()=>openPdf(c);
+    const f = el.querySelector('.po-form');
+    if(poFilter==='need'){
+      f.innerHTML = `<input placeholder="PO number" aria-label="PO number"><button type="button" class="go">Save PO</button>`;
+      f.querySelector('button').onclick = async ()=>{ const v=f.querySelector('input').value.trim(); if(!v){ toast('Enter the PO number.'); return; }
+        const b=db.batch(); all.forEach(l=>b.update(db.doc('bioRequests/'+l.id), {poNumber:v, poAt:Date.now(), poByName:me.name})); try{ await b.commit(); toast(`PO ${v} saved.`); }catch(e){ console.error(e); toast('That didn’t save.'); } };
+    } else if(poFilter==='ready'){
+      f.innerHTML = `<span class="po-num">PO <b>${escapeHtml(c.poNumber)}</b> <small>${escapeHtml(l0.poByName||'')}</small></span>` + (me.isAdmin ? `<input placeholder="Sales order (optional)" aria-label="Sales order" value="${escapeHtml(l0.salesOrder||'')}"><button type="button" class="go">Close</button>` : '') + `<button type="button" class="edit">Change PO</button>`;
+      if(me.isAdmin) f.querySelector('.go').onclick = async ()=>{ const so=f.querySelector('input').value.trim(); const b=db.batch(); all.forEach(l=>b.update(db.doc('bioRequests/'+l.id), {salesOrder:so, poClosed:true, closedAt:Date.now(), closedByName:me.name})); try{ await b.commit(); toast('Closed.'); }catch(e){ console.error(e); toast('That didn’t save.'); } };
+      f.querySelector('.edit').onclick = async ()=>{ const v=prompt('PO number', c.poNumber); if(v===null) return; const b=db.batch(); all.forEach(l=>b.update(db.doc('bioRequests/'+l.id), {poNumber:v.trim(), poAt:Date.now(), poByName:me.name})); await b.commit().catch(()=>toast('That didn’t save.')); };
+    } else {
+      const so = l0.salesOrder ? (/^https?:\/\//.test(l0.salesOrder) ? `<a href="${escapeHtml(l0.salesOrder)}" target="_blank" rel="noopener">Sales order</a>` : 'SO '+escapeHtml(l0.salesOrder)) : '';
+      f.innerHTML = `<span class="po-num">PO <b>${escapeHtml(c.poNumber)}</b>${so?' · '+so:''}</span>` + (me.isAdmin ? `<button type="button" class="edit">Reopen</button>` : '');
+      if(me.isAdmin) f.querySelector('.edit').onclick = async ()=>{ const b=db.batch(); all.forEach(l=>b.update(db.doc('bioRequests/'+l.id), {poClosed:false})); await b.commit().catch(()=>toast('That didn’t save.')); };
+    }
+    wrap.appendChild(el);
+  });
+}
+$('#po-status').addEventListener('click', e=>{ const b=e.target.closest('button'); if(!b) return; poFilter=b.dataset.s; document.querySelectorAll('#po-status button').forEach(x=>x.classList.toggle('active', x===b)); renderPO(); });
+$('#po-territory').addEventListener('change', renderPO);
+$('#po-search').addEventListener('input', renderPO);
+
+/* ================= Request form (several biologics per case) ================= */
+let formMode = 'new', formCase = null;     // 'new' | 'add' (more grafts on a case) | 'edit'
 function graftChoices(){
-  // Every size, plus each graft type on its own ("any size").
   const out = stock.map(s=>({ref:s.ref, desc:s.desc||'', type:typeOf(s), size:true}));
   allTypes().forEach(t=>{ if(!stockFor(t)){ const r=rowsOfType(t)[0]; out.push({ref:t, desc:(r.desc||'')+' · any size', type:t, size:false}); } });
   return out;
 }
+/* Search by ABS number or any words from the description (e.g. "biocart", "quadlink 10"). */
 function searchGrafts(q){
   const words = q.toLowerCase().split(/\s+/).filter(Boolean);
   if(!words.length) return [];
@@ -1127,7 +1615,7 @@ function searchGrafts(q){
     if(!words.every(w=>hay.includes(w))) return null;
     const ref = refKey(c.ref);
     let score = ref===qk ? 0 : ref.startsWith(qk) ? 1 : ref.includes(qk) ? 2 : c.desc.toLowerCase().startsWith(words[0]) ? 3 : 4;
-    if(!c.size) score -= .5;                     // the "any size" line sits above its sizes
+    if(!c.size) score -= .5;
     return {...c, score};
   }).filter(Boolean).sort((a,b)=>a.score-b.score || refKey(a.ref).localeCompare(refKey(b.ref))).slice(0, 12);
 }
@@ -1136,93 +1624,238 @@ function hl(text, words){
   words.forEach(w=>{ if(w.length<2) return; const re = new RegExp('('+w.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','ig'); h = h.replace(re, '<mark>$1</mark>'); });
   return h;
 }
-function renderGraftList(){
-  const inp = $('#f-graft'), box = $('#g-list'), q = inp.value.trim();
-  gOpts = searchGrafts(q); gActive = gOpts.length ? 0 : -1;
-  // Hide the list once the box holds an exact reference.
-  if(!q || (gOpts.length===1 && refKey(gOpts[0].ref)===refKey(q)) || (stockFor(q) && document.activeElement!==inp)){ box.hidden = true; inp.setAttribute('aria-expanded','false'); return; }
-  const words = q.toLowerCase().split(/\s+/).filter(Boolean);
-  box.innerHTML = gOpts.length ? gOpts.map((c,i)=>{
-    const avail = c.size ? (+(stockFor(c.ref)||{}).qty||0) : availableOfType(c.type);
-    return `<button type="button" class="g-opt${i===gActive?' active':''}" role="option" data-i="${i}"><span class="g-main"><b>${hl(c.ref, words)}</b><small>${hl(c.desc, words)}</small></span><span class="g-qty${avail<=0?' zero':''}">${c.size ? avail+' on hand' : Math.max(0,avail)+' avail.'}</span></button>`;
-  }).join('') : `<div class="g-none">No match. Keep typing, or submit it as typed and the inventory team will order it.</div>`;
-  box.hidden = false; inp.setAttribute('aria-expanded','true');
+function graftLine(val, qty, lineId){
+  const w = document.createElement('div'); w.className='g-line'; if(lineId) w.dataset.id = lineId;
+  w.innerHTML = `<div class="g-row"><div class="g-search"><input class="g-in" placeholder="ABS number or description, e.g. biocartilage" autocomplete="off" spellcheck="false" aria-label="Biologic"><div class="g-list" hidden></div></div>
+    <input class="g-qty-in" type="number" inputmode="numeric" min="1" step="1" value="${qty||1}" aria-label="Qty"><button type="button" class="g-rm" aria-label="Remove">×</button></div><div class="avail-note"></div>`;
+  const inp = w.querySelector('.g-in'), box = w.querySelector('.g-list'), qtyIn = w.querySelector('.g-qty-in');
+  if(val) inp.value = val;
+  let opts = [], active = -1;
+  const render = ()=>{
+    const q = inp.value.trim(); opts = searchGrafts(q); active = opts.length ? 0 : -1;
+    if(!q || (opts.length===1 && refKey(opts[0].ref)===refKey(q)) || document.activeElement!==inp){ box.hidden = true; return; }
+    const words = q.toLowerCase().split(/\s+/).filter(Boolean);
+    box.innerHTML = opts.length ? opts.map((c,i)=>{ const avail = c.size ? (+(stockFor(c.ref)||{}).qty||0) : availableOfType(c.type);
+      return `<button type="button" class="g-opt${i===active?' active':''}" data-i="${i}"><span class="g-main"><b>${hl(c.ref, words)}</b><small>${hl(c.desc, words)}</small></span><span class="g-qty${avail<=0?' zero':''}">${c.size ? avail+' on hand' : Math.max(0,avail)+' avail.'}</span></button>`; }).join('')
+      : `<div class="g-none">No match. Keep typing, or submit it as typed and the inventory team will order it.</div>`;
+    box.hidden = false;
+  };
+  const pick = i=>{ const c=opts[i]; if(!c) return; inp.value=c.ref; box.hidden=true; refreshLineAvail(w); qtyIn.focus(); qtyIn.select(); };
+  inp.addEventListener('input', ()=>{ render(); refreshLineAvail(w); });
+  inp.addEventListener('focus', render);
+  inp.addEventListener('keydown', e=>{
+    if(box.hidden || !opts.length) return;
+    if(e.key==='ArrowDown'||e.key==='ArrowUp'){ e.preventDefault(); active=(active+(e.key==='ArrowDown'?1:-1)+opts.length)%opts.length; box.querySelectorAll('.g-opt').forEach((b,i)=>b.classList.toggle('active', i===active)); box.querySelectorAll('.g-opt')[active].scrollIntoView({block:'nearest'}); }
+    else if(e.key==='Enter'){ e.preventDefault(); pick(active); }
+    else if(e.key==='Escape'){ box.hidden = true; }
+  });
+  box.addEventListener('mousedown', e=>{ const b=e.target.closest('.g-opt'); if(!b) return; e.preventDefault(); pick(+b.dataset.i); });
+  inp.addEventListener('blur', ()=>{ setTimeout(()=>{ box.hidden=true; }, 150);
+    const q = inp.value.trim(); if(q && !stockFor(q) && typeForRef(q)===null){ const m=searchGrafts(q); if(m.length===1){ inp.value=m[0].ref; refreshLineAvail(w); } } });
+  qtyIn.addEventListener('input', ()=>refreshLineAvail(w));
+  w.querySelector('.g-rm').onclick = ()=>{ if($('#g-lines').children.length<=1){ inp.value=''; qtyIn.value=1; refreshLineAvail(w); return; } w.remove(); refreshAllAvail(); };
+  refreshLineAvail(w);
+  return w;
 }
-function pickGraft(i){
-  const c = gOpts[i]; if(!c) return;
-  $('#f-graft').value = c.ref; $('#g-list').hidden = true; $('#f-graft').setAttribute('aria-expanded','false');
-  refreshAvail(); $('#f-qty').focus();
-}
-$('#f-graft').addEventListener('input', renderGraftList);
-$('#f-graft').addEventListener('focus', renderGraftList);
-$('#f-graft').addEventListener('keydown', e=>{
-  const box = $('#g-list'); if(box.hidden || !gOpts.length) return;
-  if(e.key==='ArrowDown' || e.key==='ArrowUp'){ e.preventDefault(); gActive = (gActive + (e.key==='ArrowDown'?1:-1) + gOpts.length) % gOpts.length; box.querySelectorAll('.g-opt').forEach((b,i)=>b.classList.toggle('active', i===gActive)); box.querySelectorAll('.g-opt')[gActive].scrollIntoView({block:'nearest'}); }
-  else if(e.key==='Enter'){ e.preventDefault(); pickGraft(gActive); }
-  else if(e.key==='Escape'){ box.hidden = true; }
-});
-// mousedown so the pick happens before the box loses focus
-$('#g-list').addEventListener('mousedown', e=>{ const b=e.target.closest('.g-opt'); if(!b) return; e.preventDefault(); pickGraft(+b.dataset.i); });
-$('#f-graft').addEventListener('blur', ()=>{
-  setTimeout(()=>{ $('#g-list').hidden = true; }, 150);
-  // Typed a description that only fits one biologic: fill in its number.
-  const q = $('#f-graft').value.trim();
-  if(q && !stockFor(q) && typeForRef(q)===null){ const m = searchGrafts(q); if(m.length===1){ $('#f-graft').value = m[0].ref; refreshAvail(); } }
-});
-function refreshAvail(){
-  const ref = $('#f-graft').value.trim(), el = $('#f-avail');
+function refreshLineAvail(w){
+  const ref = w.querySelector('.g-in').value.trim(), el = w.querySelector('.avail-note');
   if(!ref){ el.textContent=''; el.className='avail-note'; return; }
   const t = typeForRef(ref);
   if(t===null){ el.textContent = 'Not in the stock list. The inventory team will order it.'; el.className='avail-note low'; return; }
-  const want = parseInt($('#f-qty').value,10)||1;
-  const s = stockFor(ref), avail = availableOfType(t, editingId);
+  const want = parseInt(w.querySelector('.g-qty-in').value,10)||1;
+  const editing = formMode==='edit' ? linesOfCase(formCase.id).map(l=>l.id) : [];
+  // Other lines on this form for the same graft type count too.
+  const others = [...document.querySelectorAll('#g-lines .g-line')].filter(x=>x!==w && typeForRef(x.querySelector('.g-in').value.trim())===t).reduce((n,x)=>n+(parseInt(x.querySelector('.g-qty-in').value,10)||1),0);
+  const s = stockFor(ref), avail = availableOfType(t, editing) - others;
   const sized = rowsOfType(t).length > 1 || !stockFor(t);
   let txt = (s && s.desc) || (rowsOfType(t)[0]||{}).desc || '';
   if(s && sized) txt += `${txt?' · ':''}${+s.qty||0} of this size on hand`;
-  txt += `${txt?' · ':''}${Math.max(0,avail)} ${sized?t+' ':''}available (${onHandOfType(t)} on hand, ${reservedOfType(t, editingId)} reserved)`;
-  if(s && sized && (+s.qty||0) - reservedFor(ref, editingId) < want) txt += '. Not enough of this size.';
-  else if(avail < want) txt += '. Not enough. This will need to be ordered.';
-  el.textContent = txt;
-  el.className = 'avail-note' + ((avail < want || (s && sized && (+s.qty||0) - reservedFor(ref, editingId) < want)) ? ' low' : '');
+  txt += `${txt?' · ':''}${Math.max(0,avail)} ${sized?t+' ':''}available`;
+  if(avail < want) txt += '. Not enough. This will need to be ordered.';
+  el.textContent = txt; el.className = 'avail-note' + (avail < want ? ' low' : '');
 }
-['#f-graft','#f-qty'].forEach(s=>$(s).addEventListener('input', refreshAvail));
+function refreshAllAvail(){ document.querySelectorAll('#g-lines .g-line').forEach(refreshLineAvail); }
+$('#g-add-line').addEventListener('click', ()=>{ const w=graftLine(); $('#g-lines').appendChild(w); w.querySelector('.g-in').focus(); });
 $('#f-account').addEventListener('change', ()=>{ const hit = accMap.get(refKey($('#f-account').value)); if(hit && hit.territory && !$('#f-territory').value) $('#f-territory').value = hit.territory; });
-function startEditing(r){
-  showView('add'); editingId = r.id;
-  $('#form-title').textContent = `Edit ${r.graft}`; $('#f-submit').textContent = 'Save changes'; $('#form-cancel-edit').hidden = false;
-  $('#f-graft').value = r.graft||''; $('#f-qty').value = r.qty||1; $('#f-ampm').value = r.ampm||'';
-  $('#f-date').value = r.dateNeeded||''; $('#f-packon').value = r.packOn||''; $('#f-account').value = r.account||'';
-  $('#f-territory').value = canonTerr(r.territory)||''; $('#f-surgeon').value = r.surgeon||''; $('#f-notes').value = r.notes||'';
-  refreshAvail();
+function resetForm(){
+  formMode = 'new'; formCase = null;
+  $('#req-form').reset();
+  $('#case-fields').hidden = false; $('#case-locked').hidden = true;
+  $('#case-fields').querySelectorAll('input,select').forEach(x=>x.required = ['f-date','f-account','f-territory'].includes(x.id));
+  $('#form-title').textContent = 'New biologic request'; $('#f-submit').textContent = 'Submit request'; $('#form-cancel').hidden = true;
+  if(me && myTerrs().length) $('#f-territory').value = myTerrs()[0];
+  $('#g-lines').innerHTML = ''; $('#g-lines').appendChild(graftLine());
 }
-function stopEditing(){
-  editingId = null; $('#req-form').reset();
-  $('#form-title').textContent = 'New biologic request'; $('#f-submit').textContent = 'Submit request'; $('#form-cancel-edit').hidden = true;
-  if(me && me.territories.length) $('#f-territory').value = me.territories[0];
-  refreshAvail();
+$('#form-cancel').onclick = ()=>{ resetForm(); };
+function caseSummary(c){ return `<b>${escapeHtml([c.account, c.surgeon].filter(Boolean).join(' · '))}</b><small>${escapeHtml(['Surgery '+fmtDate(c.date)+(c.ampm?' '+c.ampm:''), c.territory].filter(Boolean).join(' · '))}</small>`; }
+function startAddToCase(c){
+  showView('add'); resetForm(); formMode='add'; formCase=c;
+  $('#form-title').textContent = 'Add biologics to this case'; $('#f-submit').textContent = 'Add to case'; $('#form-cancel').hidden = false;
+  $('#case-fields').hidden = true; $('#case-fields').querySelectorAll('input,select').forEach(x=>x.required=false);
+  $('#case-locked').hidden = false; $('#case-locked').innerHTML = caseSummary(c);
+  $('#g-lines .g-in').focus();
 }
-$('#form-cancel-edit').onclick = stopEditing;
+function startEditCase(c){
+  showView('add'); resetForm(); formMode='edit'; formCase=c;
+  $('#form-title').textContent = 'Edit request'; $('#f-submit').textContent = 'Save changes'; $('#form-cancel').hidden = false;
+  $('#f-date').value=c.date; $('#f-ampm').value=c.ampm; $('#f-account').value=c.account; $('#f-territory').value=c.territory; $('#f-surgeon').value=c.surgeon; $('#f-packon').value=c.packOn; $('#f-notes').value=c.notes;
+  $('#g-lines').innerHTML='';
+  // Only grafts that haven't been packed yet can be changed here.
+  linesOfCase(c.id).filter(l=>l.status==='requested').forEach(l=>$('#g-lines').appendChild(graftLine(l.graft, l.qty, l.id)));
+  const fixed = linesOfCase(c.id).filter(l=>l.status!=='requested' && l.status!=='cancelled');
+  if(fixed.length) $('#g-lines').insertAdjacentHTML('beforebegin', '');
+  $('#case-locked').hidden = !fixed.length; $('#case-locked').innerHTML = fixed.length ? `<small>Already packed or done (not changed here): ${escapeHtml(fixed.map(l=>l.graft).join(', '))}</small>` : '';
+}
 $('#req-form').addEventListener('submit', async e=>{
   e.preventDefault();
   const msg = $('#f-msg');
-  const graft = $('#f-graft').value.trim(); const s = stockFor(graft);
-  const data = {
-    graft: s ? s.ref : refKey(graft), desc: s ? (s.desc||'') : '', qty: Math.max(1, parseInt($('#f-qty').value,10)||1),
-    dateNeeded: $('#f-date').value, packOn: $('#f-packon').value || '', ampm: $('#f-ampm').value,
-    account: $('#f-account').value.trim().toUpperCase(), territory: $('#f-territory').value, surgeon: $('#f-surgeon').value.trim(), notes: $('#f-notes').value.trim()
-  };
-  if(!data.graft || !data.dateNeeded || !data.account || !data.territory){ msg.textContent = 'Fill in the biologic, surgery date, account and territory.'; msg.className='status-msg err'; return; }
-  if(data.packOn && data.packOn > data.dateNeeded){ msg.textContent = 'Pack-on date can’t be after surgery.'; msg.className='status-msg err'; return; }
+  const rows = [...document.querySelectorAll('#g-lines .g-line')].map(w=>({id:w.dataset.id||null, graft:w.querySelector('.g-in').value.trim(), qty:Math.max(1, parseInt(w.querySelector('.g-qty-in').value,10)||1)})).filter(r=>r.graft);
+  if(!rows.length){ msg.textContent='Add at least one biologic.'; msg.className='status-msg err'; return; }
+  const caseData = formMode==='add' ? {dateNeeded:formCase.date, packOn:formCase.packOn, ampm:formCase.ampm, account:formCase.account, territory:formCase.territory, surgeon:formCase.surgeon, notes:formCase.notes}
+    : {dateNeeded:$('#f-date').value, packOn:$('#f-packon').value||'', ampm:$('#f-ampm').value, account:$('#f-account').value.trim().toUpperCase(), territory:$('#f-territory').value, surgeon:$('#f-surgeon').value.trim(), notes:$('#f-notes').value.trim()};
+  if(formMode==='add' && $('#f-notes').value.trim()) caseData.notes = [formCase.notes, $('#f-notes').value.trim()].filter(Boolean).join(' · ');
+  if(!caseData.dateNeeded || !caseData.account || !caseData.territory){ msg.textContent='Fill in the surgery date, account and territory.'; msg.className='status-msg err'; return; }
+  if(caseData.packOn && caseData.packOn > caseData.dateNeeded){ msg.textContent='Pack-on date can’t be after surgery.'; msg.className='status-msg err'; return; }
+  const lineData = r=>{ const s=stockFor(r.graft); return {graft: s ? s.ref : (typeForRef(r.graft) || refKey(r.graft)), desc: s ? (s.desc||'') : ((rowsOfType(typeForRef(r.graft)||'')[0]||{}).desc||''), qty:r.qty}; };
+  const b = db.batch(), now = Date.now();
   try{
-    if(editingId){ await db.doc('bioRequests/'+editingId).update({...data, editedAt:Date.now(), editedByName:me.name}); toast(`Saved ${data.graft}.`); stopEditing(); if(isManager()) showView('requests'); }
-    else {
-      await db.collection('bioRequests').add({...data, status:'requested', person: me.name, requestedById: me.uid, createdAt: Date.now()});
-      msg.textContent = `Requested ${data.qty} × ${data.graft} for ${fmtDate(data.dateNeeded)}.`; msg.className='status-msg ok';
-      const keep = {date:data.dateNeeded, account:data.account, territory:data.territory, surgeon:data.surgeon, ampm:data.ampm};
-      $('#req-form').reset(); $('#f-date').value=keep.date; $('#f-account').value=keep.account; $('#f-territory').value=keep.territory; $('#f-surgeon').value=keep.surgeon; $('#f-ampm').value=keep.ampm; $('#f-graft').focus(); refreshAvail();
+    if(formMode==='edit'){
+      const caseLines = linesOfCase(formCase.id);
+      caseLines.filter(l=>l.status!=='cancelled').forEach(l=>b.update(db.doc('bioRequests/'+l.id), {...caseData, editedAt:now, editedByName:me.name}));
+      rows.forEach((r,i)=>{ if(r.id) b.update(db.doc('bioRequests/'+r.id), lineData(r)); else b.set(db.collection('bioRequests').doc(), {...caseData, ...lineData(r), caseId:formCase.id, status:'requested', person:formCase.person||me.name, requestedById:formCase.requestedById||me.uid, createdAt:now+i, addedByName:me.name}); });
+      caseLines.filter(l=>l.status==='requested' && !rows.some(r=>r.id===l.id)).forEach(l=>b.update(db.doc('bioRequests/'+l.id), {status:'cancelled', cancelledAt:now, cancelledByName:me.name}));
+      await b.commit(); toast('Saved.'); openCases.add(formCase.id); resetForm(); showView(isManager() ? 'requests' : 'add'); return;
     }
+    const caseId = formMode==='add' ? formCase.id : db.collection('bioRequests').doc().id;
+    const pdf = formMode==='add' && formCase.pdfName ? {pdfName:formCase.pdfName, pdfByName:formCase.pdfByName||''} : {};
+    rows.forEach((r,i)=>b.set(db.collection('bioRequests').doc(), {...caseData, ...lineData(r), ...pdf, caseId, status:'requested',
+      person: formMode==='add' ? (formCase.person||me.name) : me.name, requestedById: formMode==='add' ? (formCase.requestedById||me.uid) : me.uid, createdAt: now+i, ...(formMode==='add' ? {addedByName:me.name} : {})}));
+    await b.commit();
+    const n = rows.reduce((k,r)=>k+r.qty,0);
+    msg.textContent = formMode==='add' ? `Added ${n} graft${n===1?'':'s'} to ${formCase.account}.` : `Requested ${n} graft${n===1?'':'s'} for ${fmtDate(caseData.dateNeeded)}.`; msg.className='status-msg ok';
+    openCases.add(caseId);
+    if(formMode==='add'){ resetForm(); }
+    else { const keep = {...caseData}; resetForm(); $('#f-date').value=keep.dateNeeded; $('#f-account').value=keep.account; $('#f-territory').value=keep.territory; $('#f-surgeon').value=keep.surgeon; $('#f-ampm').value=keep.ampm; }
   }catch(err){ console.error(err); msg.textContent = 'That didn’t save. Check your connection and try again.'; msg.className='status-msg err'; }
 });
+
+/* ================= Account & Team ================= */
+function renderAccount(){
+  if(!me) return;
+  $('#acct-name').textContent = me.name; $('#acct-email').textContent = me.email;
+  $('#acct-access').textContent = me.isOwner ? 'Owner' : (me.isAdmin ? 'Admin' : 'Member');
+  $('#acct-terrs').textContent = myTerrs().length ? myTerrs().join(', ') : 'None assigned. An admin can set these under Team.';
+  $('#acct-role-text').textContent = roleLabel(myRole);
+  $('#gear-account-sub').textContent = `${me.email} · ${roleLabel(myRole)}`;
+}
+/* ---- team (admins) ---- */
+function terrPicker(container, selected){
+  container.innerHTML = '';
+  TERRITORIES.forEach(tr=>{
+    const l = document.createElement('label'); l.className='terr-pick';
+    l.innerHTML = '<input type="checkbox"><span></span>';
+    l.querySelector('input').value = tr; l.querySelector('input').checked = (selected||[]).map(canonTerr).includes(tr);
+    l.querySelector('span').textContent = tr;
+    container.appendChild(l);
+  });
+}
+function pickedTerrs(container){ return [...container.querySelectorAll('input:checked')].map(i=>i.value); }
+terrPicker($('#team-terrs'), []);
+let editingMember = null;
+function memberRow(m){
+  const isOwnerRow = m.owner || m.email===OWNER_EMAIL.toLowerCase();
+  const u = Object.values(usersMap).find(x=>x.email===m.email);
+  const el = document.createElement('div'); el.className='member';
+  el.innerHTML = `<div class="member-info"><b></b><small></small><div class="member-terrs"></div></div>`;
+  el.querySelector('b').textContent = (u && u.name) || m.name || m.email;
+  el.querySelector('small').textContent = m.email + (u ? '' : ' · hasn’t signed in yet');
+  const tw = el.querySelector('.member-terrs');
+  const terrs = (m.territories||[]).map(canonTerr);
+  if(terrs.length) terrs.forEach(tr=>{ const s=document.createElement('span'); s.textContent=tr; tw.appendChild(s); });
+  else { const s=document.createElement('span'); s.textContent='No territory'; tw.appendChild(s); }
+  if(isOwnerRow || m.admin){ const b=document.createElement('span'); b.className='badge admin'; b.textContent= isOwnerRow ? 'Owner' : 'Admin'; el.appendChild(b); }
+  // Admins choose each person's role here; it decides which pages they see.
+  const curRole = ROLES.includes(m.role) ? m.role : ((u && (u.role==='rep'||u.role==='inventory')) ? u.role : (isOwnerRow ? 'inventory' : 'rep'));
+  const rs = document.createElement('select'); rs.className='role-sel'; rs.setAttribute('aria-label', 'Role for '+m.email);
+  rs.innerHTML = '<option value="rep">Sales Rep</option><option value="inventory">Inventory Manager</option><option value="product">Product Manager</option>';
+  rs.value = curRole;
+  rs.onchange = async ()=>{
+    try{ await db.doc('members/'+m.email).set({role: rs.value, ...(isOwnerRow ? {admin:true} : {})}, {merge:true}); toast(`${(u && u.name) || m.name || m.email} is now ${withArticle(roleLabel(rs.value))}.`); }
+    catch(e){ console.error(e); rs.value = curRole; toast('Could not change the role. Only admins can.'); }
+  };
+  el.appendChild(rs);
+  const ed = document.createElement('button'); ed.type='button'; ed.className='edit-btn'; ed.textContent='Territories';
+  ed.onclick = ()=>{ editingMember = editingMember===m.email ? null : m.email; renderTeam(); };
+  el.appendChild(ed);
+  if(!isOwnerRow && m.email!==me.email){
+    const rm = document.createElement('button'); rm.type='button'; rm.textContent='Remove';
+    let armed = false;
+    rm.onclick = async ()=>{
+      if(!armed){ armed = true; rm.textContent='Tap to confirm'; setTimeout(()=>{ armed=false; rm.textContent='Remove'; }, 4000); return; }
+      try{ await db.doc('members/'+m.email).delete(); toast(`Removed ${m.email}.`); }catch(e){ console.error(e); toast('Could not remove. Try again.'); }
+    };
+    el.appendChild(rm);
+  }
+  if(editingMember===m.email){
+    const box = document.createElement('div'); box.className='member-edit';
+    box.innerHTML = '<div class="terr-picks"></div><div class="row"><button type="button" class="cancel">Cancel</button><button type="button" class="save">Save territories</button></div>';
+    terrPicker(box.querySelector('.terr-picks'), terrs);
+    box.querySelector('.cancel').onclick = ()=>{ editingMember=null; renderTeam(); };
+    box.querySelector('.save').onclick = async ()=>{
+      const picked = pickedTerrs(box);
+      try{
+        await db.doc('members/'+m.email).set({territories: picked, ...(isOwnerRow ? {admin:true} : {})}, {merge:true});
+        editingMember=null; toast(picked.length ? `${m.email}: ${picked.join(', ')}` : `Cleared territories for ${m.email}.`);
+      }catch(e){ console.error(e); toast('Could not save. Only admins can change the team.'); }
+    };
+    el.appendChild(box);
+  }
+  return el;
+}
+function renderTeam(){
+  if(!me || !me.isAdmin) return;
+  const list = $('#team-list'); list.innerHTML = '';
+  const rows = [...membersList];
+  if(!rows.some(m=>m.email===OWNER_EMAIL.toLowerCase())) rows.unshift({email:OWNER_EMAIL.toLowerCase(), owner:true, admin:true});
+  rows.sort((a,b)=> ((b.owner||b.email===OWNER_EMAIL.toLowerCase())?1:0)-((a.owner||a.email===OWNER_EMAIL.toLowerCase())?1:0) || (b.admin?1:0)-(a.admin?1:0) || a.email.localeCompare(b.email));
+  $('#team-count').textContent = `${rows.length} ${rows.length===1?'person':'people'}`;
+  // One section per territory; someone in two territories shows up in both.
+  const groups = TERRITORIES.map(tr=>({name:tr, people: rows.filter(m=>(m.territories||[]).map(canonTerr).includes(tr))})).filter(g=>g.people.length);
+  const none = rows.filter(m=>!(m.territories||[]).map(canonTerr).some(tr=>TERRITORIES.includes(tr)));
+  if(none.length) groups.push({name:'No territory yet', people:none});
+  const seen = new Set();
+  for(const g of groups){
+    const sec = document.createElement('section'); sec.className='team-group';
+    const h = document.createElement('h3'); h.textContent = g.name;
+    const c = document.createElement('span'); c.textContent = `${g.people.length} ${g.people.length===1?'person':'people'}`; h.appendChild(c);
+    sec.appendChild(h);
+    const wrap = document.createElement('div'); wrap.className='member-list';
+    g.people.forEach(m=>{
+      // Show the territory editor only once, under the person's first section.
+      const showEdit = editingMember===m.email && !seen.has(m.email);
+      const keep = editingMember; if(!showEdit && editingMember===m.email) editingMember = null;
+      wrap.appendChild(memberRow(m));
+      editingMember = keep; seen.add(m.email);
+    });
+    sec.appendChild(wrap); list.appendChild(sec);
+  }
+}
+$('#team-form').addEventListener('submit', async e=>{
+  e.preventDefault();
+  const email = $('#team-email').value.trim().toLowerCase();
+  const name = $('#team-name').value.trim();
+  const admin = $('#team-admin').checked;
+  const role = $('#team-role').value;
+  const territories = pickedTerrs($('#team-terrs'));
+  const msg = $('#team-msg');
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ msg.textContent='Enter a full email address.'; msg.className='status-msg err'; return; }
+  try{
+    await db.doc('members/'+email).set({name, admin, role, territories, addedBy: me.email, addedAt: Date.now()}, {merge:true});
+    msg.textContent = `Added ${email} as ${withArticle(roleLabel(role))}${territories.length ? ' ('+territories.join(', ')+')' : ''}. Send them the app link and tell them to sign in with this email.`; msg.className='status-msg ok';
+    e.target.reset(); terrPicker($('#team-terrs'), []);
+  }catch(err){ console.error(err); msg.textContent='Could not add. Only admins can change the team.'; msg.className='status-msg err'; }
+});
+
 
 /* ================= Stock ================= */
 function renderStock(){
@@ -1344,12 +1977,12 @@ function renderUsage(){
   const tot = {}; rows.forEach(r=>{ tot[r.graft]=(tot[r.graft]||0)+(+r.usedQty||+r.qty||0); });
   $('#u-totals').innerHTML = Object.entries(tot).sort((a,b)=>b[1]-a[1]).map(([k,n])=>`<span>${escapeHtml(k)}<b>${n}</b></span>`).join('');
   const t = $('#u-table'); $('#u-empty').hidden = rows.length>0; t.hidden = !rows.length;
-  t.innerHTML = '<thead><tr><th>Surgery</th><th>Biologic</th><th class="num">Qty</th><th>Account · Surgeon</th><th class="hide-m">Territory</th><th>Sales order · Lot · PO</th></tr></thead>';
+  t.innerHTML = '<thead><tr><th>Surgery</th><th>Biologic</th><th class="num">Qty</th><th>Account · Surgeon</th><th class="hide-m">Territory</th><th>PO · Lot · Sales order</th></tr></thead>';
   const tb=document.createElement('tbody');
   rows.forEach(r=>{
     const so = r.salesOrder ? (/^https?:\/\//.test(r.salesOrder) ? `<a href="${escapeHtml(r.salesOrder)}" target="_blank" rel="noopener">Sales order</a>` : 'SO '+escapeHtml(r.salesOrder)) : '';
     const tr=document.createElement('tr');
-    tr.innerHTML=`<td>${escapeHtml(fmtDate(r.dateNeeded))}</td><td><div class="ref">${escapeHtml(r.usedRef||r.graft||'')}</div><div class="desc">${escapeHtml(r.desc||'')}</div></td><td class="num">${+r.usedQty||+r.qty||0}</td><td>${escapeHtml([r.account, r.surgeon].filter(Boolean).join(' · '))}</td><td class="hide-m">${escapeHtml(canonTerr(r.territory)||'')}</td><td class="desc">${[so, r.lot?'Lot '+escapeHtml(r.lot):'', r.po?'PO '+escapeHtml(r.po):''].filter(Boolean).join(' · ')}</td>`;
+    tr.innerHTML=`<td>${escapeHtml(fmtDate(r.dateNeeded))}</td><td><div class="ref">${escapeHtml(r.usedRef||r.graft||'')}</div><div class="desc">${escapeHtml(r.desc||'')}</div></td><td class="num">${+r.usedQty||+r.qty||0}</td><td>${escapeHtml([r.account, r.surgeon].filter(Boolean).join(' · '))}</td><td class="hide-m">${escapeHtml(canonTerr(r.territory)||'')}</td><td class="desc">${[r.poNumber?'PO '+escapeHtml(r.poNumber):'<span class="exp-soon">No PO yet</span>', r.lot?'Lot '+escapeHtml(r.lot):'', so].filter(Boolean).join(' · ')}</td>`;
     tb.appendChild(tr);
   });
   t.appendChild(tb);
@@ -1360,7 +1993,7 @@ $('#u-export').addEventListener('click', ()=>{
   const rows = usageRows();
   const cell = v=>`"${String(v??'').replace(/"/g,'""')}"`;
   const csv = [['Surgery date','Territory','Account','Surgeon','Biologic','Description','Qty','Sales order','Lot','PO'].map(cell).join(',')]
-    .concat(rows.map(r=>[r.dateNeeded, canonTerr(r.territory), r.account, r.surgeon, r.graft, r.desc, +r.usedQty||+r.qty||0, r.salesOrder, r.lot, r.po].map(cell).join(','))).join('\n');
+    .concat(rows.map(r=>[r.dateNeeded, canonTerr(r.territory), r.account, r.surgeon, r.usedRef||r.graft, r.desc, +r.usedQty||+r.qty||0, r.salesOrder, r.lot, r.poNumber].map(cell).join(','))).join('\n');
   const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv],{type:'text/csv'})); a.download = `biologics-usage-${todayIso()}.csv`; a.click();
   setTimeout(()=>URL.revokeObjectURL(a.href), 2000);
 });

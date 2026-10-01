@@ -104,6 +104,22 @@ service cloud.firestore {
     match /bioNotes/{id} {
       allow read, write: if isMember();
     }
+    // One PDF per biologic case (stored as text, under 1 MB). Only admins attach or remove them.
+    match /bioFiles/{caseId} {
+      allow read: if isMember();
+      allow write: if isAdmin()
+        && (request.resource == null || (request.resource.data.data is string && request.resource.data.data.size() < 1000000));
+      allow delete: if isAdmin();
+    }
+    // Return photos for biologic cases (compressed images stored as text).
+    match /bioPhotos/{photoId} {
+      allow read: if isMember();
+      allow create: if isMember()
+        && request.resource.data.authorId == request.auth.uid
+        && request.resource.data.data is string
+        && request.resource.data.data.size() < 900000;
+      allow delete: if isMember() && (resource.data.authorId == request.auth.uid || isAdmin());
+    }
 
     // One-time import bookkeeping.
     match /meta/{doc} {

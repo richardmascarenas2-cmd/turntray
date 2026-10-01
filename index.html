@@ -191,6 +191,7 @@ textarea{resize:vertical; min-height:64px;}
 .stepper button{width:40px; height:40px; background:var(--bg); border:1px solid var(--line); font-size:1.1rem; line-height:1;}
 .stepper input{width:58px; text-align:center; padding:8px 4px; font-variant-numeric:tabular-nums;}
 .inv-row.low-row{background:color-mix(in srgb, var(--danger) 6%, var(--panel));}
+.inv-name .inv-out{display:block; color:var(--sub); font-size:.7rem; font-weight:600;}
 .inv-name .inv-low{display:block; color:var(--danger); font-size:.7rem; font-weight:700;}
 .low-chip{flex:none; font-size:.74rem; white-space:nowrap;}
 .chip.low-chip.on, .chip.low-chip:has(input:checked){border-color:var(--danger); color:var(--danger); background:color-mix(in srgb, var(--danger) 8%, var(--panel));}
@@ -876,7 +877,8 @@ textarea{resize:vertical; min-height:64px;}
       </form>
       <div class="status-msg" id="inv-msg"></div>
     </section>
-    <div class="section-head" style="margin-top:18px;"><h2>On hand</h2></div>
+    <div class="section-head" style="margin-top:18px;"><h2>In stock</h2></div>
+    <p class="hint">Each count is the total number of sets you own, whether they're on the shelf or out on a case. Pulling, sending and returning trays doesn't change it. What's free on a given day is worked out from the requests, and earlier surgeries get sets first.</p>
     <p class="hint">Mark a tray <b>Low inventory</b> when you can't count on getting a set back in time. When it runs short, it goes straight to Loaner needed instead of asking for an urgent return.</p>
     <div class="toolbar"><input type="search" id="inv-search" placeholder="Search trays…"></div>
     <div class="inv-list" id="inv-list"></div>
@@ -886,7 +888,7 @@ textarea{resize:vertical; min-height:64px;}
   <div class="view" id="view-more">
     <div class="more-list">
       <button data-go="history"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 8v4l3 2"/></svg><span>Territory History<small>Every request, filtered by territory</small></span></button>
-      <button data-go="inventory" class="m-only" id="more-inventory"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8 12 3 3 8v8l9 5 9-5z"/><path d="m3 8 9 5 9-5M12 13v8"/></svg><span>Inventory<small>Trays on hand, adjust counts</small></span></button>
+      <button data-go="inventory" class="m-only" id="more-inventory"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8 12 3 3 8v8l9 5 9-5z"/><path d="m3 8 9 5 9-5M12 13v8"/></svg><span>Inventory<small>Sets in stock, adjust counts</small></span></button>
       <button data-go="analysis" class="m-only" id="more-analysis"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><span>Analysis<small>Tray usage and overlap ranking</small></span></button>
       <button data-go="cards" class="m-only"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg><span>Preference Cards<small>Each surgeon's usual trays by procedure</small></span></button>
       <button data-go="team" id="more-team" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.5 3.4-5.5 6.5-5.5s5.7 2 6.5 5.5"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18 14.8c1.9.7 3.1 2.5 3.5 5.2"/></svg><span>Team<small>Who can sign in, their role, and who is an admin</small></span></button>
@@ -1059,7 +1061,24 @@ let me = null;          // {uid, email, name, isAdmin}
 let myRole = null;      // 'rep' | 'inventory' | 'product'
 let unsubs = [];
 let inventoryMap = {};
-let lowTrays = {};       // tray name -> true for trays marked Low inventory (they skip urgent returns and go straight to Loaner needed)
+let lowTrays = {};
+let invCountMode = '', invLoaded = false, reqLoaded = false, converting = false;
+/* One-time switch: counts used to drop while a tray was out. Now they're the total owned,
+   so add back every set that's currently pulled and not returned. Runs once, for the first manager to open the app. */
+function convertCountsOnce(){
+  if(!invLoaded || !reqLoaded || invCountMode==='total' || converting || !isManager() || !db) return;
+  converting = true;
+  const ref = db.doc('inventory/main');
+  db.runTransaction(async t=>{
+    const snap = await t.get(ref);
+    const d = snap.exists ? snap.data() : {};
+    if(d.countMode==='total') return;
+    const trays = {...(d.trays||{})};
+    const keyOf = n=>Object.keys(trays).find(k=>k.toUpperCase()===String(n||'').trim().toUpperCase());
+    allDocs.filter(r=>r.status==='fulfilled' && !r.returned && r.tray).forEach(r=>{ const k=keyOf(r.tray); if(k!==undefined && typeof trays[k]==='number') trays[k] += 1; });
+    if(snap.exists) t.update(ref, {trays, countMode:'total'}); else t.set(ref, {trays, countMode:'total'});
+  }).catch(err=>console.error('Count conversion', err)).finally(()=>{ converting = false; });
+}       // tray name -> true for trays marked Low inventory (they skip urgent returns and go straight to Loaner needed)
 let allDocs = [];
 let usersMap = {};      // uid -> {name, email, role}
 let membersList = [];
@@ -1197,11 +1216,14 @@ function startListeners(){
   unsubs.push(db.doc('inventory/main').onSnapshot(snap=>{
     inventoryMap = snap.exists ? (snap.data().trays || {}) : {};
     lowTrays = snap.exists ? (snap.data().lowTrays || {}) : {};
+    invCountMode = snap.exists ? (snap.data().countMode || '') : 'total';
+    invLoaded = true; convertCountsOnce();
     refreshTrayDatalist();
     renderAll();
   }, onListenError));
   unsubs.push(db.collection('requests').onSnapshot({includeMetadataChanges:true}, snap=>{
     allDocs = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    reqLoaded = true; convertCountsOnce();
     refreshSurgeonList();
     $('#offline-bar').hidden = !snap.metadata.fromCache || navigator.onLine;
     renderAll();
@@ -1348,13 +1370,6 @@ async function upsertTray(name, qty){
     try{ await ref.set({trays: {[name]: qty}}, {merge:true}); }catch(e2){ console.error(e2); toast('Could not save that count. Try again.'); }
   }
 }
-async function adjustInventory(trayName, delta){
-  const key = getTrayKey(trayName);
-  if(key===undefined) return;
-  const q = inventoryMap[key];
-  if(typeof q !== 'number') return;
-  await upsertTray(key, Math.max(0, q + delta));
-}
 
 /* ================= New request form ================= */
 let editingReqId = null;
@@ -1368,16 +1383,42 @@ $('#f-account').addEventListener('input', (e)=>{
   else if(hit && hit.territory){ territorySel.value = hit.territory; }
   updateSstPreview();
 });
+/* How a tray stands on the surgery date being requested, counting every other request.
+   Earlier cases get sets first, so this can change when someone adds a case on an earlier date. */
+function availabilityFor(tray, dateNeeded, dateRequired, excludeId){
+  const owned = getQty(tray);
+  if(typeof owned !== 'number' || !dateNeeded) return {owned};
+  const probe = {id:'__probe', tray, dateNeeded, dateRequired: dateRequired||'', status:'open', createdAt: Date.now()};
+  const start = pullByFor(probe) < todayIso() ? todayIso() : pullByFor(probe), end = returnDateFor(probe);
+  // Sets already spoken for on those days by cases that go out first (same windows as the loaner check).
+  const today = todayIso(), key = (getTrayKey(tray)||tray).toUpperCase();
+  const wins = allDocs.filter(r=>r.id!==excludeId && r.status!=='cancelled' && !r.returned && r.tray && (getTrayKey(r.tray)||r.tray).toUpperCase()===key && !((r.status||'open')==='open' && r.loanerStatus==='ordered'))
+    .map(trayWindow).filter(w=>w && (w.held || w.start<=start));
+  let used = 0;
+  for(let d=start; d<=end; d=addBizDays(d,1)) used = Math.max(used, wins.filter(w=>w.start<=d && w.end>=d).length);
+  // Run the real loaner check with this request included to see which rule it lands under.
+  const saved = allDocs; allDocs = excludeId ? allDocs.filter(r=>r.id!==excludeId) : allDocs;
+  loanerProbe = probe; computeLoaners();
+  const how = urgentNeed.has(probe.id) ? 'urgent' : (shortIds.has(probe.id) ? 'loaner' : 'ok');
+  loanerProbe = null; allDocs = saved; computeLoaners();
+  return {owned, free: Math.max(0, owned - used), how};
+}
 function refreshAvailFor(inp, el){
   const val = inp.value.trim();
   if(!val){ el.textContent=''; el.className='avail'; return; }
   const q = getQty(val);
   if(q===undefined){ el.textContent=''; el.className='avail'; return; }
-  if(q===0){ el.textContent = 'None on hand. This request will be flagged as needing a loaner.'; el.className='avail low'; return; }
-  if(q===null){ el.textContent = 'Available: unknown'; el.className='avail'; return; }
-  el.textContent = `Available: ${q}`;
-  el.className = 'avail' + (q<=1 ? ' low' : '');
+  if(q===null){ el.textContent = 'In stock: unknown'; el.className='avail'; return; }
+  if(q===0){ el.textContent = 'None in stock. This request will be flagged as needing a loaner.'; el.className='avail low'; return; }
+  const a = availabilityFor(val, $('#f-date').value, $('#f-required').value, editingReqId);
+  if(a.how===undefined){ el.textContent = `${q} in stock. Pick a surgery date to see what's free.`; el.className='avail'; return; }
+  const day = fmtDate($('#f-date').value);
+  if(a.how==='loaner'){ el.textContent = `${q} in stock, none free for ${day}. This request will be flagged as needing a loaner.`; el.className='avail low'; return; }
+  if(a.how==='urgent'){ el.textContent = `${q} in stock, none free for ${day} unless a set comes back in time. This will be an urgent return.`; el.className='avail low'; return; }
+  el.textContent = `${a.free} of ${q} free for ${day}`;
+  el.className = 'avail' + (a.free<=1 ? ' low' : '');
 }
+function refreshAllAvail(){ document.querySelectorAll('#tray-lines .tin').forEach(w=>refreshAvailFor(w.querySelector('.f-tray-input'), w.querySelector('.avail'))); }
 function trayInputRow(val){
   const wrap = document.createElement('div'); wrap.className='tin';
   wrap.innerHTML = `<div class="tin-row"><input class="f-tray-input" list="dl-trays" placeholder="e.g. ACLTOOLBOX" autocapitalize="characters" autocomplete="off" aria-label="Tray / item"><button type="button" class="tin-rm" aria-label="Remove tray">×</button></div><div class="avail"></div>`;
@@ -1429,8 +1470,8 @@ function updateRequiredHelp(){
   el.className='tray-help';
   el.textContent = `Inventory will pull it by ${fmtDate(pullByFor(fake))} and send it by ${fmtDate(sendByFor(fake))}.` + (req ? '' : ' Set a date required if it needs to be there earlier.');
 }
-$('#f-date').addEventListener('change', updateRequiredHelp);
-$('#f-required').addEventListener('change', updateRequiredHelp);
+$('#f-date').addEventListener('change', ()=>{ updateRequiredHelp(); refreshAllAvail(); });
+$('#f-required').addEventListener('change', ()=>{ updateRequiredHelp(); refreshAllAvail(); });
 
 /* ---- preference cards in the request form ---- */
 const normName = s => String(s||'').trim().toLowerCase().replace(/^dr\.?\s+/,'');
@@ -1625,9 +1666,6 @@ async function saveEdit(){
     tray, sst: isSst, sstPtId: isSst ? $('#sst-ptid').value.trim() : '', sstStart: isSst ? $('#sst-start').value : '',
     editedById: me.uid, editedByName: me.name, editedAt: Date.now()
   };
-  // A fulfilled request already took one tray out of inventory; move that to the new tray.
-  const oldKey = getTrayKey(r.tray)||r.tray, newKey = getTrayKey(tray)||tray;
-  if(r.status==='fulfilled' && oldKey!==newKey){ await adjustInventory(r.tray, 1); await adjustInventory(tray, -1); }
   updateFields(r.id, patch);
   leaveEdit();
   toast(`Saved changes to ${tray}.`);
@@ -1699,23 +1737,21 @@ $('#sent-undo').addEventListener('click', async ()=>{
 
 /* ================= Request actions ================= */
 function updateFields(id, fields){ return db.doc('requests/'+id).update(fields).catch(err=>{ console.error(err); toast('That change didn’t save. Try again.'); }); }
+// Inventory counts are the total sets owned; pulling, cancelling and returning no longer change them.
+// What's free on a given day is worked out from the requests (see computeLoaners).
 async function fulfillRequest(r){
-  if(r.status!=='fulfilled') adjustInventory(r.tray, -1);
   updateFields(r.id, {status:'fulfilled', outgoing:true, fulfilledAt: Date.now(), fulfilledById: me.uid, fulfilledByName: me.name});
 }
 async function cancelRequest(r){
   const wasPulled = r.status==='fulfilled';
-  if(wasPulled) adjustInventory(r.tray, 1);
   // A tray that was already pulled has to go back on the shelf; the pull queue reminds the manager.
   updateFields(r.id, {status:'cancelled', outgoing:false, ...(wasPulled ? {putBack:true} : {})});
 }
 async function reopenRequest(r){
-  if(r.status==='fulfilled') adjustInventory(r.tray, 1);
   updateFields(r.id, {status:'open', outgoing:false, putBack:false});
 }
 async function toggleReturned(r){
   const returned = !!r.returned;
-  adjustInventory(r.tray, returned ? -1 : 1);
   updateFields(r.id, {returned: !returned});
 }
 
@@ -1924,6 +1960,20 @@ function loanerTag(r){
    so a request added later that has to go out sooner can take the last set and bump another case.
    Any open request that can't get a set is flagged "Loaner needed". */
 const RETURN_LAG_DAYS = 1;
+/* The days a request ties up a set: from when it's pulled until it's back. null once a not-pulled case is over. */
+function trayWindow(r){
+  const today = todayIso();
+  let start, end = returnDateFor(r);
+  if((r.status||'open')==='fulfilled'){
+    start = r.fulfilledAt ? isoDate(new Date(r.fulfilledAt)) : pullByFor(r);
+    if(end < today) end = today;                              // still out until someone marks it returned
+    return {start, end, held:true};
+  }
+  if(end < today) return null;
+  start = pullByFor(r); if(start < today) start = today;
+  return {start, end, held:false};
+}
+let loanerProbe = null;   // a not-yet-saved request, checked against everything else (see availabilityFor)
 function returnDateFor(r){ return r.dateNeeded ? addBizDays(r.dateNeeded, RETURN_LAG_DAYS) : todayIso(); }
 function computeLoaners(){
   shortIds = new Set(); shortageAlerts = [];
@@ -1931,26 +1981,17 @@ function computeLoaners(){
   const poolMap = new Map();
   const today = todayIso();
   const byTray = new Map();
-  for(const r of allDocs){
+  for(const r of allDocs.concat(loanerProbe ? [loanerProbe] : [])){
     if(r.status==='cancelled' || !r.tray || r.returned) continue;
-    const st = r.status || 'open';
-    if(st==='open' && r.loanerStatus==='ordered') continue;   // a loaner from Arthrex covers it
-    let start, end = returnDateFor(r);
-    if(st==='fulfilled'){
-      start = r.fulfilledAt ? isoDate(new Date(r.fulfilledAt)) : pullByFor(r);
-      if(end < today) end = today;                            // still out until someone marks it returned
-    } else {
-      if(end < today) continue;                               // surgery is over
-      start = pullByFor(r); if(start < today) start = today;
-    }
+    if((r.status||'open')==='open' && r.loanerStatus==='ordered') continue;   // a loaner from Arthrex covers it
+    const w = trayWindow(r); if(!w) continue;                 // surgery is over
     const k = (getTrayKey(r.tray)||r.tray).toUpperCase();
     if(!byTray.has(k)) byTray.set(k, []);
-    byTray.get(k).push({r, start, end, held: st==='fulfilled'});
+    byTray.get(k).push({r, start:w.start, end:w.end, held:w.held});
   }
   for(const [k, list] of byTray){
-    const onHand = getQty(list[0].r.tray);
-    if(typeof onHand !== 'number') continue;                  // count unknown: can't tell
-    const owned = onHand + list.filter(x=>x.held).length;     // on the shelf + out on pulled cases
+    const owned = getQty(list[0].r.tray);                     // total sets owned
+    if(typeof owned !== 'number') continue;                   // count unknown: can't tell
     list.sort((a,b)=> a.start.localeCompare(b.start) || (b.held-a.held) || ((a.r.createdAt||0)-(b.r.createdAt||0)));
     let busy = [];                                            // sets currently out: {end, x}
     for(const x of list){
@@ -1979,7 +2020,7 @@ function computeLoaners(){
   // Remember each urgent return once, so Analysis can count them after the set is back.
   if(isManager() && db){
     for(const pool of urgentPools) for(const r of pool.needs){
-      if(!r.urgentReturnAt) db.doc('requests/'+r.id).update({urgentReturnAt:Date.now(), urgentReturnDate:pool.date}).catch(()=>{});
+      if(!r.urgentReturnAt && r!==loanerProbe) db.doc('requests/'+r.id).update({urgentReturnAt:Date.now(), urgentReturnDate:pool.date}).catch(()=>{});
     }
   }
   urgentPools.sort((a,b)=>a.date.localeCompare(b.date));
@@ -2860,7 +2901,11 @@ function renderInventory(){
     }
     const nameEl = row.querySelector('.inv-name');
     nameEl.textContent = name;
-    if(qty===0){ const z=document.createElement('span'); z.className='inv-zero'; z.textContent='None on hand'; nameEl.appendChild(z); }
+    if(qty===0){ const z=document.createElement('span'); z.className='inv-zero'; z.textContent='None in stock'; nameEl.appendChild(z); }
+    else if(!unknown){
+      const out = allDocs.filter(r=>r.status==='fulfilled' && !r.returned && r.tray && (getTrayKey(r.tray)||r.tray)===name).length;
+      if(out){ const z=document.createElement('span'); z.className='inv-out'; z.textContent=`${out} out now · ${Math.max(0,qty-out)} on the shelf`; nameEl.appendChild(z); }
+    }
     else if(unknown){ const z=document.createElement('span'); z.className='inv-zero'; z.textContent='Count unknown'; nameEl.appendChild(z); }
     if(low){ const z=document.createElement('span'); z.className='inv-low'; z.textContent='Low inventory · shortages go straight to Loaner needed'; nameEl.appendChild(z); }
     const inp = row.querySelector('input'); const msg = row.querySelector('.inv-row-msg');
@@ -2997,7 +3042,6 @@ $('#ps-complete').addEventListener('click', async ()=>{
   try{
     await db.doc('requests/'+r.id).update({returned:true, returnedAt:Date.now(), returnedById:me.uid, returnedByName:me.name, returnMissing:missing, returnMissingNote: missing ? note : '', missingResolved:false, missingResolvedAt:null, missingResolvedByName:''});
   }catch(err){ console.error(err); toast('That change didn’t save. Try again.'); return; }
-  adjustInventory(r.tray, 1);
   // Nothing missing: the return photos aren't needed, so free up the space.
   if(!missing) deleteReturnPhotos(r.id);
   if(missing){
@@ -3008,7 +3052,6 @@ $('#ps-complete').addEventListener('click', async ()=>{
 });
 $('#ps-undo-return').addEventListener('click', ()=>{
   const r = allDocs.find(x=>x.id===psReqId); if(!r || !r.returned) return;
-  adjustInventory(r.tray, -1);
   updateFields(r.id, {returned:false, returnedAt:null, returnMissing:false, returnMissingNote:'', missingResolved:false, missingResolvedAt:null, missingResolvedByName:''});
   psMissing = null; $('#ps-missing-note').value='';
   toast('Return undone.');

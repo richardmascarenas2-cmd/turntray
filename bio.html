@@ -744,6 +744,12 @@ main{max-width:1200px; margin:0 auto; padding:18px clamp(16px,3vw,32px) 40px;}
 .seg button.active[data-v=no]{background:var(--danger); color:#fff;}
 .seg button.active[data-v=yes]{background:var(--good); color:#fff;}
 @media (max-width:820px){ .bc-side small{display:none;} .po-form{padding:0 12px 12px;} }
+/* Request-sent pop-up */
+.celebrate{position:fixed; inset:0; z-index:120; display:flex; align-items:center; justify-content:center; background:rgba(11,13,18,.35); opacity:0; transition:opacity .2s; cursor:pointer;}
+.celebrate.show{opacity:1;}
+.celebrate img{width:min(72vw, 340px); height:auto; filter:drop-shadow(0 12px 30px rgba(0,0,0,.35)); transform:scale(.6) rotate(-8deg); transition:transform .35s cubic-bezier(.2,1.6,.4,1);}
+.celebrate.show img{transform:scale(1) rotate(0);}
+@media (prefers-reduced-motion:reduce){ .celebrate img{transition:none; transform:none;} }
 </style>
 </head>
 <body>
@@ -1732,6 +1738,7 @@ $('#req-form').addEventListener('submit', async e=>{
       person: formMode==='add' ? (formCase.person||me.name) : me.name, requestedById: formMode==='add' ? (formCase.requestedById||me.uid) : me.uid, createdAt: now+i, ...(formMode==='add' ? {addedByName:me.name} : {})}));
     await b.commit();
     const n = rows.reduce((k,r)=>k+r.qty,0);
+    if(formMode==='new') celebrate();
     msg.textContent = formMode==='add' ? `Added ${n} graft${n===1?'':'s'} to ${formCase.account}.` : `Requested ${n} graft${n===1?'':'s'} for ${fmtDate(caseData.dateNeeded)}.`; msg.className='status-msg ok';
     openCases.add(caseId);
     if(formMode==='add'){ resetForm(); }
@@ -2009,6 +2016,15 @@ function wireMenu(btnSel, ddSel){
 }
 wireMenu('#app-title-btn', '#app-dd');
 wireMenu('#gear-btn', '#gear-dd');
+/* Brief pop-up after someone submits a request. Tap to close early. */
+function celebrate(){
+  const d = document.createElement('div'); d.className='celebrate'; d.setAttribute('role','status'); d.setAttribute('aria-label','Request sent. Nice!');
+  d.innerHTML = '<img src="request-nice.png" alt="">';
+  document.body.appendChild(d);
+  requestAnimationFrame(()=>requestAnimationFrame(()=>d.classList.add('show')));
+  const close = ()=>{ d.classList.remove('show'); setTimeout(()=>d.remove(), 250); };
+  d.addEventListener('click', close); setTimeout(close, 2200);
+}
 if(window.firebase) boot(); else $('#loading-msg').textContent = 'Could not load. Check your connection and reload.';
 </script>
 </body>

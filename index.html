@@ -231,6 +231,21 @@ textarea{resize:vertical; min-height:64px;}
 .an-total small{display:block; font-size:.62rem; font-weight:600; color:var(--sub); text-transform:uppercase; letter-spacing:.05em;}
 .overlap-hi{color:var(--danger);}
 
+/* ---------- help ---------- */
+.help{max-width:720px;}
+.help-intro{color:var(--sub); margin:0 0 14px;}
+.help details{border:1px solid var(--line); border-radius:12px; background:var(--panel); margin-bottom:10px; overflow:hidden;}
+.help summary{cursor:pointer; list-style:none; display:flex; align-items:center; gap:10px; padding:14px 16px; font-weight:600;}
+.help summary::-webkit-details-marker{display:none;}
+.help summary::after{content:'+'; margin-left:auto; color:var(--sub); font-weight:400; font-size:1.2rem; line-height:1;}
+.help details[open] summary::after{content:'\2212';}
+.help summary small{display:block; font-weight:400; color:var(--sub); font-size:.78rem; margin-top:2px;}
+.help .h-body{padding:0 16px 14px; line-height:1.5;}
+.help .h-body ol, .help .h-body ul{margin:6px 0 10px; padding-left:20px;}
+.help .h-body li{margin:4px 0;}
+.help .h-body p{margin:6px 0 10px;}
+.help .h-tag{display:inline-block; font-size:.7rem; font-weight:600; padding:2px 7px; border-radius:999px; background:color-mix(in srgb, var(--accent) 14%, var(--panel)); color:var(--accent); margin-left:6px; vertical-align:middle;}
+.help .swatch{display:inline-block; width:12px; height:12px; border-radius:3px; vertical-align:-1px; margin-right:4px;}
 /* ---------- more / account / team ---------- */
 .more-list{display:grid; border:1px solid var(--line); border-radius:12px; overflow:hidden; max-width:640px;}
 .more-list button{display:flex; align-items:center; gap:12px; text-align:left; background:var(--panel); padding:16px; border-radius:0; border-bottom:1px solid var(--line); font-size:.95rem;}
@@ -946,6 +961,131 @@ textarea{resize:vertical; min-height:64px;}
       <button data-go="inventory" class="m-only" id="more-inventory"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8 12 3 3 8v8l9 5 9-5z"/><path d="m3 8 9 5 9-5M12 13v8"/></svg><span>Inventory<small>Sets in stock, adjust counts</small></span></button>
       <button data-go="analysis" class="m-only" id="more-analysis"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><span>Analysis<small>Tray usage and overlap ranking</small></span></button>
       <button data-go="cards" class="m-only"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg><span>Preference Cards<small>Each surgeon's usual trays by procedure</small></span></button>
+      <button data-go="help"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6V14"/><circle cx="12" cy="17.5" r="0.6"/></svg><span>Help &amp; tips<small>How to use the app, by role</small></span></button>
+    </div>
+  </div>
+
+  <div class="view" id="view-help">
+    <div class="help">
+      <h2 class="page-title">Help &amp; tips</h2>
+      <p class="help-intro">Quick how-tos for the trays app and the Biologics app. Tap a section to open it.</p>
+
+      <details data-help="all">
+        <summary><span>Getting around<small>Switching apps, settings, adding to your home screen</small></span></summary>
+        <div class="h-body">
+          <ul>
+            <li><b>Switch apps:</b> tap the app name at the top left to jump between <b>Inventory Requests</b> (trays) and <b>Biologics</b>.</li>
+            <li><b>Settings:</b> tap your name or the gear at the top right for <b>Account</b> (your role, sign out) and, for admins, <b>Team</b>.</li>
+            <li><b>On a phone,</b> the tabs sit along the bottom. Anything that doesn't fit is under <b>More</b>.</li>
+            <li><b>Add it to your home screen:</b> in Safari tap Share → Add to Home Screen; in Chrome tap ⋮ → Add to Home screen. It then opens like an app.</li>
+            <li>If you lose signal, a bar says you're offline. Changes save once you're back online.</li>
+          </ul>
+        </div>
+      </details>
+
+      <details data-help="rep">
+        <summary><span>Requesting trays <span class="h-tag">Sales reps</span><small>New requests, adding trays, editing and cancelling</small></span></summary>
+        <div class="h-body">
+          <ol>
+            <li>Open <b>Add Request</b>. Fill in the surgery date, account, territory and surgeon.</li>
+            <li>If the surgeon has a <b>preference card</b>, pick the procedure and their usual trays fill in for you. Add or remove trays as needed.</li>
+            <li>Only set <b>Date required</b> if you need the trays earlier than the day before surgery.</li>
+            <li>Tap <b>Submit</b>. Everything on one submit is one case.</li>
+          </ol>
+          <p><b>Forgot a tray?</b> In <b>My requests → Upcoming</b>, open the case and tap <b>+ Add trays to this case</b>.</p>
+          <p><b>Edit or cancel:</b> open the case in My requests and use <b>Edit</b> or <b>Cancel</b>. Cancel asks you to tap a second time to confirm. If a tray was already pulled, the inventory team gets a heads-up to put it back.</p>
+          <p>Status on each case: <b>Requested</b> → <b>Being pulled</b> → <b>All pulled</b> → <b>Delivered</b>.</p>
+        </div>
+      </details>
+
+      <details data-help="mgr">
+        <summary><span>Pulling and sending trays <span class="h-tag">Inventory team</span><small>The pull queue, heads-up alerts and colors</small></span></summary>
+        <div class="h-body">
+          <p><b>Requests</b> is the pull queue, sorted by pull-by date. Trays are pulled 1 business day before they're sent, and sent the day before surgery unless the rep set a date required.</p>
+          <ul>
+            <li>Open a case and <b>tick a tray</b> when it's pulled. Untick it to undo.</li>
+            <li><span class="swatch" style="background:#e3b008"></span><b>Yellow</b> means the case is in progress (something pulled or sent). <span class="swatch" style="background:var(--good)"></span><b>Green</b> means every tray has been delivered.</li>
+          </ul>
+          <p>The <b>Heads up</b> box lists things to act on. Tap the button once each one is handled:</p>
+          <ul>
+            <li><b>Loaner needed</b> means every set is booked for those days. Order a loaner, then tap <b>Loaner ordered</b>.</li>
+            <li><b>Urgent return</b> means a case is waiting on a set coming straight back from another case. Tap <b>Arranged</b> once that's sorted.</li>
+            <li><b>Late request</b>, <b>Changed after pull</b> and <b>Put back</b> (cancelled after it was pulled) are there so nothing slips by.</li>
+          </ul>
+        </div>
+      </details>
+
+      <details data-help="all">
+        <summary><span>Schedule, delivery and returns<small>Delivery photos, return photos, missing items</small></span></summary>
+        <div class="h-body">
+          <p><b>Schedule</b> shows every case by surgery date (reps see their own territory first). Tap a case to add <b>delivery photos</b> and mark trays <b>Delivered</b>.</p>
+          <p><b>Returns</b> lists cases once surgery day arrives; trays are due back 1 business day after.</p>
+          <ol>
+            <li>Tap the case, then <b>Return a tray</b>.</li>
+            <li>Take a photo and say whether anything is <b>missing</b>. The delivery photos show above so you can compare.</li>
+            <li>If nothing's missing, the case leaves the page and the return photos are deleted to save space. If something's missing, it stays, and the photos are kept until it's found.</li>
+          </ol>
+          <p>Keep patient labels and patient information out of photos.</p>
+        </div>
+      </details>
+
+      <details data-help="mgr">
+        <summary><span>Inventory, analysis and SST <span class="h-tag">Inventory team</span><small>Set counts, low inventory, loaner trends</small></span></summary>
+        <div class="h-body">
+          <ul>
+            <li><b>Inventory</b> counts are the total sets you own, on the shelf or out on a case. Pulling and returning don't change them. What's free each day is worked out from the requests, and earlier surgeries get sets first.</li>
+            <li>Mark a tray <b>Low inventory</b> when you can't count on a set coming back in time. It then goes straight to <i>Loaner needed</i> instead of asking for an urgent return.</li>
+            <li><b>Analysis</b> ranks the trays you keep running short on. The ones at the top are worth stocking more of.</li>
+            <li><b>SST</b> lists SST cases by the day they need to be sent, with a send-out report.</li>
+          </ul>
+        </div>
+      </details>
+
+      <details data-help="pm">
+        <summary><span>Starred trays <span class="h-tag">Product managers</span><small>Follow the trays you care about</small></span></summary>
+        <div class="h-body">
+          <p>Tap the <b>☆</b> next to any tray, anywhere in the app. Every case using one of your starred trays then shows on <b>My Trays</b>, by surgery date.</p>
+        </div>
+      </details>
+
+      <details data-help="all">
+        <summary><span>Preference cards<small>Save a surgeon's usual trays</small></span></summary>
+        <div class="h-body">
+          <p>Under <b>Pref Cards</b> (on a phone: <b>More → Preference Cards</b>), save each surgeon's usual trays for a procedure. On a new request, picking that surgeon and procedure fills the trays in for you.</p>
+        </div>
+      </details>
+
+      <details data-help="all">
+        <summary><span>Biologics app<small>Requesting, packing, used/returned and POs</small></span></summary>
+        <div class="h-body">
+          <p>Open it from the app name at the top left.</p>
+          <ul>
+            <li><b>Request:</b> type the <b>ABS number</b> or part of the <b>description</b> and pick the graft. Add as many grafts as the case needs, then submit. To add more later, open the case and add to it.</li>
+            <li><b>Pack</b> (inventory team): enter the <b>lot</b> and <b>expiration</b> for each graft as you pack it.</li>
+            <li><b>After surgery</b> (anyone): mark grafts <b>Used</b> or <b>Returned</b>. For returns, answer <b>Returned to shelf/freezer?</b>. If not yet, it's held until someone puts it away. Returns can include a photo.</li>
+            <li><b>PO page:</b> used grafts show up there. The rep adds the <b>PO number</b>, and an admin closes it.</li>
+            <li><b>PDF:</b> admins can drag one PDF onto a case (one per case).</li>
+          </ul>
+        </div>
+      </details>
+
+      <details data-help="all">
+        <summary><span>Requests from the Google Sheets<small>Why some requests say “Google Sheet”</small></span></summary>
+        <div class="h-body">
+          <p>Through October, requests entered in the INVENTORY REQUESTS and BIOLOGICS Google Sheets are copied into the app automatically about once an hour. Only requests for today or later are copied, and each one only once. After a request is copied, its status is tracked in the app, so make any changes here rather than in the sheet.</p>
+        </div>
+      </details>
+
+      <details data-help="all">
+        <summary><span>Trouble?<small>Sign-in and access</small></span></summary>
+        <div class="h-body">
+          <ul>
+            <li><b>“No access”</b> means your email isn't on the team list yet. Ask an admin to add it under the gear → <b>Team</b>, then tap <b>Check again</b>.</li>
+            <li>Sign in with the exact email that's on the team list, using Google or an email and password.</li>
+            <li>If something looks out of date, pull down to refresh or reopen the app.</li>
+          </ul>
+        </div>
+      </details>
     </div>
   </div>
 
@@ -1222,7 +1362,7 @@ function enterApp(){
   applyMyTerritories();
   applyRoleUI();
   const hashView = location.hash.replace('#','');
-  showView(SETTINGS_VIEWS.includes(hashView) ? hashView : (isManager() ? 'requests' : 'add'));
+  showView((SETTINGS_VIEWS.includes(hashView) || hashView==='help') ? hashView : (isManager() ? 'requests' : 'add'));
   if(hashView) history.replaceState(null, '', location.pathname + location.search);
   startListeners();
   // Pick up territory changes an admin makes while this person has the app open.
@@ -3545,6 +3685,13 @@ function applyRoleUI(){
   if(!canSee(activeViewId())) showView(mgr ? 'requests' : 'add');
 }
 
+/* Help page: open the sections that fit the viewer's role the first time it's shown. */
+let helpOpened = false;
+function openHelpForRole(){
+  if(helpOpened) return; helpOpened = true;
+  const want = isProductMgr() ? 'pm' : (isManager() ? 'mgr' : 'rep');
+  document.querySelectorAll('#view-help details').forEach(d=>{ if(d.dataset.help===want) d.open = true; });
+}
 const MORE_VIEWS = ['more'];
 const SETTINGS_VIEWS = ['account','team'];   // opened from the gear menu in the header
 function showView(view){
@@ -3572,6 +3719,7 @@ function showView(view){
   if(view==='team') renderTeam();
   if(view==='account') renderAccount();
   if(view==='cards') renderCards();
+  if(view==='help') openHelpForRole();
   window.scrollTo(0,0);
 }
 document.querySelectorAll('nav.tabs button').forEach(btn=> btn.addEventListener('click', ()=>{

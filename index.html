@@ -190,6 +190,11 @@ textarea{resize:vertical; min-height:64px;}
 .stepper{display:flex; align-items:center; gap:4px; flex:none;}
 .stepper button{width:40px; height:40px; background:var(--bg); border:1px solid var(--line); font-size:1.1rem; line-height:1;}
 .stepper input{width:58px; text-align:center; padding:8px 4px; font-variant-numeric:tabular-nums;}
+.inv-row.low-row{background:color-mix(in srgb, var(--danger) 6%, var(--panel));}
+.inv-name .inv-low{display:block; color:var(--danger); font-size:.7rem; font-weight:700;}
+.low-chip{flex:none; font-size:.74rem; white-space:nowrap;}
+.chip.low-chip.on, .chip.low-chip:has(input:checked){border-color:var(--danger); color:var(--danger); background:color-mix(in srgb, var(--danger) 8%, var(--panel));}
+.chip.low-chip input{accent-color:var(--danger);}
 .inv-row-msg{font-size:.7rem; color:var(--sub); width:40px; flex:none;}
 
 /* ---------- analysis ---------- */
@@ -872,6 +877,7 @@ textarea{resize:vertical; min-height:64px;}
       <div class="status-msg" id="inv-msg"></div>
     </section>
     <div class="section-head" style="margin-top:18px;"><h2>On hand</h2></div>
+    <p class="hint">Mark a tray <b>Low inventory</b> when you can't count on getting a set back in time. When it runs short, it goes straight to Loaner needed instead of asking for an urgent return.</p>
     <div class="toolbar"><input type="search" id="inv-search" placeholder="Search trays…"></div>
     <div class="inv-list" id="inv-list"></div>
     <div class="empty" id="inv-empty" hidden>No trays yet. Add one above.</div>
@@ -1053,6 +1059,7 @@ let me = null;          // {uid, email, name, isAdmin}
 let myRole = null;      // 'rep' | 'inventory' | 'product'
 let unsubs = [];
 let inventoryMap = {};
+let lowTrays = {};       // tray name -> true for trays marked Low inventory (they skip urgent returns and go straight to Loaner needed)
 let allDocs = [];
 let usersMap = {};      // uid -> {name, email, role}
 let membersList = [];
@@ -1189,6 +1196,7 @@ function onListenError(err){
 function startListeners(){
   unsubs.push(db.doc('inventory/main').onSnapshot(snap=>{
     inventoryMap = snap.exists ? (snap.data().trays || {}) : {};
+    lowTrays = snap.exists ? (snap.data().lowTrays || {}) : {};
     refreshTrayDatalist();
     renderAll();
   }, onListenError));
@@ -1323,6 +1331,15 @@ function getTrayKey(name){
 }
 function getQty(name){ const key = getTrayKey(name); return key===undefined ? undefined : inventoryMap[key]; }
 function loanerNeeded(trayName){ return getQty(trayName)===0; }
+function isLowTray(name){ const k = getTrayKey(name) || (name||'').trim(); return !!lowTrays[k]; }
+async function setLowTray(name, on){
+  if(!db || !name) return;
+  const FV = firebase.firestore.FieldValue;
+  lowTrays = {...lowTrays}; if(on) lowTrays[name] = true; else delete lowTrays[name];
+  renderAll();
+  try{ await db.doc('inventory/main').update(new firebase.firestore.FieldPath('lowTrays', name), on ? true : FV.delete()); toast(on ? `${name} is marked low inventory. Shortages now go straight to Loaner needed.` : `${name} is back to normal.`); }
+  catch(e){ console.error(e); toast('Could not save that. Try again.'); }
+}
 async function upsertTray(name, qty){
   if(!db || !name) return;
   const ref = db.doc('inventory/main');
@@ -1940,7 +1957,8 @@ function computeLoaners(){
       busy = busy.filter(e=>e.end >= x.start);                // a set is free again the day after it's back
       if(x.held || busy.length < owned){ busy.push({end:x.end, x}); continue; }
       // A set due back the same day this case has to be pulled: rush that return instead of ordering a loaner.
-      const back = busy.filter(e=>e.end===x.start);
+      // Trays marked Low inventory skip this and go straight to Loaner needed.
+      const back = isLowTray(x.r.tray) ? [] : busy.filter(e=>e.end===x.start);
       if(back.length){
         const pk = k+'|'+x.start;
         let pool = poolMap.get(pk);
@@ -2828,14 +2846,23 @@ function renderInventory(){
   names.forEach((name, idx)=>{
     const qty = inventoryMap[name];
     const unknown = qty===null || qty===undefined;
-    const row = document.createElement('div'); row.className='inv-row' + (qty===0 ? ' zero-row' : '');
+    const low = !!lowTrays[name];
+    const row = document.createElement('div'); row.className='inv-row' + (qty===0 ? ' zero-row' : '') + (low ? ' low-row' : '');
     row.innerHTML = `<div class="inv-name"></div>
       <div class="stepper"><button type="button" class="dec" aria-label="One fewer">−</button><input type="number" inputmode="numeric" id="inv-q-${idx}" min="0" step="1" value="${unknown?'':qty}" placeholder="?"><button type="button" class="inc" aria-label="One more">+</button></div>
       <span class="inv-row-msg"></span>`;
+    // Inventory Managers can mark a tray Low inventory; everyone else just sees the label.
+    if(myRole==='inventory'){
+      const lab = document.createElement('label'); lab.className='chip low-chip' + (low ? ' on' : '');
+      lab.innerHTML = `<input type="checkbox" ${low?'checked':''}> Low inventory`;
+      lab.querySelector('input').addEventListener('change', e=>setLowTray(name, e.target.checked));
+      row.insertBefore(lab, row.querySelector('.stepper'));
+    }
     const nameEl = row.querySelector('.inv-name');
     nameEl.textContent = name;
     if(qty===0){ const z=document.createElement('span'); z.className='inv-zero'; z.textContent='None on hand'; nameEl.appendChild(z); }
     else if(unknown){ const z=document.createElement('span'); z.className='inv-zero'; z.textContent='Count unknown'; nameEl.appendChild(z); }
+    if(low){ const z=document.createElement('span'); z.className='inv-low'; z.textContent='Low inventory · shortages go straight to Loaner needed'; nameEl.appendChild(z); }
     const inp = row.querySelector('input'); const msg = row.querySelector('.inv-row-msg');
     const cur = ()=>{ const n=parseInt(inp.value,10); return isNaN(n)?0:n; };
     row.querySelector('.dec').onclick = ()=>{ const n=Math.max(0,cur()-1); inp.value=n; saveTrayQty(name, n, msg); };

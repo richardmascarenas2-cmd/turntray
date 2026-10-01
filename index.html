@@ -1158,6 +1158,7 @@ async function handleUser(user){
 }
 
 function enterApp(){
+  boardTerrKey = null;
   showScreen('app');
   $('#signed-in-as').textContent = me.name;
   $('#signedin-box').textContent = `Requesting as ${me.name}`;
@@ -1174,7 +1175,7 @@ function enterApp(){
     if(JSON.stringify(tr)!==JSON.stringify(me.territories)){ me.territories = tr; applyMyTerritories(); renderAccount(); }
     const role = roleFrom(s.exists ? s.data() : null, me.selfRole, me.isOwner);
     if(role!==myRole){
-      myRole = role; applyRoleUI(); renderAccount();
+      myRole = role; applyRoleUI(); renderAccount(); applyScheduleTerritory();
       if(isManager() && activeViewId()==='add' && !editingReqId) showView('requests');
       renderAll();
       toast(`An admin set you as ${withArticle(roleLabel(role))}.`);
@@ -1202,6 +1203,26 @@ function defaultTerritory(){
 function applyMyTerritories(){
   buildTerritoryOptions(); buildReqTerritoryOptions();
   const d = defaultTerritory(); if(d) $('#f-territory').value = d;
+  applyScheduleTerritory();
+}
+/* Sales reps open Schedule on their own territory (or all of theirs, if they have several).
+   The menu still lets them pick any other territory or All. */
+let boardTerrKey = null;
+function applyScheduleTerritory(){
+  const sel = $('#board-territory');
+  const mine = myTerrs();
+  let opt = sel.querySelector('option[value="__mine"]');
+  if(mine.length > 1){
+    if(!opt){ opt = document.createElement('option'); opt.value='__mine'; sel.insertBefore(opt, sel.options[1] || null); }
+    opt.textContent = `My territories (${mine.join(', ')})`;
+  } else if(opt){ if(sel.value==='__mine') sel.value='All'; opt.remove(); }
+  // Set the starting view once per sign-in, and again if an admin changes their territories.
+  const key = myRole + '|' + mine.join(',');
+  if(key===boardTerrKey) return;
+  boardTerrKey = key;
+  if(myRole!=='rep' || !mine.length) return;
+  sel.value = mine.length > 1 ? '__mine' : mine[0];
+  if(activeViewId()==='board') renderBoard();
 }
 
 function onListenError(err){
@@ -2787,7 +2808,9 @@ function renderBoard(){
   const days = weekDays();
   $('#wk-label').textContent = weekLabel(days);
   const t = $('#board-territory').value;
-  renderDayCases(allDocs.filter(r=> r.status!=='cancelled' && (t==='All' || canonTerr(r.territory)===t)), $('#board'), days, r=>r.dateNeeded, 'b', 'board');
+  const mine = myTerrs();
+  const inTerr = r=> t==='All' || (t==='__mine' ? mine.includes(canonTerr(r.territory)) : canonTerr(r.territory)===t);
+  renderDayCases(allDocs.filter(r=> r.status!=='cancelled' && inTerr(r)), $('#board'), days, r=>r.dateNeeded, 'b', 'board');
 }
 function renderSst(){
   const days = weekDays();

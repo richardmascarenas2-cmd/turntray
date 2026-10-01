@@ -718,6 +718,7 @@ main{max-width:1200px; margin:0 auto; padding:18px clamp(16px,3vw,32px) 40px;}
 .bc-bar button, .bc-tools button, .po-form button{background:var(--panel); border:1px solid var(--line); padding:8px 12px; font-size:.8rem;}
 .bc-bar button.go, .po-form button.go{background:var(--accent); border-color:var(--accent); color:#fff;}
 .bc-bar button.warn, .bc-tools button.warn{color:var(--danger); border-color:color-mix(in srgb, var(--danger) 40%, var(--line));}
+.bc-bar button.armed, .bc-tools button.armed{background:var(--danger); border-color:var(--danger); color:#fff;}
 .bc-bar .bc-all{font-size:.76rem; padding:6px 10px;}
 .bc-tools{display:flex; flex-wrap:wrap; gap:6px; margin-top:10px; padding-top:10px; border-top:1px dashed var(--line);}
 .bc-tools .pdf-open{display:inline-flex; align-items:center; gap:6px; color:#b42318; border-color:color-mix(in srgb, #b42318 35%, var(--line)); max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
@@ -1283,7 +1284,7 @@ function caseBody(c, opts){
   const selected = ()=>c.lines.filter(l=>sel.has(l.id));
   const fitsFor = show => l => show.split(',').includes(l.status) || (show.includes('notshelf') && l.status==='returned' && l.onShelf===false);
   // Each button acts on the ticked grafts it applies to (e.g. Returned skips ones already used).
-  const btn = (label, cls, fn, show)=>{ const b=document.createElement('button'); b.type='button'; b.textContent=label; if(cls) b.className=cls; b.onclick=()=>fn(selected().filter(fitsFor(show))); b.dataset.show=show; bar.appendChild(b); return b; };
+  const btn = (label, cls, fn, show)=>{ const b=document.createElement('button'); b.type='button'; b.textContent=label; if(cls) b.className=cls; b.onclick=()=>fn(selected().filter(fitsFor(show)), b); b.dataset.show=show; bar.appendChild(b); return b; };
   const openish = l => OPEN(l.status) || (l.status==='returned' && l.onShelf===false);
   const allBox = document.createElement('label'); allBox.className='chip bc-all'; allBox.innerHTML='<input type="checkbox"> All'; bar.appendChild(allBox);
   // "All" ticks the grafts still in play; used/returned ones can still be ticked one by one (to undo).
@@ -1293,7 +1294,7 @@ function caseBody(c, opts){
   btn('Used','go', usedLines, 'requested,pulled');
   btn('Returned','', returnLines, 'pulled');
   if(mgr) btn('Put away','', putAway, 'notshelf');
-  if(mgr || mineCase) btn('Cancel','warn', cancelLines, 'requested,pulled');
+  if(mgr || mineCase) applyArm(btn('Cancel','warn', cancelLines, 'requested,pulled'), 'bx|'+c.id);
   if(mgr) btn('Undo','', undoLines, 'used,returned');
   function updateBar(){
     const s = selected();
@@ -1311,10 +1312,12 @@ function caseBody(c, opts){
   const tools = document.createElement('div'); tools.className='bc-tools';
   if(c.pdfName){ const a=document.createElement('button'); a.type='button'; a.className='pdf-open'; a.innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6"/></svg>${escapeHtml(c.pdfName)}`; a.onclick=()=>openPdf(c); tools.appendChild(a); }
   if(me.isAdmin){ const u=document.createElement('button'); u.type='button'; u.textContent = c.pdfName ? 'Replace PDF' : 'Attach PDF'; u.onclick=()=>pickPdf(c); tools.appendChild(u);
-    if(c.pdfName){ const r=document.createElement('button'); r.type='button'; r.className='warn'; r.textContent='Remove PDF'; r.onclick=()=>removePdf(c); tools.appendChild(r); } }
+    if(c.pdfName){ const r=document.createElement('button'); r.type='button'; r.className='warn'; r.textContent='Remove PDF'; r.onclick=()=>removePdf(c, r); applyArm(r, 'pdf|'+c.id); tools.appendChild(r); } }
   if(c.lines.some(l=>l.status!=='cancelled') && (mgr || mineCase)){
     const add=document.createElement('button'); add.type='button'; add.textContent='+ Add biologics'; add.onclick=()=>startAddToCase(c); tools.appendChild(add);
     if(c.lines.some(l=>l.status==='requested')){ const ed=document.createElement('button'); ed.type='button'; ed.textContent='Edit'; ed.onclick=()=>startEditCase(c); tools.appendChild(ed); }
+    const openLines = c.lines.filter(l=>OPEN(l.status));
+    if(openLines.length){ const cx=document.createElement('button'); cx.type='button'; cx.className='warn'; cx.textContent='Cancel request'; cx.onclick=()=>confirmTap('cx|'+c.id, cx, ()=>doCancel(openLines), 'Tap again to cancel'); applyArm(cx, 'cx|'+c.id); tools.appendChild(cx); }
   }
   box.appendChild(tools);
   // Return photos for this case.
@@ -1399,6 +1402,16 @@ function renderMine(){
 
 /* ================= Line actions ================= */
 const FV = ()=>firebase.firestore.FieldValue;
+/* Two-tap confirm: first tap arms the button, second tap does it (browser confirm pop-ups get blocked in some apps).
+   The armed state is remembered by key so it survives the list refreshing between taps. */
+let armed = {key:'', until:0, label:''};
+function confirmTap(key, b, fn, label){
+  if(armed.key===key && Date.now() < armed.until){ armed = {key:'', until:0, label:''}; fn(); return; }
+  armed = {key, until: Date.now()+4000, label: label || 'Tap again to confirm'};
+  if(b){ b.textContent = armed.label; b.classList.add('armed'); }
+  setTimeout(()=>{ if(armed.key===key && Date.now() >= armed.until){ armed = {key:'', until:0, label:''}; renderAll(); } }, 4100);
+}
+function applyArm(b, key){ if(armed.key===key && Date.now() < armed.until){ b.textContent = armed.label; b.classList.add('armed'); } }
 function openSheet(id){ $(id).hidden = false; }
 document.querySelectorAll('.modal-overlay [data-close]').forEach(b=>b.addEventListener('click', ()=>{ b.closest('.modal-overlay').hidden = true; }));
 document.querySelectorAll('.modal-overlay').forEach(o=>o.addEventListener('click', e=>{ if(e.target===o) o.hidden = true; }));
@@ -1487,8 +1500,11 @@ async function putAway(lines){
   lines.forEach(l=>b.update(db.doc('bioRequests/'+l.id), {onShelf:true, putAwayAt:now, putAwayByName:me.name}));
   try{ await b.commit(); clearPicks(lines); toast('Put away.'); }catch(e){ console.error(e); toast('That didn’t save.'); }
 }
-async function cancelLines(lines){
-  if(!confirm(`Cancel ${lines.length===1 ? lines[0].graft : lines.length+' grafts'}?`)) return;
+function cancelLines(lines, btnEl){
+  if(!lines.length) return;
+  confirmTap('bx|'+caseIdOf(lines[0]), btnEl, ()=>doCancel(lines), lines.length===1 ? `Cancel ${lines[0].graft}?` : `Cancel ${lines.length}?`);
+}
+async function doCancel(lines){
   const b = db.batch(), now = Date.now();
   lines.forEach(l=>b.update(db.doc('bioRequests/'+l.id), {status:'cancelled', cancelledAt:now, cancelledByName:me.name}));
   try{ await b.commit(); clearPicks(lines); toast('Cancelled.'); }catch(e){ console.error(e); toast('That didn’t save.'); }
@@ -1531,8 +1547,8 @@ async function openPdf(c){
     if(w) w.location = url; else location.href = url;
   }catch(err){ console.error(err); if(w) w.close(); toast('Couldn’t open the PDF.'); }
 }
-async function removePdf(c){
-  if(!confirm('Remove the PDF from this case?')) return;
+function removePdf(c, btnEl){ confirmTap('pdf|'+c.id, btnEl, ()=>doRemovePdf(c), 'Tap again to remove'); }
+async function doRemovePdf(c){
   try{ await db.doc('bioFiles/'+c.id).delete(); const b=db.batch(); linesOfCase(c.id).forEach(l=>b.update(db.doc('bioRequests/'+l.id), {pdfName:null, pdfByName:null, pdfAt:null})); await b.commit(); toast('PDF removed.'); }
   catch(err){ console.error(err); toast('Couldn’t remove it.'); }
 }
@@ -1724,6 +1740,7 @@ $('#req-form').addEventListener('submit', async e=>{
   if(caseData.packOn && caseData.packOn > caseData.dateNeeded){ msg.textContent='Pack-on date can’t be after surgery.'; msg.className='status-msg err'; return; }
   const lineData = r=>{ const s=stockFor(r.graft); return {graft: s ? s.ref : (typeForRef(r.graft) || refKey(r.graft)), desc: s ? (s.desc||'') : ((rowsOfType(typeForRef(r.graft)||'')[0]||{}).desc||''), qty:r.qty}; };
   const b = db.batch(), now = Date.now();
+  const priorRequests = new Set(bioReqs.filter(r=>r.requestedById===me.uid).map(caseIdOf)).size;
   try{
     if(formMode==='edit'){
       const caseLines = linesOfCase(formCase.id);
@@ -1738,7 +1755,7 @@ $('#req-form').addEventListener('submit', async e=>{
       person: formMode==='add' ? (formCase.person||me.name) : me.name, requestedById: formMode==='add' ? (formCase.requestedById||me.uid) : me.uid, createdAt: now+i, ...(formMode==='add' ? {addedByName:me.name} : {})}));
     await b.commit();
     const n = rows.reduce((k,r)=>k+r.qty,0);
-    if(formMode==='new') celebrate();
+    if(formMode==='new' && priorRequests + 1 === 69) celebrate();
     msg.textContent = formMode==='add' ? `Added ${n} graft${n===1?'':'s'} to ${formCase.account}.` : `Requested ${n} graft${n===1?'':'s'} for ${fmtDate(caseData.dateNeeded)}.`; msg.className='status-msg ok';
     openCases.add(caseId);
     if(formMode==='add'){ resetForm(); }
@@ -2016,7 +2033,7 @@ function wireMenu(btnSel, ddSel){
 }
 wireMenu('#app-title-btn', '#app-dd');
 wireMenu('#gear-btn', '#gear-dd');
-/* Brief pop-up after someone submits a request. Tap to close early. */
+/* Brief pop-up on someone's 69th biologic request. Tap to close early. */
 function celebrate(){
   const d = document.createElement('div'); d.className='celebrate'; d.setAttribute('role','status'); d.setAttribute('aria-label','Request sent. Nice!');
   d.innerHTML = '<img src="request-nice.png" alt="">';

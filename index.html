@@ -1749,6 +1749,8 @@ $('#req-form').addEventListener('submit', async (e)=>{
   if(!trays.length){ msg.textContent='Enter at least one tray / item.'; msg.className='status-msg err'; return; }
   if(!me){ msg.textContent='You’re signed out. Sign in and try again.'; msg.className='status-msg err'; return; }
   if(addingToCase){ await submitAddToCase(trays); return; }
+  // Count this person's requests before saving, for the 69th-request pop-up.
+  const priorRequests = new Set(allDocs.filter(r=>r.requestedById===me.uid).map(r=>r.caseId || caseKey(r))).size;
   const isSst = $('#f-sst').value === 'Yes';
   const base = {
     caseId: 'c_'+Date.now()+'_'+Math.random().toString(36).slice(2,7),
@@ -1777,7 +1779,7 @@ $('#req-form').addEventListener('submit', async (e)=>{
     lastSubmit = {ids, text: `${trays.length} tray${trays.length===1?'':'s'} for ${who} on ${fmtDate(base.dateNeeded)}.`};
     $('#sent-text').innerHTML = `<b>Request sent.</b> ${escapeHtml(lastSubmit.text)}`;
     $('#sent-banner').hidden = false; $('#sent-undo').hidden = false;
-    celebrate();
+    if(priorRequests + 1 === 69) celebrate();
     mineTab = base.dateNeeded < todayIso() ? 'past' : 'upcoming';
     document.querySelectorAll('#mine-tabs button').forEach(b=>b.classList.toggle('active', b.dataset.m===mineTab));
     $('#mine-search').value = '';
@@ -3578,7 +3580,7 @@ wireMenu('#app-title-btn', '#app-dd');
 wireMenu('#gear-btn', '#gear-dd');
 
 
-/* Brief pop-up after someone submits a request. Tap to close early. */
+/* Brief pop-up on someone's 69th request. Tap to close early. */
 function celebrate(){
   const d = document.createElement('div'); d.className='celebrate'; d.setAttribute('role','status'); d.setAttribute('aria-label','Request sent. Nice!');
   d.innerHTML = '<img src="request-nice.png" alt="">';

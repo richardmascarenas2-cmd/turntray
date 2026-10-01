@@ -278,6 +278,19 @@ textarea{resize:vertical; min-height:64px;}
 .ret-head b{font-size:1rem; margin-right:8px;}
 .ret-head small{color:var(--sub); font-size:.78rem; overflow-wrap:anywhere;}
 .ret-head .badge{text-transform:none; flex:none;}
+/* History: one line per account visit, date on the left and the trays that went. Tap to see full details. */
+.h-acct{margin-bottom:16px; border:1px solid var(--line); border-radius:12px; overflow:hidden; background:var(--panel);}
+.h-acct-head{display:flex; align-items:baseline; gap:8px; padding:10px 12px; background:var(--panel-2); border-bottom:1px solid var(--line);}
+.h-acct-head b{font-size:.98rem;}
+.h-acct-head span{flex:1; min-width:0; color:var(--sub); font-size:.78rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.h-acct-head small{color:var(--sub); font-size:.76rem; white-space:nowrap;}
+.h-row{display:flex; gap:12px; width:100%; text-align:left; background:none; border:0; border-top:1px solid var(--line); border-radius:0; padding:9px 12px; min-height:0; font-weight:400; color:var(--ink);}
+.h-acct-head + .h-row{border-top:0;}
+.h-date{flex:none; width:92px; font-size:.82rem; font-weight:600; color:var(--sub);}
+.h-trays{flex:1; min-width:0; display:flex; flex-direction:column; gap:2px;}
+.h-tray{display:flex; align-items:center; gap:6px; font-size:.88rem; font-weight:600; overflow-wrap:anywhere;}
+.h-tray i{font-style:normal; font-weight:500; font-size:.7rem; color:var(--sub); border:1px solid var(--line); border-radius:999px; padding:0 7px; white-space:nowrap;}
+.h-detail{padding:0 12px 12px;}
 
 /* ---------- delivery photos ---------- */
 .chip svg{width:14px; height:14px;}
@@ -772,7 +785,7 @@ textarea{resize:vertical; min-height:64px;}
       <input type="search" id="hist-search" placeholder="Search account, tray, surgeon…">
     </div>
     <div id="hist-list"></div>
-    <div class="empty" id="hist-empty" hidden>No requests for this territory yet.</div>
+    <div class="empty" id="hist-empty" hidden>No trays for this territory yet.</div>
   </div>
 
   <div class="view" id="view-board">
@@ -2338,43 +2351,57 @@ $('#bulk-delete').addEventListener('click', async ()=>{
   if(n) toast(`Deleted ${n} cancelled request${n===1?'':'s'}.`);
   renderRequests();
 });
+const histOpen = new Set();
 function renderHistory(){
   const terr = $('#hist-territory').value;
   const q = $('#hist-search').value.trim().toLowerCase();
+  const today = todayIso();
+  // Only trays that actually went (or are going) out; cancelled requests are left off.
   const rows = allDocs.filter(r=>{
-    if(terr!=='All' && r.territory!==terr) return false;
+    if((r.status||'open')==='cancelled') return false;
+    if(terr!=='All' && canonTerr(r.territory)!==terr) return false;
     if(!q) return true;
-    return [r.account,r.tray,r.surgeon,r.notes].join(' ').toLowerCase().includes(q);
-  }).sort((a,b)=> (b.dateNeeded||'').localeCompare(a.dateNeeded||''));
-  renderByAccount(rows, '#hist-list', '#hist-empty', 'history', {},
-    list=>{ const open=list.filter(r=>(r.status||'open')==='open').length; const n=list.length;
-      return {cls: open ? 'open' : 'fulfilled', text: `${n} request${n===1?'':'s'}` + (open ? ` · ${open} open` : ''), pri:0}; });
+    const acct = (accMap.get((r.account||'').trim().toUpperCase())||{}).name || '';
+    return [r.account,acct,r.tray,r.surgeon,r.notes].join(' ').toLowerCase().includes(q);
+  });
+  const wrap = $('#hist-list'); wrap.innerHTML = '';
+  $('#hist-empty').hidden = rows.length>0;
+  const byAcct = new Map();
+  for(const r of rows){ const k=(r.account||'—').trim().toUpperCase(); if(!byAcct.has(k)) byAcct.set(k, []); byAcct.get(k).push(r); }
+  const live = activeViewId()==='history';
+  [...byAcct.keys()].sort().forEach(acct=>{
+    const list = byAcct.get(acct);
+    const sec = document.createElement('section'); sec.className='h-acct';
+    const name = (accMap.get(acct)||{}).name || '';
+    sec.innerHTML = `<div class="h-acct-head"><b>${escapeHtml(acct)}</b><span>${escapeHtml(name)}</span><small>${list.length} tray${list.length===1?'':'s'}</small></div>`;
+    // One row per date at this account, newest first.
+    const byDate = new Map();
+    list.forEach(r=>{ const d=r.dateNeeded||''; if(!byDate.has(d)) byDate.set(d, []); byDate.get(d).push(r); });
+    [...byDate.keys()].sort((a,b)=>b.localeCompare(a)).forEach(d=>{
+      const trays = byDate.get(d);
+      const key = acct+'|'+d;
+      const row = document.createElement('button'); row.type='button'; row.className='h-row';
+      row.setAttribute('aria-expanded', histOpen.has(key));
+      row.innerHTML = `<span class="h-date">${escapeHtml(fmtDate(d)||'No date')}</span><span class="h-trays"></span>`;
+      trays.forEach(r=>{
+        const t = document.createElement('span'); t.className='h-tray';
+        t.textContent = r.tray || '—';
+        const st = r.returned ? 'Returned' : (r.delivered ? 'Delivered' : (d > today ? 'Upcoming' : ''));
+        if(st){ const i=document.createElement('i'); i.textContent=st; t.appendChild(i); }
+        row.querySelector('.h-trays').appendChild(t);
+      });
+      row.onclick = ()=>{ histOpen.has(key) ? histOpen.delete(key) : histOpen.add(key); renderHistory(); };
+      sec.appendChild(row);
+      if(histOpen.has(key)){
+        const det = document.createElement('div'); det.className='h-detail cards';
+        trays.forEach(r=>det.appendChild(buildCard(r, {live})));
+        sec.appendChild(det);
+      }
+    });
+    wrap.appendChild(sec);
+  });
 }
 function todayIso(){ return isoDate(new Date()); }
-/* Lists requests in sections by account. badgeFor(list) -> {cls, text, pri}; higher pri sorts first, then A to Z. */
-function renderByAccount(rows, listSel, emptySel, view, opts, badgeFor){
-  const groups = new Map();
-  for(const r of rows){ const k=(r.account||'—').trim().toUpperCase(); if(!groups.has(k)) groups.set(k, []); groups.get(k).push(r); }
-  const ordered = [...groups.entries()].map(([acct, list])=>({acct, list, badge: badgeFor(list)}))
-    .sort((a,b)=> (b.badge.pri||0)-(a.badge.pri||0) || a.acct.localeCompare(b.acct));
-  const wrap = $(listSel); wrap.innerHTML = '';
-  $(emptySel).hidden = rows.length>0;
-  const live = activeViewId()===view;
-  for(const g of ordered){
-    const sec = document.createElement('section'); sec.className = 'ret-group';
-    const head = document.createElement('div'); head.className = 'ret-head';
-    head.innerHTML = '<div><b></b><small></small></div><span class="badge"></span>';
-    head.querySelector('b').textContent = g.acct;
-    head.querySelector('small').textContent = (accMap.get(g.acct)||{}).name || '';
-    const badge = head.querySelector('.badge');
-    badge.className = 'badge ' + g.badge.cls; badge.textContent = g.badge.text;
-    sec.appendChild(head);
-    const cards = document.createElement('div'); cards.className = 'cards';
-    g.list.forEach(r=>cards.appendChild(buildCard(r, {...(opts||{}), live})));
-    sec.appendChild(cards);
-    wrap.appendChild(sec);
-  }
-}
 /* Returns: dropdown case rows, split into "Waiting to come back" and "Returned". */
 const returnsExpanded = new Set();
 let returnsShowAll = false;

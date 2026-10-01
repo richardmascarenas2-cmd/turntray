@@ -620,6 +620,9 @@ main{max-width:1200px; margin:0 auto; padding:18px clamp(16px,3vw,32px) 40px;}
 .grid2{display:grid; grid-template-columns:1fr 1fr; gap:0 12px;}
 .grid3{display:grid; grid-template-columns:1fr 1fr 1fr; gap:0 12px;}
 .form-cols{display:grid; grid-template-columns:minmax(0,420px) minmax(0,1fr); gap:20px; align-items:start;}
+.b-table tr.type-row td{background:var(--panel-2);}
+.b-table tr.size-row td{padding-top:5px; padding-bottom:5px;}
+.b-table tr.size-row .size{padding-left:14px; font-size:.82rem; color:var(--ink);}
 .stepper-sm{display:inline-flex; align-items:center; gap:4px;}
 .stepper-sm button{width:30px; height:30px; background:var(--panel); border:1px solid var(--line); padding:0; font-size:1rem;}
 .stepper-sm input{width:58px; min-height:30px; padding:4px 6px; text-align:center; font-size:.9rem;}
@@ -735,7 +738,7 @@ main{max-width:1200px; margin:0 auto; padding:18px clamp(16px,3vw,32px) 40px;}
       <div class="section-head"><h2 style="margin:0;">Add or update a biologic</h2></div>
       <form id="stock-form" class="grid3" autocomplete="off" style="align-items:end;">
         <div><label for="s-ref">Reference</label><input id="s-ref" placeholder="ABS-1010-BC" autocapitalize="characters" required></div>
-        <div><label for="s-desc">Description</label><input id="s-desc" placeholder="BIOCARTILAGE 1CC"></div>
+        <div class="grid2"><div><label for="s-type">Graft type (if sized)</label><input id="s-type" placeholder="e.g. FQL" autocapitalize="characters"></div><div><label for="s-desc">Description</label><input id="s-desc" placeholder="BIOCARTILAGE 1CC"></div></div>
         <div class="grid2"><div><label for="s-qty">On hand</label><input id="s-qty" type="number" min="0" step="1"></div><div><label for="s-target">Target</label><input id="s-target" type="number" min="0" step="1"></div></div>
         <button type="submit" class="btn-primary" style="grid-column:1/-1; margin-top:12px;">Save</button>
       </form>
@@ -793,6 +796,7 @@ main{max-width:1200px; margin:0 auto; padding:18px clamp(16px,3vw,32px) 40px;}
       <div><label for="u-qty">Qty used</label><input id="u-qty" type="number" min="1" step="1" required></div>
       <div><label for="u-lot">Lot number</label><input id="u-lot"></div>
     </div>
+    <div id="u-size-wrap" hidden><label for="u-size">Size used</label><select id="u-size"></select></div>
     <label for="u-so">Sales order (number or RedSpot link)</label><input id="u-so">
     <label for="u-po">PO</label><input id="u-po">
     <button type="submit" class="btn-primary">Mark used</button>
@@ -902,11 +906,24 @@ function listenErr(err){
 
 /* ================= Stock math ================= */
 const OPEN = s => s==='requested' || s==='pulled';
+/* Grafts can be stocked by size (e.g. "FQL [10 x 63 mm]") under one graft type ("FQL").
+   The target (par) belongs to the type; on-hand is counted per size and added up per type. */
 function stockFor(ref){ return stock.find(s=>refKey(s.ref)===refKey(ref)); }
+function typeOf(s){ return refKey(s.type || s.ref); }
+function allTypes(){ return [...new Set(stock.map(typeOf))]; }
+function rowsOfType(t){ return stock.filter(s=>typeOf(s)===refKey(t)); }
+function typeForRef(ref){ const s=stockFor(ref); if(s) return typeOf(s); const k=refKey(ref); return allTypes().includes(k) ? k : null; }
+function targetOfType(t){ const r=rowsOfType(t).find(s=>typeof s.target==='number'); return r ? r.target : null; }
+function onHandOfType(t){ return rowsOfType(t).reduce((n,s)=>n+(+s.qty||0),0); }
 function reservedFor(ref, excludeId){ return bioReqs.filter(r=>OPEN(r.status) && r.id!==excludeId && refKey(r.graft)===refKey(ref)).reduce((n,r)=>n+(+r.qty||0),0); }
-function availableFor(ref, excludeId){ const s=stockFor(ref); if(!s || typeof s.qty!=='number') return null; return s.qty - reservedFor(ref, excludeId); }
+function reservedOfType(t, excludeId){ return bioReqs.filter(r=>OPEN(r.status) && r.id!==excludeId && typeForRef(r.graft)===refKey(t)).reduce((n,r)=>n+(+r.qty||0),0); }
+function availableOfType(t, excludeId){ return onHandOfType(t) - reservedOfType(t, excludeId); }
+function availableFor(ref, excludeId){ const t=typeForRef(ref); return t===null ? null : availableOfType(t, excludeId); }
 function refreshGraftList(){
-  $('#dl-grafts').innerHTML = stock.slice().sort((a,b)=>refKey(a.ref).localeCompare(refKey(b.ref))).map(s=>`<option value="${escapeHtml(s.ref)}">${escapeHtml(s.desc||'')}</option>`).join('');
+  // Every size, plus each graft type on its own for "any size".
+  const opts = stock.map(s=>({v:s.ref, d:s.desc||''}));
+  allTypes().forEach(t=>{ if(!stockFor(t)){ const r=rowsOfType(t)[0]; opts.push({v:t, d:`${r.desc||''} · any size`}); } });
+  $('#dl-grafts').innerHTML = opts.sort((a,b)=>refKey(a.v).localeCompare(refKey(b.v))).map(o=>`<option value="${escapeHtml(o.v)}">${escapeHtml(o.d)}</option>`).join('');
 }
 function refreshSurgeons(){
   const names = [...new Set(bioReqs.map(r=>r.surgeon).concat(surgeonNames).map(s=>String(s||'').trim()).filter(Boolean))].sort();
@@ -1016,6 +1033,10 @@ function openUsed(r){
   usedFor = r;
   $('#used-title').textContent = `Mark ${r.graft} used`;
   $('#used-sub').textContent = [r.account, r.surgeon, fmtDate(r.dateNeeded)].filter(Boolean).join(' · ');
+  const exact = stockFor(r.graft), t = typeForRef(r.graft);
+  const sizes = !exact && t ? rowsOfType(t) : [];
+  $('#u-size-wrap').hidden = !sizes.length;
+  $('#u-size').innerHTML = sizes.map(s=>`<option value="${escapeHtml(s.id)}">${escapeHtml(s.ref)} (${+s.qty||0} on hand)</option>`).join('');
   $('#u-qty').value = r.qty || 1; $('#u-lot').value = r.lot||''; $('#u-so').value = r.salesOrder||''; $('#u-po').value = r.po||'';
   $('#used-sheet').hidden = false; $('#u-lot').focus();
 }
@@ -1025,8 +1046,9 @@ $('#used-form').addEventListener('submit', async e=>{
   const qty = Math.max(1, parseInt($('#u-qty').value,10)||1);
   const batch = db.batch();
   batch.update(db.doc('bioRequests/'+r.id), {status:'used', usedQty:qty, qty, lot:$('#u-lot').value.trim(), salesOrder:$('#u-so').value.trim(), po:$('#u-po').value.trim(), usedAt:Date.now(), usedByName:me.name});
-  const s = stockFor(r.graft);
+  const s = stockFor(r.graft) || (!$('#u-size-wrap').hidden ? stock.find(x=>x.id===$('#u-size').value) : null);
   if(s) batch.update(db.doc('bioStock/'+s.id), {qty: firebase.firestore.FieldValue.increment(-qty)});
+  if(s && refKey(s.ref)!==refKey(r.graft)) batch.update(db.doc('bioRequests/'+r.id), {usedRef: s.ref});
   try{ await batch.commit(); $('#used-sheet').hidden = true; usedFor = null; toast(`${r.graft} marked used${s?' and taken off stock':''}.`); }
   catch(err){ console.error(err); toast('That didn’t save. Try again.'); }
 });
@@ -1034,7 +1056,7 @@ async function undoUsed(r){
   const qty = +r.usedQty || +r.qty || 0;
   const batch = db.batch();
   batch.update(db.doc('bioRequests/'+r.id), {status:'pulled', usedAt:null, usedQty:null});
-  const s = stockFor(r.graft);
+  const s = stockFor(r.usedRef || r.graft);
   if(s && qty) batch.update(db.doc('bioStock/'+s.id), {qty: firebase.firestore.FieldValue.increment(qty)});
   try{ await batch.commit(); toast(`Undid used. ${qty} put back on stock.`); }catch(e){ console.error(e); toast('Couldn’t undo.'); }
 }
@@ -1043,11 +1065,18 @@ async function undoUsed(r){
 function refreshAvail(){
   const ref = $('#f-graft').value.trim(), el = $('#f-avail');
   if(!ref){ el.textContent=''; el.className='avail-note'; return; }
-  const s = stockFor(ref);
-  if(!s){ el.textContent = 'Not in stock list. The inventory team will order it.'; el.className='avail-note low'; return; }
-  const avail = availableFor(ref, editingId), want = parseInt($('#f-qty').value,10)||1;
-  el.textContent = `${s.desc ? s.desc+' · ' : ''}${Math.max(0,avail)} available (${s.qty} on hand, ${reservedFor(ref, editingId)} reserved)` + (avail < want ? '. Not enough. This will need to be ordered.' : '');
-  el.className = 'avail-note' + (avail < want ? ' low' : '');
+  const t = typeForRef(ref);
+  if(t===null){ el.textContent = 'Not in the stock list. The inventory team will order it.'; el.className='avail-note low'; return; }
+  const want = parseInt($('#f-qty').value,10)||1;
+  const s = stockFor(ref), avail = availableOfType(t, editingId);
+  const sized = rowsOfType(t).length > 1 || !stockFor(t);
+  let txt = (s && s.desc) || (rowsOfType(t)[0]||{}).desc || '';
+  if(s && sized) txt += `${txt?' · ':''}${+s.qty||0} of this size on hand`;
+  txt += `${txt?' · ':''}${Math.max(0,avail)} ${sized?t+' ':''}available (${onHandOfType(t)} on hand, ${reservedOfType(t, editingId)} reserved)`;
+  if(s && sized && (+s.qty||0) - reservedFor(ref, editingId) < want) txt += '. Not enough of this size.';
+  else if(avail < want) txt += '. Not enough. This will need to be ordered.';
+  el.textContent = txt;
+  el.className = 'avail-note' + ((avail < want || (s && sized && (+s.qty||0) - reservedFor(ref, editingId) < want)) ? ' low' : '');
 }
 ['#f-graft','#f-qty'].forEach(s=>$(s).addEventListener('input', refreshAvail));
 $('#f-account').addEventListener('change', ()=>{ const hit = accMap.get(refKey($('#f-account').value)); if(hit && hit.territory && !$('#f-territory').value) $('#f-territory').value = hit.territory; });
@@ -1091,28 +1120,43 @@ $('#req-form').addEventListener('submit', async e=>{
 /* ================= Stock ================= */
 function renderStock(){
   const q = $('#stock-search').value.trim().toLowerCase(), below = $('#stock-below').checked;
-  const rows = stock.map(s=>{ const reserved = reservedFor(s.ref); const avail = (+s.qty||0) - reserved; return {...s, reserved, avail, off: typeof s.target==='number' ? avail - s.target : null}; })
-    .filter(s=>(!q || [s.ref, s.desc].join(' ').toLowerCase().includes(q)) && (!below || (s.off!==null && s.off<0)))
-    .sort((a,b)=>refKey(a.ref).localeCompare(refKey(b.ref)));
+  const types = allTypes().map(t=>{ const rows=rowsOfType(t).sort((a,b)=>refKey(a.ref).localeCompare(refKey(b.ref))); const target=targetOfType(t), avail=availableOfType(t); return {t, rows, target, onHand:onHandOfType(t), reserved:reservedOfType(t), avail, off: target===null ? null : avail-target}; })
+    .filter(g=>(!q || g.rows.some(s=>[s.ref, s.desc, g.t].join(' ').toLowerCase().includes(q))) && (!below || (g.off!==null && g.off<0)))
+    .sort((a,b)=>a.t.localeCompare(b.t));
   const t = $('#stock-table');
-  $('#stock-empty').hidden = rows.length>0; t.hidden = !rows.length;
+  $('#stock-empty').hidden = types.length>0; t.hidden = !types.length;
   t.innerHTML = '<thead><tr><th>Reference</th><th class="num">On hand</th><th class="num hide-m">Reserved</th><th class="num">Available</th><th class="num">Target</th><th class="num">vs target</th></tr></thead>';
   const tb = document.createElement('tbody');
-  rows.forEach(s=>{
-    const tr = document.createElement('tr');
-    tr.innerHTML = `<td><div class="ref">${escapeHtml(s.ref)}</div><div class="desc">${escapeHtml(s.desc||'')}</div></td>
-      <td class="num"><span class="stepper-sm"><button type="button" data-d="-1" aria-label="One fewer">−</button><input type="number" min="0" step="1" value="${+s.qty||0}" aria-label="On hand"><button type="button" data-d="1" aria-label="One more">+</button></span></td>
-      <td class="num hide-m">${s.reserved||''}</td>
-      <td class="num ${s.avail<0?'short':''}">${s.avail}</td>
-      <td class="num"><input type="number" min="0" step="1" value="${typeof s.target==='number'?s.target:''}" placeholder="—" aria-label="Target" style="width:64px; min-height:30px; padding:4px 6px; text-align:center; font-size:.9rem;"></td>
-      <td class="num ${s.off===null?'':(s.off<0?'short':'ok')}">${s.off===null?'—':(s.off>0?'+':'')+(s.off??'')}</td>`;
-    const [qtyIn, tgtIn] = tr.querySelectorAll('input');
-    tr.querySelectorAll('.stepper-sm button').forEach(b=>b.onclick=()=>{ const n=Math.max(0,(parseInt(qtyIn.value,10)||0)+(+b.dataset.d)); qtyIn.value=n; saveStock(s, {qty:n}); });
-    qtyIn.addEventListener('change', ()=>{ const n=parseInt(qtyIn.value,10); if(!isNaN(n) && n>=0) saveStock(s, {qty:n}); });
-    tgtIn.addEventListener('change', ()=>{ const v=tgtIn.value.trim(); const n=parseInt(v,10); saveStock(s, {target: v==='' ? null : (isNaN(n)||n<0 ? 0 : n)}); });
-    tb.appendChild(tr);
+  const qtyCell = s=>`<span class="stepper-sm"><button type="button" data-d="-1" aria-label="One fewer">−</button><input type="number" min="0" step="1" value="${+s.qty||0}" aria-label="On hand"><button type="button" data-d="1" aria-label="One more">+</button></span>`;
+  const tgtCell = g=>`<input class="tgt" type="number" min="0" step="1" value="${g.target===null?'':g.target}" placeholder="—" aria-label="Target for ${escapeHtml(g.t)}" style="width:64px; min-height:30px; padding:4px 6px; text-align:center; font-size:.9rem;">`;
+  const offCell = g=>`<td class="num ${g.off===null?'':(g.off<0?'short':'ok')}">${g.off===null?'—':(g.off>0?'+':'')+g.off}</td>`;
+  const wireQty = (tr, s)=>{ const inp=tr.querySelector('.stepper-sm input'); tr.querySelectorAll('.stepper-sm button').forEach(b=>b.onclick=()=>{ const n=Math.max(0,(parseInt(inp.value,10)||0)+(+b.dataset.d)); inp.value=n; saveStock(s,{qty:n}); }); inp.addEventListener('change', ()=>{ const n=parseInt(inp.value,10); if(!isNaN(n)&&n>=0) saveStock(s,{qty:n}); }); };
+  const wireTgt = (tr, g)=>{ const inp=tr.querySelector('.tgt'); inp.addEventListener('change', ()=>{ const v=inp.value.trim(), n=parseInt(v,10); saveTypeTarget(g.t, v==='' ? null : (isNaN(n)||n<0 ? 0 : n)); }); };
+  types.forEach(g=>{
+    const single = g.rows.length===1 && refKey(g.rows[0].ref)===g.t;
+    if(single){
+      const s=g.rows[0], tr=document.createElement('tr');
+      tr.innerHTML = `<td><div class="ref">${escapeHtml(s.ref)}</div><div class="desc">${escapeHtml(s.desc||'')}</div></td><td class="num">${qtyCell(s)}</td><td class="num hide-m">${g.reserved||''}</td><td class="num ${g.avail<0?'short':''}">${g.avail}</td><td class="num">${tgtCell(g)}</td>${offCell(g)}`;
+      wireQty(tr, s); wireTgt(tr, g); tb.appendChild(tr); return;
+    }
+    // A graft type stocked by size: one total row with the target, then a row per size.
+    const head=document.createElement('tr'); head.className='type-row';
+    head.innerHTML = `<td><div class="ref">${escapeHtml(g.t)} <span class="desc" style="font-weight:500;">· ${g.rows.length} sizes</span></div><div class="desc">${escapeHtml(g.rows[0].desc||'')}</div></td><td class="num"><b>${g.onHand}</b></td><td class="num hide-m">${g.reserved||''}</td><td class="num ${g.avail<0?'short':''}"><b>${g.avail}</b></td><td class="num">${tgtCell(g)}</td>${offCell(g)}`;
+    wireTgt(head, g); tb.appendChild(head);
+    g.rows.forEach(s=>{
+      const tr=document.createElement('tr'); tr.className='size-row';
+      const size = refKey(s.ref).startsWith(g.t) ? s.ref.slice(g.t.length).trim() || s.ref : s.ref;
+      const res = reservedFor(s.ref);
+      tr.innerHTML = `<td><div class="size">${escapeHtml(size)}</div></td><td class="num">${qtyCell(s)}</td><td class="num hide-m">${res||''}</td><td class="num desc">${(+s.qty||0)-res}</td><td></td><td></td>`;
+      wireQty(tr, s); tb.appendChild(tr);
+    });
   });
   t.appendChild(tb);
+}
+async function saveTypeTarget(t, target){
+  const batch = db.batch();
+  rowsOfType(t).forEach(s=>batch.update(db.doc('bioStock/'+s.id), {target, updatedAt:Date.now(), updatedByName:me.name}));
+  try{ await batch.commit(); }catch(e){ console.error(e); toast('Couldn’t save that target. Try again.'); }
 }
 async function saveStock(s, patch){
   try{ await db.doc('bioStock/'+s.id).update({...patch, updatedAt:Date.now(), updatedByName:me.name}); }
@@ -1126,20 +1170,23 @@ $('#stock-form').addEventListener('submit', async e=>{
   const ex = stockFor(ref);
   const patch = {ref: ex ? ex.ref : ref, updatedAt:Date.now(), updatedByName:me.name};
   if($('#s-desc').value.trim()) patch.desc = $('#s-desc').value.trim();
+  if($('#s-type').value.trim()) patch.type = refKey($('#s-type').value);
+  const typeKey = refKey($('#s-type').value) || (ex ? typeOf(ex) : ref);
   if($('#s-qty').value!=='') patch.qty = Math.max(0, parseInt($('#s-qty').value,10)||0);
   if($('#s-target').value!=='') patch.target = Math.max(0, parseInt($('#s-target').value,10)||0);
+  else if(!ex && targetOfType(typeKey)!==null) patch.target = targetOfType(typeKey);
   if(!ex && patch.qty===undefined) patch.qty = 0;
-  try{ await db.doc('bioStock/'+(ex ? ex.id : docIdFor(ref))).set(patch, {merge:true}); msg.textContent = `Saved ${ref}.`; msg.className='status-msg ok'; e.target.reset(); }
+  try{ await db.doc('bioStock/'+(ex ? ex.id : docIdFor(ref))).set(patch, {merge:true}); if(patch.target!==undefined) await saveTypeTarget(typeKey, patch.target); msg.textContent = `Saved ${ref}.`; msg.className='status-msg ok'; e.target.reset(); }
   catch(err){ console.error(err); msg.textContent='Couldn’t save. Try again.'; msg.className='status-msg err'; }
 });
 
 /* ================= Reorder ================= */
 function renderReorder(){
-  const rows = stock.map(s=>{ const reserved=reservedFor(s.ref), avail=(+s.qty||0)-reserved, tgt = typeof s.target==='number' ? s.target : 0; return {s, reserved, avail, need: Math.max(0, tgt - avail)}; })
+  const rows = allTypes().map(t=>{ const r0=rowsOfType(t)[0]; const reserved=reservedOfType(t), avail=availableOfType(t), tgt=targetOfType(t)||0; return {s:{ref:t, desc:r0.desc, qty:onHandOfType(t), target:targetOfType(t)}, reserved, avail, need: Math.max(0, tgt - avail)}; })
     .filter(x=>x.need>0).sort((a,b)=>b.need-a.need || refKey(a.s.ref).localeCompare(refKey(b.s.ref)));
   // Requested grafts that aren't in the stock list at all also need ordering.
   const unknown = {};
-  bioReqs.filter(r=>OPEN(r.status) && !stockFor(r.graft)).forEach(r=>{ const k=refKey(r.graft); unknown[k]=(unknown[k]||0)+(+r.qty||0); });
+  bioReqs.filter(r=>OPEN(r.status) && typeForRef(r.graft)===null).forEach(r=>{ const k=refKey(r.graft); unknown[k]=(unknown[k]||0)+(+r.qty||0); });
   const t = $('#order-table');
   const total = rows.length + Object.keys(unknown).length;
   $('#order-empty').hidden = total>0; t.hidden = !total;
@@ -1195,7 +1242,7 @@ function renderUsage(){
   rows.forEach(r=>{
     const so = r.salesOrder ? (/^https?:\/\//.test(r.salesOrder) ? `<a href="${escapeHtml(r.salesOrder)}" target="_blank" rel="noopener">Sales order</a>` : 'SO '+escapeHtml(r.salesOrder)) : '';
     const tr=document.createElement('tr');
-    tr.innerHTML=`<td>${escapeHtml(fmtDate(r.dateNeeded))}</td><td><div class="ref">${escapeHtml(r.graft||'')}</div><div class="desc">${escapeHtml(r.desc||'')}</div></td><td class="num">${+r.usedQty||+r.qty||0}</td><td>${escapeHtml([r.account, r.surgeon].filter(Boolean).join(' · '))}</td><td class="hide-m">${escapeHtml(canonTerr(r.territory)||'')}</td><td class="desc">${[so, r.lot?'Lot '+escapeHtml(r.lot):'', r.po?'PO '+escapeHtml(r.po):''].filter(Boolean).join(' · ')}</td>`;
+    tr.innerHTML=`<td>${escapeHtml(fmtDate(r.dateNeeded))}</td><td><div class="ref">${escapeHtml(r.usedRef||r.graft||'')}</div><div class="desc">${escapeHtml(r.desc||'')}</div></td><td class="num">${+r.usedQty||+r.qty||0}</td><td>${escapeHtml([r.account, r.surgeon].filter(Boolean).join(' · '))}</td><td class="hide-m">${escapeHtml(canonTerr(r.territory)||'')}</td><td class="desc">${[so, r.lot?'Lot '+escapeHtml(r.lot):'', r.po?'PO '+escapeHtml(r.po):''].filter(Boolean).join(' · ')}</td>`;
     tb.appendChild(tr);
   });
   t.appendChild(tb);

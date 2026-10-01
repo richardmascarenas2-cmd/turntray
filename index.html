@@ -343,15 +343,13 @@ textarea{resize:vertical; min-height:64px;}
 .chart-days span.today{color:var(--ink); font-weight:700;}
 #chart-note{margin:8px 0 0;}
 .alert{display:flex; align-items:center; gap:10px; padding:8px 10px; border-radius:10px; background:var(--panel-2); margin-bottom:6px;}
-.alert.shortage{background:#e8f3ff;}
 .alert .adot{width:8px; height:8px; border-radius:50%; background:var(--baby-strong); flex:none;}
-.alert.shortage .adot, .alert.putback .adot{background:var(--ink);}
+.alert.putback .adot{background:var(--ink);}
 .alert-text{flex:1; min-width:0;}
 .alert-text b{display:block; font-size:.84rem;}
 .alert-text small{display:block; color:var(--sub); font-size:.76rem; overflow-wrap:anywhere; white-space:pre-line;}
 .alert.early{background:var(--baby-soft); border:1px solid var(--baby-strong);}
 .alert button{background:var(--panel); border:1.5px solid var(--accent); color:var(--accent); padding:7px 10px; font-size:.76rem; white-space:nowrap; min-height:36px;}
-.alert.shortage button{background:var(--accent); color:#fff;}
 .alerts-empty{color:var(--sub); font-size:.84rem; padding:14px 4px;}
 .q-tools{display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:12px;}
 .q-tools input[type=search]{flex:1 1 200px; width:auto;}
@@ -391,6 +389,11 @@ textarea{resize:vertical; min-height:64px;}
 .tag.urgent{background:#fff; border:1.5px solid var(--ink); color:var(--ink);}
 .alert.urgent{background:#fff; border:1.5px solid var(--ink);}
 .alert.urgent .adot{background:var(--accent);}
+/* Loaner needed and urgent returns: red so they stand out from the other alerts. */
+.alert.shortage, .alert.urgent{background:color-mix(in srgb, var(--danger) 9%, var(--panel)); border:1.5px solid var(--danger);}
+.alert.shortage .adot, .alert.urgent .adot{background:var(--danger);}
+.alert.shortage .alert-text b, .alert.urgent .alert-text b{color:var(--danger);}
+.alert.shortage button, .alert.urgent button{background:var(--danger); border-color:var(--danger); color:#fff;}
 .urgent-note{flex-basis:100%; font-size:.76rem; font-weight:600; color:var(--ink); background:var(--baby-soft); border-radius:8px; padding:6px 8px;}
 #mine-alerts .alert button{display:none;}
 .c-act{display:flex; justify-content:flex-end;}

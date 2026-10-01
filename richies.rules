@@ -90,6 +90,21 @@ service cloud.firestore {
       allow read, write: if isMember();
     }
 
+    // Biologics (bio.html): stock and par levels, requests, and reorder notes / items of concern.
+    match /bioStock/{id} {
+      allow read, write: if isMember();
+    }
+    match /bioRequests/{id} {
+      allow read: if isMember();
+      allow create: if isMember() && request.resource.data.requestedById == request.auth.uid;
+      allow update: if isMember();
+      allow delete: if isAdmin() || (isMember() && resource.data.get('status', '') == 'cancelled'
+        && resource.data.get('requestedById', '') == request.auth.uid);
+    }
+    match /bioNotes/{id} {
+      allow read, write: if isMember();
+    }
+
     // One-time import bookkeeping.
     match /meta/{doc} {
       allow read: if isMember();

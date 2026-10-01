@@ -646,6 +646,18 @@ main{max-width:1200px; margin:0 auto; padding:18px clamp(16px,3vw,32px) 40px;}
 .stepper-sm{display:inline-flex; align-items:center; gap:4px;}
 .stepper-sm button{width:30px; height:30px; background:var(--panel); border:1px solid var(--line); padding:0; font-size:1rem;}
 .stepper-sm input{width:58px; min-height:30px; padding:4px 6px; text-align:center; font-size:.9rem;}
+#view-add.active{display:block;}   /* the Inventory page's two-column rule doesn't apply here */
+.g-search{position:relative;}
+.g-list{position:absolute; left:0; right:0; top:calc(100% + 4px); z-index:50; background:var(--panel); border:1px solid var(--line); border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,.14); max-height:320px; overflow:auto; padding:4px;}
+.g-opt{display:flex; align-items:center; gap:10px; width:100%; padding:8px 10px; border-radius:8px; background:none; text-align:left; font-weight:400; cursor:pointer;}
+.g-opt:hover, .g-opt.active{background:var(--baby-soft);}
+.g-opt .g-main{flex:1; min-width:0;}
+.g-opt b{display:block; font-size:.86rem;}
+.g-opt small{display:block; color:var(--sub); font-size:.76rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.g-opt mark{background:#fff1a8; color:inherit; border-radius:2px; padding:0;}
+.g-opt .g-qty{flex:none; font-size:.74rem; font-weight:700; color:var(--sub);}
+.g-opt .g-qty.zero{color:var(--danger);}
+.g-none{padding:10px; color:var(--sub); font-size:.84rem;}
 .avail-note{font-size:.78rem; margin-top:5px; color:var(--sub);}
 .avail-note.low{color:var(--danger); font-weight:600;}
 .day-label{font-weight:800; font-size:.92rem; margin:16px 0 6px; display:flex; gap:8px; align-items:center;}
@@ -732,7 +744,10 @@ main{max-width:1200px; margin:0 auto; padding:18px clamp(16px,3vw,32px) 40px;}
         <div class="section-head"><h2 id="form-title" style="margin:0;">New biologic request</h2><button type="button" class="linkbtn" id="form-cancel-edit" hidden>Stop editing</button></div>
         <form id="req-form" autocomplete="off">
           <label for="f-graft">Biologic</label>
-          <input id="f-graft" list="dl-grafts" placeholder="e.g. ABS-1010-BC" autocapitalize="characters" required>
+          <div class="g-search">
+            <input id="f-graft" placeholder="ABS number or description, e.g. biocartilage" autocomplete="off" spellcheck="false" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="g-list" required>
+            <div class="g-list" id="g-list" role="listbox" hidden></div>
+          </div>
           <div class="avail-note" id="f-avail"></div>
           <div class="grid2">
             <div><label for="f-qty">Qty</label><input id="f-qty" type="number" inputmode="numeric" min="1" step="1" value="1" required></div>
@@ -1095,6 +1110,65 @@ async function undoUsed(r){
 }
 
 /* ================= Request form ================= */
+/* Biologic search: type the ABS number or any words from the description (e.g. "biocart", "quadlink 10"). */
+let gOpts = [], gActive = -1;
+function graftChoices(){
+  // Every size, plus each graft type on its own ("any size").
+  const out = stock.map(s=>({ref:s.ref, desc:s.desc||'', type:typeOf(s), size:true}));
+  allTypes().forEach(t=>{ if(!stockFor(t)){ const r=rowsOfType(t)[0]; out.push({ref:t, desc:(r.desc||'')+' · any size', type:t, size:false}); } });
+  return out;
+}
+function searchGrafts(q){
+  const words = q.toLowerCase().split(/\s+/).filter(Boolean);
+  if(!words.length) return [];
+  const qk = refKey(q);
+  return graftChoices().map(c=>{
+    const hay = (c.ref+' '+c.desc).toLowerCase();
+    if(!words.every(w=>hay.includes(w))) return null;
+    const ref = refKey(c.ref);
+    let score = ref===qk ? 0 : ref.startsWith(qk) ? 1 : ref.includes(qk) ? 2 : c.desc.toLowerCase().startsWith(words[0]) ? 3 : 4;
+    if(!c.size) score -= .5;                     // the "any size" line sits above its sizes
+    return {...c, score};
+  }).filter(Boolean).sort((a,b)=>a.score-b.score || refKey(a.ref).localeCompare(refKey(b.ref))).slice(0, 12);
+}
+function hl(text, words){
+  let h = escapeHtml(text);
+  words.forEach(w=>{ if(w.length<2) return; const re = new RegExp('('+w.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','ig'); h = h.replace(re, '<mark>$1</mark>'); });
+  return h;
+}
+function renderGraftList(){
+  const inp = $('#f-graft'), box = $('#g-list'), q = inp.value.trim();
+  gOpts = searchGrafts(q); gActive = gOpts.length ? 0 : -1;
+  // Hide the list once the box holds an exact reference.
+  if(!q || (gOpts.length===1 && refKey(gOpts[0].ref)===refKey(q)) || (stockFor(q) && document.activeElement!==inp)){ box.hidden = true; inp.setAttribute('aria-expanded','false'); return; }
+  const words = q.toLowerCase().split(/\s+/).filter(Boolean);
+  box.innerHTML = gOpts.length ? gOpts.map((c,i)=>{
+    const avail = c.size ? (+(stockFor(c.ref)||{}).qty||0) : availableOfType(c.type);
+    return `<button type="button" class="g-opt${i===gActive?' active':''}" role="option" data-i="${i}"><span class="g-main"><b>${hl(c.ref, words)}</b><small>${hl(c.desc, words)}</small></span><span class="g-qty${avail<=0?' zero':''}">${c.size ? avail+' on hand' : Math.max(0,avail)+' avail.'}</span></button>`;
+  }).join('') : `<div class="g-none">No match. Keep typing, or submit it as typed and the inventory team will order it.</div>`;
+  box.hidden = false; inp.setAttribute('aria-expanded','true');
+}
+function pickGraft(i){
+  const c = gOpts[i]; if(!c) return;
+  $('#f-graft').value = c.ref; $('#g-list').hidden = true; $('#f-graft').setAttribute('aria-expanded','false');
+  refreshAvail(); $('#f-qty').focus();
+}
+$('#f-graft').addEventListener('input', renderGraftList);
+$('#f-graft').addEventListener('focus', renderGraftList);
+$('#f-graft').addEventListener('keydown', e=>{
+  const box = $('#g-list'); if(box.hidden || !gOpts.length) return;
+  if(e.key==='ArrowDown' || e.key==='ArrowUp'){ e.preventDefault(); gActive = (gActive + (e.key==='ArrowDown'?1:-1) + gOpts.length) % gOpts.length; box.querySelectorAll('.g-opt').forEach((b,i)=>b.classList.toggle('active', i===gActive)); box.querySelectorAll('.g-opt')[gActive].scrollIntoView({block:'nearest'}); }
+  else if(e.key==='Enter'){ e.preventDefault(); pickGraft(gActive); }
+  else if(e.key==='Escape'){ box.hidden = true; }
+});
+// mousedown so the pick happens before the box loses focus
+$('#g-list').addEventListener('mousedown', e=>{ const b=e.target.closest('.g-opt'); if(!b) return; e.preventDefault(); pickGraft(+b.dataset.i); });
+$('#f-graft').addEventListener('blur', ()=>{
+  setTimeout(()=>{ $('#g-list').hidden = true; }, 150);
+  // Typed a description that only fits one biologic: fill in its number.
+  const q = $('#f-graft').value.trim();
+  if(q && !stockFor(q) && typeForRef(q)===null){ const m = searchGrafts(q); if(m.length===1){ $('#f-graft').value = m[0].ref; refreshAvail(); } }
+});
 function refreshAvail(){
   const ref = $('#f-graft').value.trim(), el = $('#f-avail');
   if(!ref){ el.textContent=''; el.className='avail-note'; return; }

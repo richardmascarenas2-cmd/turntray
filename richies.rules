@@ -67,7 +67,10 @@ service cloud.firestore {
           && request.resource.data.authorId == request.auth.uid
           && request.resource.data.data is string
           && request.resource.data.data.size() < 900000;
-        allow delete: if isMember() && (resource.data.authorId == request.auth.uid || isAdmin() || ownsCancelled(id));
+        // Return photos can be cleared by anyone on the team: they're deleted when a tray
+        // comes back complete, and shrunk once missing items are found.
+        allow delete: if isMember() && (resource.data.authorId == request.auth.uid || isAdmin() || ownsCancelled(id)
+          || resource.data.get('kind', 'delivery') == 'return');
       }
 
       match /comments/{commentId} {

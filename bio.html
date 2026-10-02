@@ -745,6 +745,17 @@ main{max-width:1200px; margin:0 auto; padding:18px clamp(16px,3vw,32px) 40px;}
 .bc-tools{display:flex; flex-wrap:wrap; gap:6px; margin-top:10px; padding-top:10px; border-top:1px dashed var(--line);}
 .bc-tools .pdf-open{display:inline-flex; align-items:center; gap:6px; color:#b42318; border-color:color-mix(in srgb, #b42318 35%, var(--line)); max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
 .bc-tools .pdf-open svg{width:16px; height:16px; flex:none;}
+.bc-link{display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin-top:10px; padding-top:10px; border-top:1px dashed var(--line);}
+.bc-link .link-open{display:inline-flex; align-items:center; gap:6px; max-width:100%; min-width:0; padding:8px 12px; border:1px solid color-mix(in srgb, var(--accent) 40%, var(--line)); border-radius:10px; color:var(--accent); font-size:.8rem; font-weight:600; text-decoration:none; background:var(--panel);}
+.bc-link .link-open span{overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.bc-link .link-open svg{width:16px; height:16px; flex:none;}
+.bc-link form{display:flex; gap:6px; flex:1 1 260px; min-width:0;}
+.bc-link input{flex:1; min-width:0; min-height:36px; padding:6px 10px; font-size:.85rem;}
+.bc-link button{background:var(--panel); border:1px solid var(--line); padding:8px 12px; font-size:.8rem;}
+.bc-link button.go{background:var(--accent); border-color:var(--accent); color:#fff;}
+.bc-link button.warn{color:var(--danger); border-color:color-mix(in srgb, var(--danger) 40%, var(--line));}
+.bc-link button.armed{background:var(--danger); border-color:var(--danger); color:#fff;}
+.link-chip{font-size:.66rem; font-weight:800; color:var(--accent); border:1px solid currentColor; border-radius:5px; padding:1px 5px; background:none; letter-spacing:.04em; text-decoration:none;}
 .bc-photos{margin-top:10px;}
 .bc-thumbs, .ret-thumbs{display:flex; flex-wrap:wrap; gap:6px; margin-top:6px;}
 .bc-thumbs button{padding:0; border:1px solid var(--line); border-radius:8px; overflow:hidden; width:72px; height:72px; background:var(--bg);}
@@ -838,7 +849,7 @@ main{max-width:1200px; margin:0 auto; padding:18px clamp(16px,3vw,32px) 40px;}
       <select id="req-territory"><option value="All">All territories</option></select>
       <input type="search" id="req-search" placeholder="Search biologic, account, surgeon…">
     </div>
-    <p class="hint">Tap a case to open it. Tick the grafts, then Pack (add lot and expiration), Used or Returned. Drag a PDF onto a case to attach it.</p>
+    <p class="hint">Tap a case to open it. Tick the grafts, then Pack (add the expiration), Used or Returned. Paste a link on a case and it stays with it from request to PO.</p>
     <div id="req-list"></div>
     <div class="empty" id="req-empty" hidden>Nothing here.</div>
   </div>
@@ -1009,7 +1020,7 @@ main{max-width:1200px; margin:0 auto; padding:18px clamp(16px,3vw,32px) 40px;}
 </main>
 </div>
 
-<!-- Pack: lot and expiration for each graft -->
+<!-- Pack: expiration for each graft -->
 <div class="modal-overlay" id="pack-sheet" hidden>
   <form class="sheet-card" id="pack-form" autocomplete="off">
     <div class="section-head"><h2 style="margin:0;">Pack</h2><button type="button" class="linkbtn" data-close>Cancel</button></div>
@@ -1210,8 +1221,13 @@ function showView(view){
 }
 document.querySelectorAll('nav.tabs button').forEach(b=>b.addEventListener('click', ()=>showView(b.dataset.view)));
 document.querySelectorAll('.more-list [data-go]').forEach(b=>b.addEventListener('click', ()=>showView(b.dataset.go)));
+// Don't redraw under someone typing a link; catch up once they leave the box.
+let linkRenderPending = false;
+document.addEventListener('focusout', e=>{ if(linkRenderPending && e.target.closest && e.target.closest('.bc-link')) setTimeout(()=>{ if(linkRenderPending){ const ae=document.activeElement; if(!(ae && ae.closest && ae.closest('.bc-link') && ae.tagName==='INPUT')){ linkRenderPending=false; renderAll(); } } }, 250); });
 function renderAll(){
   if(!me) return;
+  const ae = document.activeElement;
+  if(ae && ae.tagName==='INPUT' && ae.closest && ae.closest('.bc-link')){ linkRenderPending = true; return; }
   const v = activeViewId();
   if(v==='requests') renderRequests();
   if(v==='add'){ renderMine(); refreshAllAvail(); }
@@ -1241,6 +1257,7 @@ function groupCases(lines){
   for(const c of m.values()){
     c.lines.sort((a,b)=>(a.createdAt||0)-(b.createdAt||0) || refKey(a.graft).localeCompare(refKey(b.graft)));
     const f = c.lines.find(l=>l.pdfName); c.pdfName = f ? f.pdfName : ''; c.pdfByName = f ? f.pdfByName : '';
+    const lk = c.lines.find(l=>l.link); c.link = lk ? lk.link : ''; c.linkByName = lk ? (lk.linkByName||'') : '';
     const p = c.lines.find(l=>l.poNumber); c.poNumber = p ? p.poNumber : '';
   }
   return [...m.values()];
@@ -1278,17 +1295,11 @@ function buildCase(c, opts){
       <div class="bc-main"><b>${escapeHtml([c.account||'—', c.surgeon].filter(Boolean).join(' · '))}</b>
         <small>${escapeHtml([opts.showDate===false ? '' : 'Surgery '+fmtDate(c.date)+(c.ampm?' '+c.ampm:''), 'pack '+fmtShort(packOnFor(c)), c.territory, c.person].filter(Boolean).join(' · '))}</small>
         <div class="bc-grafts">${live.slice(0,4).map(l=>`<span>${escapeHtml(l.usedRef||l.graft)}${+l.qty>1?' ×'+l.qty:''}</span>`).join('')}${live.length>4?`<span>+${live.length-4} more</span>`:''}</div></div>
-      <div class="bc-side">${c.pdfName?'<span class="pdf-chip" title="PDF attached">PDF</span>':''}<span class="st ${st.cls}">${st.text}</span><small>${done}/${live.length} done · ${n} graft${n===1?'':'s'}</small></div>
+      <div class="bc-side">${c.link?'<span class="link-chip" title="Link attached">LINK</span>':''}${c.pdfName?'<span class="pdf-chip" title="PDF attached">PDF</span>':''}<span class="st ${st.cls}">${st.text}</span><small>${done}/${live.length} done · ${n} graft${n===1?'':'s'}</small></div>
     </div>`;
   const head = el.querySelector('.bc-head');
   const toggle = ()=>{ openCases.has(c.id) ? openCases.delete(c.id) : openCases.add(c.id); renderAll(); };
   if(!opts.alwaysOpen){ head.addEventListener('click', toggle); head.addEventListener('keydown', e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); toggle(); } }); }
-  // Admins can drop a PDF anywhere on the case.
-  if(me.isAdmin){
-    el.addEventListener('dragover', e=>{ if([...e.dataTransfer.types].includes('Files')){ e.preventDefault(); el.classList.add('drop'); } });
-    el.addEventListener('dragleave', e=>{ if(!el.contains(e.relatedTarget)) el.classList.remove('drop'); });
-    el.addEventListener('drop', e=>{ e.preventDefault(); el.classList.remove('drop'); const f=[...e.dataTransfer.files].find(f=>f.type==='application/pdf' || /\.pdf$/i.test(f.name)); if(f) uploadPdf(c, f); else toast('Drop a PDF file.'); });
-  }
   if(isOpen) el.appendChild(caseBody(c, opts));
   return el;
 }
@@ -1354,8 +1365,8 @@ function caseBody(c, opts){
   // Case tools: PDF, photos, add more grafts, edit.
   const tools = document.createElement('div'); tools.className='bc-tools';
   if(c.pdfName){ const a=document.createElement('button'); a.type='button'; a.className='pdf-open'; a.innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6"/></svg>${escapeHtml(c.pdfName)}`; a.onclick=()=>openPdf(c); tools.appendChild(a); }
-  if(me.isAdmin){ const u=document.createElement('button'); u.type='button'; u.textContent = c.pdfName ? 'Replace PDF' : 'Attach PDF'; u.onclick=()=>pickPdf(c); tools.appendChild(u);
-    if(c.pdfName){ const r=document.createElement('button'); r.type='button'; r.className='warn'; r.textContent='Remove PDF'; r.onclick=()=>removePdf(c, r); applyArm(r, 'pdf|'+c.id); tools.appendChild(r); } }
+  // Older cases may still have a PDF; admins can remove it. New attachments are links (below).
+  if(me.isAdmin && c.pdfName){ const r=document.createElement('button'); r.type='button'; r.className='warn'; r.textContent='Remove PDF'; r.onclick=()=>removePdf(c, r); applyArm(r, 'pdf|'+c.id); tools.appendChild(r); }
   if(c.lines.some(l=>l.status!=='cancelled') && (mgr || mineCase)){
     const add=document.createElement('button'); add.type='button'; add.textContent='+ Add biologics'; add.onclick=()=>startAddToCase(c); tools.appendChild(add);
     if(c.lines.some(l=>l.status==='requested')){ const ed=document.createElement('button'); ed.type='button'; ed.textContent='Edit'; ed.onclick=()=>startEditCase(c); tools.appendChild(ed); }
@@ -1363,10 +1374,10 @@ function caseBody(c, opts){
     if(openLines.length){ const cx=document.createElement('button'); cx.type='button'; cx.className='warn'; cx.textContent='Cancel request'; cx.onclick=()=>confirmTap('cx|'+c.id, cx, ()=>doCancel(openLines), 'Tap again to cancel'); applyArm(cx, 'cx|'+c.id); tools.appendChild(cx); }
   }
   box.appendChild(tools);
+  box.appendChild(linkBox(c, mgr || me.isAdmin));
   // Return photos for this case.
   const ph = document.createElement('div'); ph.className='bc-photos'; box.appendChild(ph);
   loadPhotos(c.id, ph);
-  if(me.isAdmin && !c.pdfName) box.insertAdjacentHTML('beforeend', '<p class="hint" style="margin:8px 0 0;">Tip: drag a PDF onto this case to attach it.</p>');
   return box;
 }
 function caseList(container, cases, emptyEl, opts){
@@ -1460,19 +1471,19 @@ document.querySelectorAll('.modal-overlay [data-close]').forEach(b=>b.addEventLi
 document.querySelectorAll('.modal-overlay').forEach(o=>o.addEventListener('click', e=>{ if(e.target===o) o.hidden = true; }));
 function clearPicks(lines){ lines.forEach(l=>picked.forEach(s=>s.delete(l.id))); }
 
-// Pack: inventory adds lot and expiration for each graft.
+// Pack: inventory adds the expiration for each graft.
 let packing = [];
 function packLines(lines){
   packing = lines.filter(l=>l.status==='requested'); if(!packing.length) return;
-  $('#pack-sub').textContent = `${packing.length} graft${packing.length===1?'':'s'} · add the lot and expiration from each label.`;
+  $('#pack-sub').textContent = `${packing.length} graft${packing.length===1?'':'s'} · add the expiration from each label.`;
   $('#pack-lines').innerHTML = packing.map((l,i)=>`<div class="pk-line"><b>${escapeHtml(l.graft)}${+l.qty>1?' ×'+l.qty:''}</b><small>${escapeHtml(l.desc||'')}</small>
-    <div class="grid2"><div><label for="pk-lot-${i}">Lot</label><input id="pk-lot-${i}" value="${escapeHtml(l.lot||'')}"></div><div><label for="pk-exp-${i}">Expires</label><input id="pk-exp-${i}" type="date" value="${escapeHtml(l.expiresAt||'')}"></div></div></div>`).join('');
+    <div><label for="pk-exp-${i}">Expires</label><input id="pk-exp-${i}" type="date" value="${escapeHtml(l.expiresAt||'')}"></div></div>`).join('');
   openSheet('#pack-sheet');
 }
 $('#pack-form').addEventListener('submit', async e=>{
   e.preventDefault();
   const b = db.batch(), now = Date.now();
-  packing.forEach((l,i)=>b.update(db.doc('bioRequests/'+l.id), {status:'pulled', lot:$('#pk-lot-'+i).value.trim(), expiresAt:$('#pk-exp-'+i).value||'', pulledAt:now, pulledByName:me.name}));
+  packing.forEach((l,i)=>b.update(db.doc('bioRequests/'+l.id), {status:'pulled', expiresAt:$('#pk-exp-'+i).value||'', pulledAt:now, pulledByName:me.name}));
   try{ await b.commit(); $('#pack-sheet').hidden = true; clearPicks(packing); toast(`Packed ${packing.length}.`); }catch(err){ console.error(err); toast('That didn’t save. Try again.'); }
 });
 
@@ -1562,7 +1573,50 @@ async function undoLines(lines){
   try{ await b.commit(); clearPicks(lines); toast('Undone.'); }catch(e){ console.error(e); toast('Couldn’t undo.'); }
 }
 
-/* ================= PDFs (one per case, admins attach) ================= */
+/* ================= Link (one per case, inventory team adds) =================
+   Saved on every line of the case, and copied onto grafts added later, so it
+   follows the case from request through packing, returns and the PO page. */
+const LINK_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.1 0l3-3a5 5 0 0 0-7.1-7.1l-1.3 1.3"/><path d="M14 11a5 5 0 0 0-7.1 0l-3 3a5 5 0 0 0 7.1 7.1l1.3-1.3"/></svg>';
+function cleanLink(v){
+  v = String(v||'').trim(); if(!v) return '';
+  if(!/^[a-z][a-z0-9+.-]*:/i.test(v)) v = 'https://' + v;
+  try{ const u = new URL(v); return /^https?:$/.test(u.protocol) && u.hostname.includes('.') ? u.href : null; }catch(e){ return null; }
+}
+function linkLabel(href){ try{ const u = new URL(href); const path = (u.pathname + u.search).replace(/\/$/,''); return u.hostname.replace(/^www\./,'') + (path.length > 1 ? (path.length > 28 ? path.slice(0,28)+'…' : path) : ''); }catch(e){ return href; } }
+const linkEditing = new Set();
+function linkBox(c, canEdit){
+  const box = document.createElement('div'); box.className = 'bc-link';
+  if(!c.link && !canEdit){ box.hidden = true; return box; }
+  const editing = canEdit && (!c.link || linkEditing.has(c.id));
+  if(c.link && !editing){
+    const a = document.createElement('a'); a.className = 'link-open'; a.href = c.link; a.target = '_blank'; a.rel = 'noopener noreferrer';
+    a.title = c.link + (c.linkByName ? ' · added by ' + c.linkByName : '');
+    a.innerHTML = LINK_ICON + '<span></span>'; a.querySelector('span').textContent = linkLabel(c.link);
+    a.addEventListener('click', e=>e.stopPropagation());
+    box.appendChild(a);
+    if(canEdit){
+      const ch = document.createElement('button'); ch.type = 'button'; ch.textContent = 'Change link'; ch.onclick = ()=>{ linkEditing.add(c.id); renderAll(); }; box.appendChild(ch);
+      const rm = document.createElement('button'); rm.type = 'button'; rm.className = 'warn'; rm.textContent = 'Remove link';
+      rm.onclick = ()=>confirmTap('lnk|'+c.id, rm, ()=>saveLink(c, ''), 'Tap again to remove'); applyArm(rm, 'lnk|'+c.id); box.appendChild(rm);
+    }
+    return box;
+  }
+  const f = document.createElement('form'); f.autocomplete = 'off'; f.noValidate = true;
+  f.innerHTML = `<input type="url" inputmode="url" placeholder="Paste a link (https://…)" aria-label="Link for this case"><button type="submit" class="go">Save link</button>`;
+  const inp = f.querySelector('input'); inp.value = c.link || '';
+  f.addEventListener('submit', async e=>{ e.preventDefault(); const v = cleanLink(inp.value); if(v===null){ toast('That doesn’t look like a web link.'); inp.focus(); return; } if(!v){ toast('Paste a link first.'); return; } await saveLink(c, v); });
+  box.appendChild(f);
+  if(c.link){ const x = document.createElement('button'); x.type = 'button'; x.textContent = 'Cancel'; x.onclick = ()=>{ linkEditing.delete(c.id); renderAll(); }; box.appendChild(x); }
+  return box;
+}
+async function saveLink(c, link){
+  const b = db.batch(), now = Date.now();
+  linesOfCase(c.id).forEach(l=>b.update(db.doc('bioRequests/'+l.id), link ? {link, linkByName:me.name, linkAt:now} : {link:null, linkByName:null, linkAt:null}));
+  try{ await b.commit(); linkEditing.delete(c.id); toast(link ? 'Link saved.' : 'Link removed.'); }
+  catch(err){ console.error(err); toast('Couldn’t save the link. Try again.'); }
+}
+
+/* ================= PDFs (older cases only: open or remove) ================= */
 let pdfFor = null;
 function pickPdf(c){ pdfFor = c; $('#pdf-input').value=''; $('#pdf-input').click(); }
 $('#pdf-input').addEventListener('change', e=>{ const f=e.target.files[0]; if(f && pdfFor) uploadPdf(pdfFor, f); });
@@ -1639,7 +1693,7 @@ function renderPO(){
     el.innerHTML = `<div class="bc-head po-head"><div class="bc-main"><b>${escapeHtml([c.account||'—', c.surgeon].filter(Boolean).join(' · '))}</b>
         <small>${escapeHtml(['Surgery '+fmtDate(c.date), c.territory, c.person].filter(Boolean).join(' · '))}</small>
         <div class="bc-grafts">${c.lines.map(l=>`<span>${escapeHtml(l.usedRef||l.graft)}${(+l.usedQty||+l.qty)>1?' ×'+(+l.usedQty||+l.qty):''}${l.lot?' · Lot '+escapeHtml(l.lot):''}</span>`).join('')}</div></div>
-        <div class="bc-side">${c.pdfName?'<button type="button" class="pdf-chip">PDF</button>':''}${l0.poClosed?`<span class="st used">Closed</span><small>${escapeHtml(l0.closedByName||'')}</small>`:''}</div></div>
+        <div class="bc-side">${c.link?`<a class="link-chip" href="${escapeHtml(c.link)}" target="_blank" rel="noopener noreferrer" title="${escapeHtml(c.link)}">LINK</a>`:''}${c.pdfName?'<button type="button" class="pdf-chip">PDF</button>':''}${l0.poClosed?`<span class="st used">Closed</span><small>${escapeHtml(l0.closedByName||'')}</small>`:''}</div></div>
       <div class="po-form"></div>`;
     const pdf = el.querySelector('.pdf-chip'); if(pdf) pdf.onclick = ()=>openPdf(c);
     const f = el.querySelector('.po-form');
@@ -1788,12 +1842,12 @@ $('#req-form').addEventListener('submit', async e=>{
     if(formMode==='edit'){
       const caseLines = linesOfCase(formCase.id);
       caseLines.filter(l=>l.status!=='cancelled').forEach(l=>b.update(db.doc('bioRequests/'+l.id), {...caseData, editedAt:now, editedByName:me.name}));
-      rows.forEach((r,i)=>{ if(r.id) b.update(db.doc('bioRequests/'+r.id), lineData(r)); else b.set(db.collection('bioRequests').doc(), {...caseData, ...lineData(r), caseId:formCase.id, status:'requested', person:formCase.person||me.name, requestedById:formCase.requestedById||me.uid, createdAt:now+i, addedByName:me.name}); });
+      rows.forEach((r,i)=>{ if(r.id) b.update(db.doc('bioRequests/'+r.id), lineData(r)); else b.set(db.collection('bioRequests').doc(), {...caseData, ...lineData(r), ...(formCase.link ? {link:formCase.link, linkByName:formCase.linkByName||''} : {}), caseId:formCase.id, status:'requested', person:formCase.person||me.name, requestedById:formCase.requestedById||me.uid, createdAt:now+i, addedByName:me.name}); });
       caseLines.filter(l=>l.status==='requested' && !rows.some(r=>r.id===l.id)).forEach(l=>b.update(db.doc('bioRequests/'+l.id), {status:'cancelled', cancelledAt:now, cancelledByName:me.name}));
       await b.commit(); toast('Saved.'); openCases.add(formCase.id); resetForm(); showView(isManager() ? 'requests' : 'add'); return;
     }
     const caseId = formMode==='add' ? formCase.id : db.collection('bioRequests').doc().id;
-    const pdf = formMode==='add' && formCase.pdfName ? {pdfName:formCase.pdfName, pdfByName:formCase.pdfByName||''} : {};
+    const pdf = formMode==='add' ? {...(formCase.pdfName ? {pdfName:formCase.pdfName, pdfByName:formCase.pdfByName||''} : {}), ...(formCase.link ? {link:formCase.link, linkByName:formCase.linkByName||''} : {})} : {};
     rows.forEach((r,i)=>b.set(db.collection('bioRequests').doc(), {...caseData, ...lineData(r), ...pdf, caseId, status:'requested',
       person: formMode==='add' ? (formCase.person||me.name) : me.name, requestedById: formMode==='add' ? (formCase.requestedById||me.uid) : me.uid, createdAt: now+i, ...(formMode==='add' ? {addedByName:me.name} : {})}));
     await b.commit();

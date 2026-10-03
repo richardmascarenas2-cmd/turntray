@@ -323,6 +323,7 @@ textarea{resize:vertical; min-height:64px;}
 .ret-head small{color:var(--sub); font-size:.78rem; overflow-wrap:anywhere;}
 .ret-head .badge{text-transform:none; flex:none;}
 /* History: one line per account visit, date on the left and the trays that went. Tap to see full details. */
+.hist-more{display:block; width:100%; margin:4px 0 16px; padding:12px; background:var(--panel); border:1px solid var(--line); color:var(--open); font-weight:600;}
 .h-acct{margin-bottom:16px; border:1px solid var(--line); border-radius:12px; overflow:hidden; background:var(--panel);}
 .h-acct-head{display:flex; align-items:baseline; gap:8px; padding:10px 12px; background:var(--panel-2); border-bottom:1px solid var(--line);}
 .h-acct-head b{font-size:.98rem;}
@@ -2702,13 +2703,14 @@ $('#bulk-delete').addEventListener('click', async ()=>{
   renderRequests();
 });
 const histOpen = new Set();
+/* Territory History: same look as the Schedule — one section per surgery day (newest first), cases grouped like the Schedule. */
+let histDaysShown = 21;
 function renderHistory(){
   const terr = $('#hist-territory').value;
   const q = $('#hist-search').value.trim().toLowerCase();
-  const today = todayIso();
   // Only trays that actually went (or are going) out; cancelled requests are left off.
   const rows = allDocs.filter(r=>{
-    if((r.status||'open')==='cancelled') return false;
+    if((r.status||'open')==='cancelled' || !r.dateNeeded) return false;
     if(terr!=='All' && canonTerr(r.territory)!==terr) return false;
     if(!q) return true;
     const acct = (accMap.get((r.account||'').trim().toUpperCase())||{}).name || '';
@@ -2716,41 +2718,16 @@ function renderHistory(){
   });
   const wrap = $('#hist-list'); wrap.innerHTML = '';
   $('#hist-empty').hidden = rows.length>0;
-  const byAcct = new Map();
-  for(const r of rows){ const k=(r.account||'—').trim().toUpperCase(); if(!byAcct.has(k)) byAcct.set(k, []); byAcct.get(k).push(r); }
-  const live = activeViewId()==='history';
-  [...byAcct.keys()].sort().forEach(acct=>{
-    const list = byAcct.get(acct);
-    const sec = document.createElement('section'); sec.className='h-acct';
-    const name = (accMap.get(acct)||{}).name || '';
-    sec.innerHTML = `<div class="h-acct-head"><b>${escapeHtml(acct)}</b><span>${escapeHtml(name)}</span><small>${list.length} tray${list.length===1?'':'s'}</small></div>`;
-    // One row per date at this account, newest first.
-    const byDate = new Map();
-    list.forEach(r=>{ const d=r.dateNeeded||''; if(!byDate.has(d)) byDate.set(d, []); byDate.get(d).push(r); });
-    [...byDate.keys()].sort((a,b)=>b.localeCompare(a)).forEach(d=>{
-      const trays = byDate.get(d);
-      const key = acct+'|'+d;
-      const row = document.createElement('button'); row.type='button'; row.className='h-row';
-      row.setAttribute('aria-expanded', histOpen.has(key));
-      row.innerHTML = `<span class="h-date">${escapeHtml(fmtDate(d)||'No date')}</span><span class="h-trays"></span>`;
-      trays.forEach(r=>{
-        const t = document.createElement('span'); t.className='h-tray';
-        t.textContent = r.tray || '—';
-        if(isProductMgr() && r.tray) t.insertAdjacentHTML('beforeend', favStar(r.tray));
-        const st = r.returned ? 'Returned' : (r.delivered ? 'Delivered' : (d > today ? 'Upcoming' : ''));
-        if(st){ const i=document.createElement('i'); i.textContent=st; t.appendChild(i); }
-        row.querySelector('.h-trays').appendChild(t);
-      });
-      row.onclick = ()=>{ histOpen.has(key) ? histOpen.delete(key) : histOpen.add(key); renderHistory(); };
-      sec.appendChild(row);
-      if(histOpen.has(key)){
-        const det = document.createElement('div'); det.className='h-detail cards';
-        trays.forEach(r=>det.appendChild(buildCard(r, {live})));
-        sec.appendChild(det);
-      }
-    });
-    wrap.appendChild(sec);
-  });
+  const isos = [...new Set(rows.map(r=>r.dateNeeded))].sort((a,b)=>b.localeCompare(a));
+  const shown = isos.slice(0, histDaysShown);
+  const keep = new Set(shown);
+  renderDayCases(rows.filter(r=>keep.has(r.dateNeeded)), wrap, shown.map(iso=>new Date(iso+'T00:00:00')), r=>r.dateNeeded, 'h', 'hist');
+  if(isos.length > shown.length){
+    const more = document.createElement('button'); more.type='button'; more.className='hist-more';
+    more.textContent = `Show older (${isos.length - shown.length} more day${isos.length-shown.length===1?'':'s'})`;
+    more.onclick = ()=>{ histDaysShown += 21; renderHistory(); };
+    wrap.appendChild(more);
+  }
 }
 function todayIso(){ return isoDate(new Date()); }
 /* Returns: dropdown case rows, split into "Waiting to come back" and "Returned". */
@@ -2917,8 +2894,8 @@ $('#status-tabs').addEventListener('click',(e)=>{
 });
 $('#search').addEventListener('input', renderRequests);
 $('#req-territory').addEventListener('change', renderRequests);
-$('#hist-territory').addEventListener('change', renderHistory);
-$('#hist-search').addEventListener('input', renderHistory);
+$('#hist-territory').addEventListener('change', ()=>{ histDaysShown=21; renderHistory(); });
+$('#hist-search').addEventListener('input', ()=>{ histDaysShown=21; renderHistory(); });
 $('#returns-territory').addEventListener('change', renderReturns);
 
 /* ---- boards ---- */
@@ -2986,7 +2963,7 @@ function buildDayCaseRow(c, iso, prefix, mode){
     <span class="x-status">${stagePill(c.trays)}</span>
   </div>`;
   const row = el.querySelector('.xrow');
-  const toggle = ()=>{ open ? boardExpanded.delete(key) : boardExpanded.add(key); ({sst:renderSst, fav:renderMyTrays}[mode] || renderBoard)(); };
+  const toggle = ()=>{ open ? boardExpanded.delete(key) : boardExpanded.add(key); ({sst:renderSst, fav:renderMyTrays, hist:renderHistory}[mode] || renderBoard)(); };
   row.addEventListener('click', toggle);
   row.addEventListener('keydown', e=>{ if(e.key==='Enter' || e.key===' '){ e.preventDefault(); toggle(); } });
   if(open){

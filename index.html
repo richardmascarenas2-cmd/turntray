@@ -524,6 +524,13 @@ textarea{resize:vertical; min-height:64px;}
 .case.st-done > .case-row:hover, .case.st-done > .xrow:hover{background:color-mix(in srgb, var(--good) 20%, var(--panel));}
 .case.st-prog .case-trays{background:#fffbea;}
 .case.st-done .case-trays{background:color-mix(in srgb, var(--good) 6%, var(--panel));}
+/* Overdue (not pulled by 12 PM on the delivery day): red, over any progress color. */
+.case.st-late > .case-row, .case.st-late > .xrow{background:color-mix(in srgb, var(--danger) 12%, var(--panel)); box-shadow:inset 4px 0 0 var(--danger);}
+.case.st-late > .case-row:hover, .case.st-late > .xrow:hover{background:color-mix(in srgb, var(--danger) 18%, var(--panel));}
+.case.st-late .case-trays{background:color-mix(in srgb, var(--danger) 5%, var(--panel));}
+.case.st-late .c-pull{color:var(--danger);}
+.tline.late{border-color:var(--danger); background:color-mix(in srgb, var(--danger) 9%, var(--panel));}
+.pill.od{background:var(--danger); color:#fff;}
 .xrow .x-status{justify-self:end;}
 .xrow .c-meta-m{display:none;}
 .day-sec{margin-bottom:18px;}
@@ -2467,7 +2474,8 @@ function buildCaseRow(c){
   if(c.trays.some(changedAfterPull)) tags.push('<span class="tag baby">Changed after pull</span>');
   if(c.trays.some(t=>t.sst)) tags.push('<span class="tag outline">SST</span>');
   const pct = total ? Math.round(done/total*100) : 0;
-  const el = document.createElement('div'); el.className = 'case' + (expandedCases.has(c.key) ? ' expanded' : '') + caseStage(c.trays);
+  const late = open.length>0 && bucket==='overdue';
+  const el = document.createElement('div'); el.className = 'case' + (expandedCases.has(c.key) ? ' expanded' : '') + caseStage(c.trays) + (late ? ' st-late' : '');
   const pullTxt = c.pullBy===todayIso() ? 'Today' : fmtDate(c.pullBy);
   const sendTxt = c.sendBy===todayIso() ? 'Today' : fmtDate(c.sendBy);
   el.innerHTML = `<div class="case-row" role="button" tabindex="0" aria-expanded="${expandedCases.has(c.key)}">
@@ -2497,7 +2505,7 @@ function buildCaseRow(c){
     const meta = document.createElement('div'); meta.className='case-note';
     meta.textContent = [c.territory, c.procedure, c.type, c.customRequired ? `Needed at the account ${fmtDate(c.sendBy)}` : '', who.length ? 'Requested by '+who.join(', ') : ''].filter(Boolean).join(' · ');
     box.appendChild(meta);
-    c.trays.forEach(r=>box.appendChild(buildTrayLine(r)));
+    c.trays.forEach(r=>{ const ln = buildTrayLine(r); if(late && (r.status||'open')==='open') ln.classList.add('late'); box.appendChild(ln); });
     el.appendChild(box);
   }
   return el;

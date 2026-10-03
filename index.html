@@ -2360,8 +2360,9 @@ function renderChart(){
   for(const r of allDocs){
     if((r.status||'open')!=='open') continue;
     const pb = pullByFor(r);
-    if(pb < days[0]){ counts[days[0]]++; overdue++; }
+    if(pb < days[0]) counts[days[0]]++;
     else if(pb in counts) counts[pb]++;
+    if(isOverdueSend(sendByFor(r))) overdue++;
   }
   const vals = days.map(x=>counts[x]);
   const max = Math.max(1, ...vals);
@@ -2383,10 +2384,24 @@ function renderChart(){
 /* ---- the queue ---- */
 let currentBucket = 'today';
 const expandedCases = new Set();
+/* Overdue = the tray is due at the account today (or earlier) and still hasn't been pulled by 12 PM that day. */
+const OVERDUE_HOUR = 12;
+function isOverdueSend(sendBy){
+  const today = todayIso();
+  return sendBy < today || (sendBy === today && new Date().getHours() >= OVERDUE_HOUR);
+}
+/* Re-sort the queue right at 12 PM so trays flip to Overdue without a reload. */
+(function refreshAtCutoff(){
+  const now = new Date(), at = new Date(now);
+  at.setHours(OVERDUE_HOUR, 0, 5, 0);
+  if(at <= now) at.setDate(at.getDate()+1);
+  setTimeout(()=>{ try{ renderAll(); }catch(e){} refreshAtCutoff(); }, at - now);
+})();
+document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='visible'){ try{ renderAll(); }catch(e){} } });
 function bucketFor(c){
   const today = todayIso();
-  if(c.pullBy < today) return 'overdue';
-  if(c.pullBy === today) return 'today';
+  if(isOverdueSend(c.sendBy)) return 'overdue';
+  if(c.pullBy <= today) return 'today';
   if(c.pullBy === nextBizDay(today)) return 'tomorrow';
   return 'upcoming';
 }

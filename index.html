@@ -323,7 +323,6 @@ textarea{resize:vertical; min-height:64px;}
 .ret-head small{color:var(--sub); font-size:.78rem; overflow-wrap:anywhere;}
 .ret-head .badge{text-transform:none; flex:none;}
 /* History: one line per account visit, date on the left and the trays that went. Tap to see full details. */
-.hist-more{display:block; width:100%; margin:4px 0 16px; padding:12px; background:var(--panel); border:1px solid var(--line); color:var(--open); font-weight:600;}
 .h-acct{margin-bottom:16px; border:1px solid var(--line); border-radius:12px; overflow:hidden; background:var(--panel);}
 .h-acct-head{display:flex; align-items:baseline; gap:8px; padding:10px 12px; background:var(--panel-2); border-bottom:1px solid var(--line);}
 .h-acct-head b{font-size:.98rem;}
@@ -335,7 +334,9 @@ textarea{resize:vertical; min-height:64px;}
 .h-trays{flex:1; min-width:0; display:flex; flex-direction:column; gap:2px;}
 .h-tray{display:flex; align-items:center; gap:6px; font-size:.88rem; font-weight:600; overflow-wrap:anywhere;}
 .h-tray i{font-style:normal; font-weight:500; font-size:.7rem; color:var(--sub); border:1px solid var(--line); border-radius:999px; padding:0 7px; white-space:nowrap;}
-.h-detail{padding:0 12px 12px;}
+.h-detail{padding:0 12px 12px; display:grid; gap:10px;}
+.h-case{border:1px solid var(--line); border-radius:10px; overflow:hidden;}
+.h-case > .xrow{cursor:default;}
 
 /* ---------- delivery photos ---------- */
 .chip svg{width:14px; height:14px;}
@@ -1033,6 +1034,7 @@ textarea{resize:vertical; min-height:64px;}
             <li>Take a photo and say whether anything is <b>missing</b>. The delivery photos show above so you can compare.</li>
             <li>If nothing's missing, the case leaves the page and the return photos are deleted to save space. If something's missing, it stays, and the photos are kept until it's found.</li>
           </ol>
+          <p>Photos are deleted automatically after 2 weeks (except trays still missing items).</p>
           <p>Keep patient labels and patient information out of photos.</p>
         </div>
       </details>
@@ -1449,7 +1451,7 @@ function startListeners(){
   }, onListenError));
   unsubs.push(db.collection('requests').onSnapshot({includeMetadataChanges:true}, snap=>{
     allDocs = snap.docs.map(d=>({id:d.id, ...d.data()}));
-    reqLoaded = true; convertCountsOnce();
+    reqLoaded = true; convertCountsOnce(); sweepOldPhotos();
     refreshSurgeonList();
     $('#offline-bar').hidden = !snap.metadata.fromCache || navigator.onLine;
     renderAll();
@@ -2703,14 +2705,13 @@ $('#bulk-delete').addEventListener('click', async ()=>{
   renderRequests();
 });
 const histOpen = new Set();
-/* Territory History: same look as the Schedule — one section per surgery day (newest first), cases grouped like the Schedule. */
-let histDaysShown = 21;
 function renderHistory(){
   const terr = $('#hist-territory').value;
   const q = $('#hist-search').value.trim().toLowerCase();
+  const today = todayIso();
   // Only trays that actually went (or are going) out; cancelled requests are left off.
   const rows = allDocs.filter(r=>{
-    if((r.status||'open')==='cancelled' || !r.dateNeeded) return false;
+    if((r.status||'open')==='cancelled') return false;
     if(terr!=='All' && canonTerr(r.territory)!==terr) return false;
     if(!q) return true;
     const acct = (accMap.get((r.account||'').trim().toUpperCase())||{}).name || '';
@@ -2718,16 +2719,67 @@ function renderHistory(){
   });
   const wrap = $('#hist-list'); wrap.innerHTML = '';
   $('#hist-empty').hidden = rows.length>0;
-  const isos = [...new Set(rows.map(r=>r.dateNeeded))].sort((a,b)=>b.localeCompare(a));
-  const shown = isos.slice(0, histDaysShown);
-  const keep = new Set(shown);
-  renderDayCases(rows.filter(r=>keep.has(r.dateNeeded)), wrap, shown.map(iso=>new Date(iso+'T00:00:00')), r=>r.dateNeeded, 'h', 'hist');
-  if(isos.length > shown.length){
-    const more = document.createElement('button'); more.type='button'; more.className='hist-more';
-    more.textContent = `Show older (${isos.length - shown.length} more day${isos.length-shown.length===1?'':'s'})`;
-    more.onclick = ()=>{ histDaysShown += 21; renderHistory(); };
-    wrap.appendChild(more);
-  }
+  const byAcct = new Map();
+  for(const r of rows){ const k=(r.account||'—').trim().toUpperCase(); if(!byAcct.has(k)) byAcct.set(k, []); byAcct.get(k).push(r); }
+  [...byAcct.keys()].sort().forEach(acct=>{
+    const list = byAcct.get(acct);
+    const sec = document.createElement('section'); sec.className='h-acct';
+    const name = (accMap.get(acct)||{}).name || '';
+    sec.innerHTML = `<div class="h-acct-head"><b>${escapeHtml(acct)}</b><span>${escapeHtml(name)}</span><small>${list.length} tray${list.length===1?'':'s'}</small></div>`;
+    // One row per date at this account, newest first.
+    const byDate = new Map();
+    list.forEach(r=>{ const d=r.dateNeeded||''; if(!byDate.has(d)) byDate.set(d, []); byDate.get(d).push(r); });
+    [...byDate.keys()].sort((a,b)=>b.localeCompare(a)).forEach(d=>{
+      const trays = byDate.get(d);
+      const key = acct+'|'+d;
+      const row = document.createElement('button'); row.type='button'; row.className='h-row';
+      row.setAttribute('aria-expanded', histOpen.has(key));
+      row.innerHTML = `<span class="h-date">${escapeHtml(fmtDate(d)||'No date')}</span><span class="h-trays"></span>`;
+      trays.forEach(r=>{
+        const t = document.createElement('span'); t.className='h-tray';
+        t.textContent = r.tray || '—';
+        if(isProductMgr() && r.tray) t.insertAdjacentHTML('beforeend', favStar(r.tray));
+        const st = r.returned ? 'Returned' : (r.delivered ? 'Delivered' : (d > today ? 'Upcoming' : ''));
+        if(st){ const i=document.createElement('i'); i.textContent=st; t.appendChild(i); }
+        row.querySelector('.h-trays').appendChild(t);
+      });
+      row.onclick = ()=>{ histOpen.has(key) ? histOpen.delete(key) : histOpen.add(key); renderHistory(); };
+      sec.appendChild(row);
+      if(histOpen.has(key)){
+        const det = document.createElement('div'); det.className='h-detail';
+        const cs = groupCases(trays); numberCases(cs);
+        cs.forEach(c=>det.appendChild(buildHistCase(c)));
+        sec.appendChild(det);
+      }
+    });
+    wrap.appendChild(sec);
+  });
+}
+/* Opened History row: each case laid out like an opened case on the Schedule. */
+function buildHistCase(c){
+  const el = document.createElement('div'); el.className = 'h-case case expanded' + caseStage(c.trays);
+  const total = c.trays.length, delivered = c.trays.filter(r=>r.delivered).length;
+  const head = document.createElement('div'); head.className='xrow';
+  head.innerHTML = `<span class="c-name"><span>${escapeHtml(caseTitle(c))}</span>${caseNoTag(c)}</span>
+    <span class="x-c1 c-sub">${escapeHtml(c.territory||'—')}</span>
+    <span class="x-c2">${escapeHtml(c.procedure || c.type)}</span>
+    <span class="x-n c-strong">${total}</span>
+    <span class="c-meta-m">${escapeHtml([c.territory, c.procedure || c.type, `${total} tray${total===1?'':'s'}`].filter(Boolean).join(' · '))}</span>
+    <span class="prog"><span class="prog-bar"><i style="width:${Math.round(delivered/total*100)}%"></i></span><span>${delivered}/${total} delivered</span></span>
+    <span class="x-status">${stagePill(c.trays)}</span>`;
+  el.appendChild(head);
+  const box = document.createElement('div'); box.className='case-trays';
+  const who = [...new Set(c.trays.map(nameForRequest).filter(Boolean))];
+  const note = document.createElement('div'); note.className='case-note';
+  note.textContent = [`Surgery ${fmtDate(c.date)}`, `Send by ${fmtDate(c.sendBy)}`, who.length ? 'Requested by '+who.join(', ') : ''].filter(Boolean).join(' · ');
+  box.appendChild(note);
+  c.trays.forEach(r=>{
+    const w=document.createElement('div'); w.className='tline'; w.appendChild(buildTrayRow(r));
+    if(r.photosExpired && !(r.photoCount||0) && !(r.returnPhotoCount||0)){ const d=document.createElement('div'); d.className='case-note'; d.textContent='Photos removed after 2 weeks.'; w.appendChild(d); }
+    box.appendChild(w);
+  });
+  el.appendChild(box);
+  return el;
 }
 function todayIso(){ return isoDate(new Date()); }
 /* Returns: dropdown case rows, split into "Waiting to come back" and "Returned". */
@@ -2894,8 +2946,8 @@ $('#status-tabs').addEventListener('click',(e)=>{
 });
 $('#search').addEventListener('input', renderRequests);
 $('#req-territory').addEventListener('change', renderRequests);
-$('#hist-territory').addEventListener('change', ()=>{ histDaysShown=21; renderHistory(); });
-$('#hist-search').addEventListener('input', ()=>{ histDaysShown=21; renderHistory(); });
+$('#hist-territory').addEventListener('change', renderHistory);
+$('#hist-search').addEventListener('input', renderHistory);
 $('#returns-territory').addEventListener('change', renderReturns);
 
 /* ---- boards ---- */
@@ -2963,7 +3015,7 @@ function buildDayCaseRow(c, iso, prefix, mode){
     <span class="x-status">${stagePill(c.trays)}</span>
   </div>`;
   const row = el.querySelector('.xrow');
-  const toggle = ()=>{ open ? boardExpanded.delete(key) : boardExpanded.add(key); ({sst:renderSst, fav:renderMyTrays, hist:renderHistory}[mode] || renderBoard)(); };
+  const toggle = ()=>{ open ? boardExpanded.delete(key) : boardExpanded.add(key); ({sst:renderSst, fav:renderMyTrays}[mode] || renderBoard)(); };
   row.addEventListener('click', toggle);
   row.addEventListener('keydown', e=>{ if(e.key==='Enter' || e.key===' '){ e.preventDefault(); toggle(); } });
   if(open){
@@ -3280,6 +3332,33 @@ $('#ps-undo-return').addEventListener('click', ()=>{
   toast('Return undone.');
 });
 /* A tray returned with missing items stays "open" until someone taps Missing items found. */
+/* Delivery and return photos are kept 2 weeks, then deleted to save space.
+   Trays still missing items keep their photos until the items are found.
+   Runs once per app load, on an admin's device (admins can delete any photo). */
+const PHOTO_KEEP_DAYS = 14;
+let photoSweepDone = false;
+async function sweepOldPhotos(){
+  if(photoSweepDone || !me || !me.isAdmin || !db) return;
+  photoSweepDone = true;
+  const cutoff = Date.now() - PHOTO_KEEP_DAYS*864e5;
+  const recentIso = isoDate(new Date(Date.now() - 7*864e5));
+  const cand = allDocs.filter(r=>((r.photoCount||0) + (r.returnPhotoCount||0)) > 0 && (r.dateNeeded||'') && r.dateNeeded <= recentIso && !missingOpen(r));
+  for(const r of cand){
+    try{
+      const snap = await db.collection('requests/'+r.id+'/photos').get();
+      const old = snap.docs.filter(d=>(d.data().at||0) && d.data().at < cutoff);
+      if(!old.length) continue;
+      const b = db.batch(); let del=0, delRet=0;
+      old.forEach(d=>{ b.delete(d.ref); (d.data().kind==='return') ? delRet++ : del++; });
+      b.update(db.doc('requests/'+r.id), {
+        photoCount: Math.max(0, (r.photoCount||0) - del),
+        returnPhotoCount: Math.max(0, (r.returnPhotoCount||0) - delRet),
+        photosExpired: true
+      });
+      await b.commit();
+    }catch(e){ console.warn('photo cleanup', r.id, e); }
+  }
+}
 function missingOpen(r){ return !!(r && r.returned && r.returnMissing && !r.missingResolved); }
 async function returnPhotoDocs(reqId){
   const snap = await db.collection('requests/'+reqId+'/photos').get();

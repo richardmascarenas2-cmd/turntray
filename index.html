@@ -3833,5 +3833,9 @@ function celebrate(){
 if(window.firebase) boot();
 else $('#loading-msg').textContent = 'Could not load. Check your connection and reload.';
 </script>
+<script>
+/* Save a copy of the app on this device so it still opens on Wi-Fi networks that block turntray.com. */
+if('serviceWorker' in navigator && location.protocol==='https:') window.addEventListener('load', ()=>{ navigator.serviceWorker.register('sw.js').catch(()=>{}); });
+</script>
 </body>
 </html>

@@ -470,6 +470,11 @@ textarea{resize:vertical; min-height:64px;}
 .tl-actions{display:flex; gap:4px; flex-wrap:wrap;}
 .tl-actions button{background:var(--panel); border:1px solid var(--line); padding:5px 10px; min-height:34px; font-size:.76rem; display:inline-flex; align-items:center; gap:4px;}
 .tl-actions button svg{width:14px; height:14px;}
+.tl-actions button.to, .chip.to-chip{border-color:var(--open); color:var(--open); font-weight:700; background:var(--panel);}
+.tag.turn{background:color-mix(in srgb, var(--open) 14%, var(--panel)); color:var(--open);}
+.turn-note{color:var(--open);}
+.ps-turn{margin-top:12px;}
+#ps-turn-used button.active[data-v=yes]{background:var(--ink); color:#fff;}
 .tl-actions button.c{color:var(--danger);}
 .tl-actions button.has{color:var(--good); border-color:var(--good);}
 .tl-actions button.ret-go{background:var(--accent); color:#fff; border-color:var(--accent);}
@@ -1028,6 +1033,7 @@ textarea{resize:vertical; min-height:64px;}
         <summary><span>Schedule, delivery and returns<small>Delivery photos, return photos, missing items</small></span></summary>
         <div class="h-body">
           <p><b>Schedule</b> shows every case by surgery date (reps see their own territory first). Tap a case to add <b>delivery photos</b> and mark trays <b>Delivered</b>.</p>
+          <p><b>Turn over:</b> if a tray is already at an account for a case, a request for the same tray at the same account up to a week later shows <b>Turn over</b> (in the pull queue and on the Schedule). That keeps the set there instead of pulling another. When delivering it, say whether it was used: if yes, take a new photo of it set up again; if not, the original delivery photo is kept. The earlier case's tray isn't expected back on Returns; it comes back after the later case.</p>
           <p><b>Returns</b> lists cases once surgery day arrives; trays are due back 1 business day after.</p>
           <ol>
             <li>Tap the case, then <b>Return a tray</b>.</li>
@@ -1175,6 +1181,15 @@ textarea{resize:vertical; min-height:64px;}
     <button type="button" class="btn-primary ps-add" id="ps-add"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13.5" r="3.5"/></svg>Add photo</button>
     <input type="file" id="ps-file" accept="image/*" multiple hidden>
     <div class="status-msg" id="ps-msg"></div>
+    <div class="ps-turn" id="ps-turn" hidden>
+      <div class="urgent-note" id="ps-turn-text"></div>
+      <label style="margin-top:8px;">Was the tray used in that case?</label>
+      <div class="seg" id="ps-turn-used" style="max-width:none;">
+        <button type="button" data-v="no">No, keep the original photo</button>
+        <button type="button" data-v="yes">Yes, take a new photo</button>
+      </div>
+      <p class="hint" id="ps-turn-hint" style="margin:8px 0 0;"></p>
+    </div>
     <div class="ps-deliver" id="ps-deliver-row">
       <label class="chip" id="ps-deliver-label"><input type="checkbox" id="ps-delivered"> <span id="ps-deliver-text">Delivered</span></label>
       <span class="hint" id="ps-deliver-hint"></span>
@@ -1974,12 +1989,87 @@ async function fulfillRequest(r){
   updateFields(r.id, {status:'fulfilled', outgoing:true, fulfilledAt: Date.now(), fulfilledById: me.uid, fulfilledByName: me.name});
 }
 async function cancelRequest(r){
-  const wasPulled = r.status==='fulfilled';
+  const wasPulled = r.status==='fulfilled' && !r.turnoverFrom;
+  const b = db.batch();
   // A tray that was already pulled has to go back on the shelf; the pull queue reminds the manager.
-  updateFields(r.id, {status:'cancelled', outgoing:false, ...(wasPulled ? {putBack:true} : {})});
+  // A turned-over tray was never pulled: the earlier case's set just comes back as usual.
+  b.update(db.doc('requests/'+r.id), {status:'cancelled', outgoing:false, ...(wasPulled ? {putBack:true} : {}), ...(r.turnoverFrom ? {turnoverFrom:''} : {})});
+  if(r.turnoverFrom && docById(r.turnoverFrom)) b.update(db.doc('requests/'+r.turnoverFrom), {turnedOverTo:''});
+  // If this set was staying for a later case, that case needs its own tray pulled again.
+  const next = r.turnedOverTo && docById(r.turnedOverTo);
+  if(next && !next.delivered) b.update(db.doc('requests/'+next.id), {status:'open', outgoing:false, turnoverFrom:''});
+  b.commit().catch(err=>{ console.error(err); toast('That change didn’t save. Try again.'); });
+  if(next && !next.delivered) toast(`${next.tray} for ${fmtDate(next.dateNeeded)} is back in the pull queue, since this set won't be there.`);
 }
 async function reopenRequest(r){
+  if(r.turnoverFrom && r.status==='fulfilled'){ undoTurnOver(r); return; }
   updateFields(r.id, {status:'open', outgoing:false, putBack:false});
+}
+
+/* ---- Turn over ----
+   When a tray is already going to an account for an earlier case, a request for the same tray at the same
+   account up to a week later can keep that set there instead of pulling another one.
+   The later request is marked pulled (turnoverFrom = earlier request); the earlier one stays at the account
+   (turnedOverTo = later request), so it isn't expected back on Returns. */
+const TURNOVER_DAYS = 7;
+function docById(id){ return id ? allDocs.find(x=>x.id===id) : null; }
+function addDaysIso(iso, n){ const d=new Date(iso+'T00:00:00'); d.setDate(d.getDate()+n); return isoDate(d); }
+function acctKey(a){ return String(a||'').trim().toUpperCase(); }
+function turnoverSourceFor(r){
+  if(!r || (r.status||'open')!=='open' || r.turnoverFrom || !r.tray || !r.dateNeeded) return null;
+  const k = trayKey(r.tray), a = acctKey(r.account), min = addDaysIso(r.dateNeeded, -TURNOVER_DAYS);
+  let best = null;
+  for(const p of allDocs){
+    if(p.id===r.id || p.status==='cancelled' || p.returned || p.turnedOverTo || !p.dateNeeded) continue;
+    if(trayKey(p.tray)!==k || acctKey(p.account)!==a) continue;
+    if(p.dateNeeded >= r.dateNeeded || p.dateNeeded < min) continue;
+    if(!best || p.dateNeeded > best.dateNeeded) best = p;
+  }
+  return best;
+}
+function caseShort(p){ return `${fmtDate(p.dateNeeded)}${p.surgeon ? ' · '+p.surgeon : ''}`; }
+async function turnOver(r){
+  const p = turnoverSourceFor(r);
+  if(!p){ toast('There’s no earlier case at this account to turn this tray over from.'); return; }
+  const now = Date.now(), b = db.batch();
+  b.update(db.doc('requests/'+r.id), {status:'fulfilled', outgoing:false, turnoverFrom:p.id, turnoverAt:now, turnoverById:me.uid, turnoverByName:me.name,
+    fulfilledAt:now, fulfilledById:me.uid, fulfilledByName:me.name});
+  b.update(db.doc('requests/'+p.id), {turnedOverTo:r.id});
+  try{ await b.commit(); toast(`Turned over: ${r.tray} stays at ${r.account} after the ${fmtDate(p.dateNeeded)} case.`); }
+  catch(err){ console.error(err); toast('That change didn’t save. Try again.'); }
+}
+async function undoTurnOver(r){
+  if(r.delivered){ toast('This tray is already marked delivered.'); return; }
+  const b = db.batch();
+  b.update(db.doc('requests/'+r.id), {status:'open', outgoing:false, turnoverFrom:'', turnoverUsed:firebase.firestore.FieldValue.delete()});
+  if(docById(r.turnoverFrom)) b.update(db.doc('requests/'+r.turnoverFrom), {turnedOverTo:''});
+  try{ await b.commit(); toast(`${r.tray} is back in the pull queue.`); }
+  catch(err){ console.error(err); toast('That change didn’t save. Try again.'); }
+}
+function turnoverTags(r){
+  const t = [];
+  const from = docById(r.turnoverFrom), to = docById(r.turnedOverTo);
+  if(r.turnoverFrom) t.push(`<span class="tag turn">Turned over${from ? ' from '+escapeHtml(fmtDate(from.dateNeeded)) : ''}</span>`);
+  if(r.turnedOverTo) t.push(`<span class="tag turn">Stays for ${to ? escapeHtml(fmtDate(to.dateNeeded)) : 'next case'}</span>`);
+  return t.join('');
+}
+/* Delivering a turned-over tray: if it was used in the earlier case, a new photo of it set up again;
+   if not, the earlier case's delivery photo is reused. */
+async function deliverTurnoverUnused(r){
+  const src = await db.collection('requests/'+r.turnoverFrom+'/photos').get();
+  const photos = src.docs.map(d=>d.data()).filter(ph=>(ph.kind||'delivery')==='delivery' && ph.data);
+  if(!photos.length){
+    await db.doc('requests/'+r.id).update({turnoverUsed:false});
+    toast('The earlier case has no delivery photo left. Add a photo, then mark it delivered.');
+    return false;
+  }
+  const b = db.batch();
+  photos.forEach(ph=>b.set(db.collection('requests/'+r.id+'/photos').doc(),
+    {data:ph.data, w:ph.w||0, h:ph.h||0, kind:'delivery', authorId:me.uid, authorName:me.name, at:ph.at||Date.now(), copiedFrom:r.turnoverFrom}));
+  b.update(db.doc('requests/'+r.id), {photoCount:(r.photoCount||0)+photos.length, turnoverUsed:false, delivered:true});
+  await b.commit();
+  toast(`Marked delivered with the original delivery photo${photos.length===1?'':'s'}.`);
+  return true;
 }
 async function toggleReturned(r){
   const returned = !!r.returned;
@@ -2214,6 +2304,7 @@ function computeLoaners(){
   const byTray = new Map();
   for(const r of allDocs.concat(loanerProbe ? [loanerProbe] : [])){
     if(r.status==='cancelled' || !r.tray || r.returned) continue;
+    if(r.turnedOverTo) continue;                              // the same set carries on to the later case
     if((r.status||'open')==='open' && r.loanerStatus==='ordered') continue;   // a loaner from Arthrex covers it
     const w = trayWindow(r); if(!w) continue;                 // surgery is over
     const k = (getTrayKey(r.tray)||r.tray).toUpperCase();
@@ -2476,6 +2567,7 @@ function buildCaseRow(c){
   if(c.trays.some(isLate)) tags.push('<span class="tag baby">Late request</span>');
   if(c.trays.some(changedAfterPull)) tags.push('<span class="tag baby">Changed after pull</span>');
   if(c.trays.some(t=>t.sst)) tags.push('<span class="tag outline">SST</span>');
+  if(open.some(t=>turnoverSourceFor(t))) tags.push('<span class="tag turn">Can turn over</span>');
   const pct = total ? Math.round(done/total*100) : 0;
   const late = open.length>0 && bucket==='overdue';
   const el = document.createElement('div'); el.className = 'case' + (expandedCases.has(c.key) ? ' expanded' : '') + caseStage(c.trays) + (late ? ' st-late' : '');
@@ -2524,11 +2616,16 @@ function buildTrayLine(r){
   if(isLate(r)) tags.push('<span class="tag baby">Late</span>');
   if(changedAfterPull(r)) tags.push('<span class="tag baby">Changed</span>');
   if(r.sst) tags.push(`<span class="tag outline">SST${r.sstStart?' '+escapeHtml(r.sstStart):''}</span>`);
+  tags.push(turnoverTags(r));
+  const tsrc = turnoverSourceFor(r);
+  const tnote = tsrc ? `Can turn over: already going to ${r.account} for the ${caseShort(tsrc)} case.`
+    : (r.turnoverFrom && docById(r.turnoverFrom) ? `Turned over from the ${caseShort(docById(r.turnoverFrom))} case. Nothing to pull.` : '');
   el.innerHTML = `${status!=='cancelled' ? `<input type="checkbox" ${status==='fulfilled'?'checked':''} aria-label="Pulled">` : ''}
     <span class="tl-name"><span>${escapeHtml(r.tray||'')}</span>${favStar(r.tray)}${tags.join('')}</span>
     <span class="tl-actions"></span>
     ${urgentNote(r) ? `<div class="urgent-note">${escapeHtml(urgentNote(r))}</div>` : ''}
     ${r.notes ? `<div class="tl-note">${escapeHtml(r.notes)}</div>` : ''}
+    ${tnote ? `<div class="tl-note turn-note">${escapeHtml(tnote)}</div>` : ''}
     <div class="comments-box" hidden></div>`;
   const cb = el.querySelector('input[type=checkbox]');
   if(cb) cb.addEventListener('change', ()=>{ cb.checked ? fulfillRequest(r) : reopenRequest(r); });
@@ -2538,6 +2635,8 @@ function buildTrayLine(r){
 function addTrayActions(box, r, container){
   const status = r.status || 'open';
   const add = (label, cls, fn)=>{ const b=document.createElement('button'); b.type='button'; b.textContent=label; if(cls) b.className=cls; b.onclick=fn; box.appendChild(b); return b; };
+  if(status==='open' && turnoverSourceFor(r)) add('Turn over','to',()=>turnOver(r));
+  if(r.turnoverFrom && status==='fulfilled' && !r.delivered) add('Undo turn over','',()=>undoTurnOver(r));
   if(status!=='cancelled'){ add('Edit','',()=>openEdit(r)); add('Cancel','c',()=>cancelRequest(r)); }
   else {
     add('Reopen','',()=>reopenRequest(r));
@@ -2787,7 +2886,8 @@ const returnsExpanded = new Set();
 function renderReturns(){
   const terr = $('#returns-territory').value;
   const today = todayIso();
-  const rows = allDocs.filter(r=> r.dateNeeded && r.dateNeeded <= today && r.status!=='cancelled' && (terr==='All' || canonTerr(r.territory)===terr));
+  // Trays turned over to a later case stay at the account; they come back after that case instead.
+  const rows = allDocs.filter(r=> r.dateNeeded && r.dateNeeded <= today && r.status!=='cancelled' && !r.turnedOverTo && (terr==='All' || canonTerr(r.territory)===terr));
   const cases = groupCases(rows, true);
   cases.forEach(c=>{ c.dueBack = returnDateFor(c.trays[0]); c.out = c.trays.filter(t=>!t.returned).length; });
   const waiting = cases.filter(c=>c.out).sort((a,b)=>a.dueBack.localeCompare(b.dueBack) || a.account.localeCompare(b.account));
@@ -2961,15 +3061,19 @@ function buildTrayRow(r){
   row.innerHTML = `
     <span class="tray-name">${escapeHtml(r.tray||'')}${favStar(r.tray)}</span>
     <span class="badge type" style="background:var(${TYPE_VAR[type]||'--line'})">${escapeHtml(type)}</span>
-    ${loanerTag(r)}${urgentTag(r)}
+    ${loanerTag(r)}${urgentTag(r)}${turnoverTags(r)}
     ${meta}
-    <label class="chip"><input type="checkbox" data-f="outgoing" ${r.outgoing?'checked':''}> Outgoing</label>
+    ${(r.status||'open')==='open' && turnoverSourceFor(r) ? '<button type="button" class="chip to-chip" data-act="turnover">Turn over</button>' : ''}
+    ${r.turnoverFrom && r.status==='fulfilled' && !r.delivered ? '<button type="button" class="chip" data-act="unturn">Undo turn over</button>' : ''}
+    ${r.turnoverFrom ? '' : `<label class="chip"><input type="checkbox" data-f="outgoing" ${r.outgoing?'checked':''}> Outgoing</label>`}
     <button type="button" class="chip photo-chip ${(r.photoCount||0)?'has':''}" aria-label="Delivery photos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13.5" r="3.5"/></svg>${r.photoCount||0}</button>
     <label class="chip ${needsPhoto(r)?'locked':''}"><input type="checkbox" data-f="delivered" ${r.delivered?'checked':''}> Delivered</label>`;
   row.querySelectorAll('input').forEach(inp=>{
     inp.addEventListener('change', ()=> updateFields(r.id, {[inp.dataset.f]: inp.checked}));
   });
   row.querySelector('.photo-chip').onclick = ()=>openPhotoSheet(r.id);
+  const tb = row.querySelector('[data-act=turnover]'); if(tb) tb.onclick = ()=>turnOver(r);
+  const ub = row.querySelector('[data-act=unturn]'); if(ub) ub.onclick = ()=>undoTurnOver(r);
   row.querySelector('input[data-f=delivered]').addEventListener('click', e=>{
     if(needsPhoto(r)){ e.preventDefault(); toast('Add a delivery photo first.'); openPhotoSheet(r.id); }
   });
@@ -3002,6 +3106,7 @@ function buildDayCaseRow(c, iso, prefix, mode){
   if(c.trays.some(t=>urgentNeed.has(t.id))) tags.push('<span class="tag urgent">Urgent return</span>');
   { const h = c.trays.find(t=>urgentHold.has(t.id) && !urgentNeed.has(t.id)); if(h) tags.push(urgentTag(h)); }
   if(mode!=='sst' && c.trays.some(t=>t.sst)) tags.push('<span class="tag outline">SST</span>');
+  if(c.trays.some(t=>(t.status||'open')==='open' && turnoverSourceFor(t))) tags.push('<span class="tag turn">Can turn over</span>');
   const start = (c.trays.find(t=>t.sstStart)||{}).sstStart;
   const col2 = mode==='sst' ? `Surgery ${fmtDate(c.date)}${start?' · '+start:''}` : (c.procedure || c.type);
   const el = document.createElement('div'); el.className = 'case' + (open ? ' expanded' : '') + caseStage(c.trays);
@@ -3260,6 +3365,15 @@ function renderPhotoSheet(){
     });
   }
   const count = Math.max(psPhotos.length, r[M.count]||0);
+  // Turned-over tray, not delivered yet: ask whether it was used before asking for a photo.
+  const from = psMode==='delivery' && r.turnoverFrom && !r.delivered ? docById(r.turnoverFrom) : null;
+  $('#ps-turn').hidden = !from;
+  if(from){
+    $('#ps-turn-text').textContent = `Turned over: this set is already at ${r.account} from the ${caseShort(from)} case.`;
+    $('#ps-turn-used').querySelectorAll('button').forEach(b=>b.classList.toggle('active', (b.dataset.v==='yes' && r.turnoverUsed===true)));
+    $('#ps-turn-hint').textContent = r.turnoverUsed===true ? 'Add a photo of the tray set up again, then mark it delivered.'
+      : 'If it wasn’t used, the earlier delivery photo is kept and it’s marked delivered.';
+  }
   $('#ps-deliver-row').hidden = psMode==='return';
   $('#ps-return').hidden = psMode!=='return';
   if(psMode==='return'){ renderReturnForm(r, count); return; }
@@ -3416,6 +3530,16 @@ $('#ps-delivered').addEventListener('change', e=>{
   if(e.target.checked) toast(`Marked ${PH_MODES[psMode].verb}.`);
 });
 $('#ps-add').addEventListener('click', ()=> $('#ps-file').click());
+$('#ps-turn-used').addEventListener('click', async e=>{
+  const b = e.target.closest('button'); if(!b || !psReqId) return;
+  const r = allDocs.find(x=>x.id===psReqId); if(!r || !r.turnoverFrom) return;
+  b.disabled = true;
+  try{
+    if(b.dataset.v==='yes'){ await db.doc('requests/'+r.id).update({turnoverUsed:true}); $('#ps-file').click(); }
+    else { await deliverTurnoverUnused(r); }
+  }catch(err){ console.error(err); toast('That change didn’t save. Try again.'); }
+  b.disabled = false;
+});
 
 /* Shrink a phone photo to about 1280px so it fits in the database (well under 1 MB). */
 function loadImage(file){

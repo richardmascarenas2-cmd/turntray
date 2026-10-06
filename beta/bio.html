@@ -1,0 +1,2311 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b1320">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Biologics">
+<title>Biologics</title>
+<link rel="icon" href="bio-icon-192.png">
+<link rel="apple-touch-icon" href="bio-icon-180.png">
+<link rel="manifest" href="bio.webmanifest">
+<style>
+
+:root{
+  color-scheme:light;
+  --bg:#ffffff; --panel:#ffffff; --panel-2:#f6f8fb; --ink:#0b0d12; --sub:#5b6270;
+  --line:#e3e8ef; --accent:#1a5fd6; --accent-ink:#ffffff;
+  --baby:#dceeff; --baby-ink:#0f3f8c; --baby-soft:#f3f8ff; --baby-strong:#9fcbff;
+  --danger:#b42318; --warn:#a87a06; --open:#1a5fd6; --good:#2f8f4e;
+  --t-surgery:#1a5fd6; --t-demo:#a87a06; --t-lab:#0f3f8c; --loaner:#0b0d12;
+  --radius:12px; --nav-h:62px;
+  --sat:env(safe-area-inset-top,0px); --sab:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box;}
+[hidden]{display:none!important;}
+html,body{margin:0;}
+body{background:var(--bg); color:var(--ink); font:14px/1.4 -apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,Helvetica,Arial,sans-serif; -webkit-tap-highlight-color:transparent; -webkit-text-size-adjust:100%; min-height:100vh;}
+button{font-family:inherit; cursor:pointer; border:none; border-radius:9px; font-size:.85rem; font-weight:600; color:inherit;}
+button:disabled{opacity:.6; cursor:default;}
+button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
+a{color:var(--accent);}
+
+/* ---------- sign-in / gate screens ---------- */
+.gate{min-height:100vh; display:flex; align-items:center; justify-content:center; padding:calc(24px + var(--sat)) 16px calc(24px + var(--sab));}
+.gate-card{width:100%; max-width:380px; background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:24px 20px;}
+.brand{display:flex; align-items:center; gap:12px; margin-bottom:18px;}
+.brand img{width:44px; height:44px; border-radius:10px;}
+.brand b{display:block; font-size:1.1rem;}
+.brand small{display:block; color:var(--sub); font-size:.7rem; font-weight:600; letter-spacing:.08em; text-transform:uppercase;}
+.gate h2{margin:0 0 6px; font-size:1.15rem;}
+.gate p{color:var(--sub); margin:0 0 14px; font-size:.9rem;}
+.gate p strong{color:var(--ink); overflow-wrap:anywhere;}
+.btn-secondary{background:var(--bg); border:1px solid var(--line); padding:12px 14px; width:100%; margin-top:10px; font-size:.92rem;}
+.btn-google{display:flex; align-items:center; justify-content:center; gap:10px;}
+.btn-google svg{width:18px; height:18px;}
+.or{display:flex; align-items:center; gap:10px; color:var(--sub); font-size:.78rem; margin:16px 0 4px;}
+.or::before,.or::after{content:""; flex:1; height:1px; background:var(--line);}
+.linkbtn{background:none; color:var(--accent); padding:6px 0; font-weight:600;}
+.gate-links{display:flex; justify-content:space-between; gap:10px; margin-top:8px; flex-wrap:wrap;}
+
+/* ---------- app bar ---------- */
+.appbar{background:#0b1320; border-bottom:3px solid #4FC3F7; padding:calc(12px + var(--sat)) 16px 12px; display:flex; align-items:center; gap:12px;}
+.appbar-logo{width:36px; height:36px; border-radius:8px; flex:none;}
+.appbar h1{margin:0; color:#fff; font-size:1.05rem; font-weight:800; letter-spacing:.01em; line-height:1.2;}
+.appbar h1 small{display:block; color:#8fa0b2; font-size:.66rem; font-weight:600; letter-spacing:.08em; text-transform:uppercase;}
+.appbar .signedin{margin-left:auto; font-size:.74rem; color:#c7d0da; max-width:48%; text-align:right; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; background:none; font-weight:500; padding:4px 0;}
+
+/* ---------- tabs ---------- */
+nav.tabs{display:flex; gap:4px; padding:10px clamp(16px,3vw,32px) 0; border-bottom:1px solid var(--line); flex-wrap:wrap;}
+nav.tabs button{background:none; display:flex; align-items:center; gap:6px; padding:8px 8px 10px; font-size:.88rem; color:var(--sub); border-radius:0; border-bottom:2px solid transparent;}
+nav.tabs button svg{width:18px; height:18px; flex:none;}
+nav.tabs button.active{color:var(--ink); border-bottom-color:var(--accent);}
+
+main{padding-block:16px 40px; padding-inline:clamp(16px,3vw,32px); max-width:1300px; margin:0 auto;}
+.view{display:none;}
+.view.active{display:block;}
+
+
+.panel{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:16px;}
+.panel h2, .section-head h2{font-size:1rem; margin:0; font-weight:700;}
+.section-head{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:12px;}
+
+/* ---------- form ---------- */
+label{display:block; font-size:.78rem; color:var(--sub); margin:12px 0 5px;}
+input,select,textarea{width:100%; padding:10px 12px; border-radius:9px; border:1px solid var(--line); background:var(--bg); color:var(--ink); font-size:16px; font-family:inherit; min-height:44px;}
+input[type=checkbox]{width:auto; min-height:0; accent-color:var(--accent);}
+input[type=date],input[type=time]{-webkit-appearance:none; appearance:none; min-width:0; display:block;}
+textarea{resize:vertical; min-height:64px;}
+.btn-primary{background:var(--accent); color:var(--accent-ink); padding:13px 14px; width:100%; margin-top:16px; font-size:.95rem;}
+.row2{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+.row2 > div{min-width:0;}
+.avail{font-size:.76rem; color:var(--sub); margin-top:4px;}
+.avail.low{color:var(--danger); font-weight:600;}
+.sst-template{background:var(--bg); border:1px solid var(--line); border-radius:9px; padding:10px 12px; margin:10px 0;}
+.sst-row{display:flex; justify-content:space-between; gap:8px; font-size:.82rem; padding:4px 0; border-bottom:1px dashed var(--line);}
+.sst-row:last-of-type{border-bottom:none;}
+.sst-label{color:var(--sub);}
+.sst-preview{font-weight:600; text-align:right; overflow-wrap:anywhere;}
+.opt{color:var(--sub); font-weight:400;}
+.signedin-box{font-size:.8rem; color:var(--sub); background:var(--bg); border:1px solid var(--line); border-radius:9px; padding:8px 10px;}
+.status-msg{font-size:.82rem; color:var(--sub); min-height:1em; margin-top:8px;}
+.status-msg.err{color:var(--danger);}
+.status-msg.ok{color:var(--good);}
+.sheet-close{display:none; background:var(--bg); border:1px solid var(--line); padding:8px 14px;}
+
+/* ---------- toolbars ---------- */
+.toolbar{display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:12px;}
+.toolbar input[type=search]{flex:1 1 180px;}
+.toolbar select{width:auto; flex:0 1 200px;}
+#req-territory{flex:0 1 220px;}
+.seg{display:flex; background:var(--panel-2); border:1px solid var(--line); border-radius:10px; padding:3px; gap:2px; flex:1 1 auto; max-width:420px;}
+.seg button{flex:1; background:none; color:var(--sub); padding:7px 6px; font-size:.8rem; border-radius:7px; min-height:34px;}
+.seg button.active{background:var(--panel); color:var(--ink); box-shadow:0 1px 2px rgba(0,0,0,.12);}
+.hint{color:var(--sub); font-size:.82rem; margin:0 0 12px;}
+
+/* ---------- request cards ---------- */
+.cards{display:grid; grid-template-columns:repeat(auto-fill,minmax(290px,1fr)); gap:10px;}
+.req{background:var(--panel); border:1px solid var(--line); border-left:4px solid var(--stripe,var(--line)); border-radius:10px; padding:12px; display:grid; gap:7px; min-width:0; align-content:start;}
+.req.returns-pending{--stripe:var(--danger); background:color-mix(in srgb, var(--danger) 7%, var(--panel));}
+.req.returns-done{--stripe:var(--good); background:color-mix(in srgb, var(--good) 7%, var(--panel));}
+.req-top{display:flex; align-items:center; gap:8px; flex-wrap:wrap; font-size:.78rem; color:var(--sub);}
+.req-date{font-weight:700; color:var(--ink); font-variant-numeric:tabular-nums;}
+.req-top .badges{margin-left:auto; display:flex; gap:4px; flex-wrap:wrap;}
+.req-tray{font-size:1rem; font-weight:700; overflow-wrap:anywhere; line-height:1.25;}
+.req-meta{display:flex; flex-wrap:wrap; gap:6px 8px; align-items:center; font-size:.84rem;}
+.req-meta .acct{font-weight:600;}
+.req-meta .dot{color:var(--sub);}
+.req-notes{font-size:.82rem; color:var(--sub); white-space:pre-wrap; overflow-wrap:anywhere;}
+.req-by{font-size:.72rem; color:var(--sub);}
+.badge{padding:3px 8px; border-radius:99px; font-size:.7rem; font-weight:700; display:inline-block; line-height:1.3; text-transform:capitalize;}
+.badge.open{background:color-mix(in srgb, var(--open) 18%, transparent); color:var(--open);}
+.badge.fulfilled{background:color-mix(in srgb, var(--accent) 18%, transparent); color:var(--accent);}
+.badge.cancelled{background:color-mix(in srgb, var(--danger) 18%, transparent); color:var(--danger);}
+.badge.type{color:#fff;}
+.badge.loaner{background:var(--loaner); color:#fff;}
+.badge.returned-yes{background:color-mix(in srgb, var(--good) 20%, transparent); color:var(--good);}
+.badge.returned-no{background:color-mix(in srgb, var(--danger) 20%, transparent); color:var(--danger);}
+.badge.admin{background:color-mix(in srgb, var(--accent) 18%, transparent); color:var(--accent);}
+.actions{display:flex; gap:6px; flex-wrap:wrap; padding-top:4px; border-top:1px solid var(--line);}
+.actions button{min-height:36px; padding:6px 12px; background:var(--bg); border:1px solid var(--line);}
+.actions button.f{color:var(--accent); border-color:var(--accent);}
+.actions button.c{color:var(--danger); border-color:var(--danger);}
+.actions button.ret{color:var(--good); border-color:var(--good);}
+.actions button.locked-btn{border-style:dashed; opacity:.6;}
+.actions .cbtn{margin-left:auto; color:var(--sub);}
+.empty{padding:30px 16px; text-align:center; color:var(--sub); font-size:.9rem; border:1px dashed var(--line); border-radius:10px;}
+
+.comments-box{background:var(--bg); border:1px solid var(--line); border-radius:9px; padding:10px 12px;}
+.comment{font-size:.84rem; padding:6px 0; border-bottom:1px dashed var(--line);}
+.comment:last-child{border-bottom:none;}
+.comment .cname{font-weight:600;}
+.comment .ctime{color:var(--sub); font-size:.7rem; margin-left:6px;}
+.comment .ctext{overflow-wrap:anywhere;}
+.no-comments{color:var(--sub); font-size:.82rem;}
+.comment-add{display:flex; gap:6px; margin-top:8px;}
+.comment-add input{flex:1;}
+.comment-add button{background:var(--accent); color:var(--accent-ink); padding:8px 14px;}
+
+/* ---------- weekly boards ---------- */
+.week-nav{display:flex; align-items:center; gap:8px; margin-bottom:14px; flex-wrap:wrap;}
+.week-nav button{background:var(--panel); border:1px solid var(--line); padding:8px 12px; min-height:40px;}
+.week-nav strong{font-size:.95rem; font-variant-numeric:tabular-nums;}
+.week-nav select{width:auto; margin-left:auto; flex:0 1 200px;}
+.legend{display:flex; gap:12px; flex-wrap:wrap; font-size:.74rem; color:var(--sub); margin:-4px 0 12px;}
+.legend span::before{content:""; display:inline-block; width:10px; height:10px; border-radius:3px; margin-right:5px; vertical-align:-1px; background:var(--c);}
+.board{display:grid; grid-template-columns:repeat(7,minmax(160px,1fr)); gap:8px; overflow-x:auto;}
+.day-col.weekend{background:color-mix(in srgb, var(--panel) 80%, var(--bg));}
+.day-col.weekend h3{color:var(--sub);}
+.day-col{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:8px; min-width:0;}
+.day-col.today{border-color:var(--accent);}
+.day-col h3{margin:0 0 6px; font-size:.8rem; border-bottom:1px solid var(--line); padding-bottom:5px; display:flex; justify-content:space-between; gap:6px;}
+.day-col h3 .count{color:var(--sub); font-weight:500;}
+.terr-group{margin-bottom:8px;}
+.tname{font-size:.62rem; font-weight:700; text-transform:uppercase; color:var(--sub); letter-spacing:.06em; margin-bottom:3px;}
+.card{border:1px solid var(--line); border-left:4px solid transparent; border-radius:8px; padding:6px 8px; margin-bottom:4px; background:var(--bg); font-size:.74rem;}
+.card.board-red{border-left-color:var(--danger); background:color-mix(in srgb, var(--danger) 10%, var(--bg));}
+.card.board-yellow{border-left-color:var(--warn); background:color-mix(in srgb, var(--warn) 12%, var(--bg));}
+.card.board-green{border-left-color:var(--good); background:color-mix(in srgb, var(--good) 10%, var(--bg));}
+.card .title{font-size:.8rem; font-weight:700; margin-bottom:3px;}
+.card .sub-acc{font-weight:600; color:var(--sub);}
+.card .badge{padding:1px 6px; font-size:.6rem;}
+.tray-row{display:flex; align-items:center; flex-wrap:wrap; gap:5px; padding:5px 0; border-top:1px solid var(--line);}
+.tray-row .tray-name{font-weight:600; flex:1 1 100%; overflow-wrap:anywhere;}
+.sst-meta{font-size:.66rem; color:var(--sub);}
+.chip{display:inline-flex; align-items:center; gap:4px; margin:0; font-size:.68rem; color:var(--ink); border:1px solid var(--line); border-radius:99px; padding:3px 8px; background:var(--panel); cursor:pointer;}
+.chip:has(input:checked){border-color:var(--accent); color:var(--accent);}
+.day-empty{color:var(--sub); font-size:.74rem; padding:4px 0;}
+
+/* ---------- inventory ---------- */
+.inv-add{display:grid; grid-template-columns:2fr 1fr auto; gap:8px;}
+.inv-add button{background:var(--accent); color:var(--accent-ink); padding:10px 16px;}
+.inv-list{border:1px solid var(--line); border-radius:10px; overflow:hidden;}
+.inv-row{display:flex; align-items:center; gap:8px; padding:8px 12px; border-bottom:1px solid var(--line); background:var(--panel);}
+.inv-row:last-child{border-bottom:none;}
+.inv-row.zero-row{background:color-mix(in srgb, var(--loaner) 8%, var(--panel));}
+.inv-name{flex:1; min-width:0; font-weight:600; font-size:.86rem; overflow-wrap:anywhere;}
+.inv-name .inv-zero{display:block; color:var(--loaner); font-size:.7rem; font-weight:700;}
+.stepper{display:flex; align-items:center; gap:4px; flex:none;}
+.stepper button{width:40px; height:40px; background:var(--bg); border:1px solid var(--line); font-size:1.1rem; line-height:1;}
+.stepper input{width:58px; text-align:center; padding:8px 4px; font-variant-numeric:tabular-nums;}
+.inv-row.low-row{background:color-mix(in srgb, var(--danger) 6%, var(--panel));}
+.inv-name .inv-out{display:block; color:var(--sub); font-size:.7rem; font-weight:600;}
+.inv-name .inv-low{display:block; color:var(--danger); font-size:.7rem; font-weight:700;}
+.low-chip{flex:none; font-size:.74rem; white-space:nowrap;}
+.chip.low-chip.on, .chip.low-chip:has(input:checked){border-color:var(--danger); color:var(--danger); background:color-mix(in srgb, var(--danger) 8%, var(--panel));}
+.chip.low-chip input{accent-color:var(--danger);}
+.inv-row-msg{font-size:.7rem; color:var(--sub); width:40px; flex:none;}
+.inv-add .bio-more{grid-column:1/-1; font-size:.84rem;}
+.bio-more summary{cursor:pointer; color:var(--sub); padding:2px 0;}
+.bio-more-grid{display:grid; grid-template-columns:2fr 1fr 1fr; gap:8px; margin-top:6px;}
+.bio-more-grid label{margin-top:0;}
+.inv-name .inv-desc{display:block; color:var(--sub); font-size:.74rem; font-weight:500;}
+.inv-name .inv-ok{display:block; color:var(--good); font-size:.7rem; font-weight:700;}
+.tgt-box{display:flex; align-items:center; gap:6px; flex:none; font-size:.72rem; color:var(--sub); font-weight:600; text-transform:uppercase; letter-spacing:.04em;}
+.tgt-box input{width:54px; text-align:center; padding:8px 4px; font-variant-numeric:tabular-nums;}
+.inv-total{min-width:58px; text-align:center; font-weight:700; font-variant-numeric:tabular-nums; flex:none;}
+.inv-total small{display:block; font-size:.62rem; color:var(--sub); font-weight:600; text-transform:uppercase; letter-spacing:.04em;}
+.inv-row.type-head{background:var(--panel-2);}
+.inv-row.size-row{padding-left:28px;}
+.inv-row.size-row .inv-name{font-weight:500;}
+@media (max-width:560px){
+  .inv-add{grid-template-columns:1fr 80px auto;}
+  .bio-more-grid{grid-template-columns:1fr 1fr;}
+  .bio-more-grid > div:first-child{grid-column:1/-1;}
+  .inv-row.bio-row{flex-wrap:wrap; row-gap:6px;}
+  .inv-row.bio-row .inv-name{flex-basis:100%;}
+  .inv-row.bio-row .tgt-box{margin-left:auto;}
+  .inv-row.bio-row.size-row .stepper{margin-left:auto;}
+}
+
+/* ---------- analysis ---------- */
+.an-list{display:grid; border:1px solid var(--line); border-radius:10px; overflow:hidden;}
+.an-row{display:grid; grid-template-columns:minmax(0,1fr) auto; gap:2px 12px; padding:10px 12px; border-bottom:1px solid var(--line); background:var(--panel);}
+.an-row:last-child{border-bottom:none;}
+.an-tray{font-weight:700; font-size:.88rem; overflow-wrap:anywhere;}
+.an-stats{grid-column:1; font-size:.76rem; color:var(--sub); font-variant-numeric:tabular-nums;}
+.an-total{grid-row:1 / span 2; grid-column:2; align-self:center; text-align:right; font-size:1.1rem; font-weight:800; font-variant-numeric:tabular-nums;}
+.an-total small{display:block; font-size:.62rem; font-weight:600; color:var(--sub); text-transform:uppercase; letter-spacing:.05em;}
+.overlap-hi{color:var(--danger);}
+
+/* ---------- more / account / team ---------- */
+.more-list{display:grid; border:1px solid var(--line); border-radius:12px; overflow:hidden; max-width:640px;}
+.more-list button{display:flex; align-items:center; gap:12px; text-align:left; background:var(--panel); padding:16px; border-radius:0; border-bottom:1px solid var(--line); font-size:.95rem;}
+.more-list button:last-child{border-bottom:none;}
+.more-list svg{width:22px; height:22px; color:var(--accent); flex:none;}
+.more-list span small{display:block; color:var(--sub); font-weight:400; font-size:.78rem; margin-top:2px;}
+.narrow{max-width:640px;}
+.kv{display:grid; grid-template-columns:auto 1fr; gap:6px 14px; font-size:.9rem; margin-bottom:6px;}
+.kv dt{color:var(--sub);}
+.kv dd{margin:0; overflow-wrap:anywhere;}
+.team-add{display:grid; grid-template-columns:1fr 1fr; gap:8px;}
+.team-add .full{grid-column:1 / -1;}
+.team-add .check{display:flex; align-items:center; gap:8px; margin:0; font-size:.88rem; color:var(--ink);}
+.team-add button{background:var(--accent); color:var(--accent-ink); padding:12px 16px;}
+.member-list{border:1px solid var(--line); border-radius:10px; overflow:hidden;}
+.member{display:flex; align-items:center; gap:10px; padding:10px 12px; border-bottom:1px solid var(--line); background:var(--panel);}
+.member:last-child{border-bottom:none;}
+.member-info{flex:1; min-width:0;}
+.member-info b{display:block; overflow-wrap:anywhere;}
+.member-info small{color:var(--sub); overflow-wrap:anywhere;}
+.member button{background:var(--bg); border:1px solid var(--line); padding:8px 12px; color:var(--danger);}
+.danger-btn{background:var(--bg); border:1px solid var(--danger); color:var(--danger); padding:12px 14px; width:100%; margin-top:16px; font-size:.92rem;}
+
+/* ---------- preference cards ---------- */
+.pref-note{margin-top:8px; font-size:.8rem; color:var(--accent); background:color-mix(in srgb, var(--accent) 10%, var(--bg)); border:1px solid color-mix(in srgb, var(--accent) 35%, var(--line)); border-radius:9px; padding:8px 10px;}
+.btn-small{background:var(--accent); color:var(--accent-ink); padding:9px 14px;}
+.pc-group{margin-bottom:18px;}
+.pc-group h3{margin:0 0 8px; font-size:.78rem; text-transform:uppercase; letter-spacing:.06em; color:var(--sub);}
+.pc-list{display:grid; grid-template-columns:repeat(auto-fill,minmax(290px,1fr)); gap:10px;}
+.pc{background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:12px; display:grid; gap:8px; align-content:start; min-width:0;}
+.pc-head{display:flex; align-items:center; gap:10px;}
+.pc-head b{flex:1; font-size:.98rem; overflow-wrap:anywhere;}
+.pc-head button{background:var(--bg); border:1px solid var(--line); padding:7px 12px;}
+.pc-trays{display:flex; flex-wrap:wrap; gap:5px;}
+.pc-tray{font-size:.74rem; font-weight:600; background:var(--bg); border:1px solid var(--line); border-radius:6px; padding:3px 7px; overflow-wrap:anywhere;}
+.pc-tray.zero{border-color:var(--loaner); color:var(--loaner);}
+.pc-meta{font-size:.74rem; color:var(--sub);}
+.pc-notes{font-size:.8rem; color:var(--sub); white-space:pre-wrap; overflow-wrap:anywhere;}
+#card-editor{margin-bottom:18px;}
+.ce-tray{display:flex; gap:6px; margin-bottom:6px;}
+.ce-tray input{flex:1;}
+.ce-tray button{background:var(--bg); border:1px solid var(--line); width:44px; font-size:1.1rem; color:var(--danger);}
+.ce-add{background:var(--bg); border:1px dashed var(--line); padding:10px 14px; width:100%; color:var(--accent);}
+.ce-actions{display:flex; gap:8px; margin-top:16px;}
+.ce-actions .btn-primary{margin-top:0; flex:1;}
+.ce-actions .danger-btn{margin-top:0; width:auto;}
+
+/* ---------- team territories ---------- */
+.terr-picks{display:flex; flex-wrap:wrap; gap:6px;}
+.terr-pick{display:inline-flex; align-items:center; gap:6px; margin:0; padding:8px 12px; border:1px solid var(--line); border-radius:99px; background:var(--bg); color:var(--ink); font-size:.84rem; cursor:pointer; min-height:38px;}
+.terr-pick:has(input:checked){border-color:var(--accent); color:var(--accent); background:color-mix(in srgb, var(--accent) 10%, var(--bg));}
+.team-group{margin-bottom:16px;}
+.team-group h3{margin:0 0 6px; font-size:.78rem; text-transform:uppercase; letter-spacing:.06em; color:var(--sub); display:flex; gap:8px;}
+.team-group h3 span{font-weight:500; text-transform:none; letter-spacing:0;}
+.member{flex-wrap:wrap;}
+.member-terrs{display:flex; flex-wrap:wrap; gap:4px; margin-top:4px;}
+.member-terrs span{font-size:.7rem; font-weight:700; border:1px solid var(--line); border-radius:6px; padding:1px 6px; color:var(--sub);}
+.member .edit-btn{color:var(--accent);}
+.member .role-sel{width:auto; min-height:38px; padding:6px 10px; font-size:.84rem; flex:none;}
+.member-edit{flex-basis:100%; display:grid; gap:8px; padding-top:8px;}
+.member-edit .row{display:flex; gap:8px; justify-content:flex-end;}
+.member-edit .row button{color:var(--ink);}
+.member-edit .row .save{background:var(--accent); color:var(--accent-ink); border-color:var(--accent);}
+
+/* ---------- delete cancelled ---------- */
+.bulk-bar{display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:12px; padding:10px 12px; border:1px solid color-mix(in srgb, var(--danger) 40%, var(--line)); background:color-mix(in srgb, var(--danger) 6%, var(--panel)); border-radius:10px; font-size:.84rem;}
+.bulk-bar span{flex:1; min-width:140px; color:var(--sub);}
+.bulk-bar button{background:var(--bg); border:1px solid var(--danger); color:var(--danger); padding:9px 14px;}
+
+/* ---------- returns grouped by account ---------- */
+.ret-group{margin-bottom:20px;}
+.ret-head{display:flex; align-items:center; gap:10px; margin-bottom:8px; padding-bottom:6px; border-bottom:1px solid var(--line);}
+.ret-head > div{flex:1; min-width:0;}
+.ret-head b{font-size:1rem; margin-right:8px;}
+.ret-head small{color:var(--sub); font-size:.78rem; overflow-wrap:anywhere;}
+.ret-head .badge{text-transform:none; flex:none;}
+/* History: one line per account visit, date on the left and the trays that went. Tap to see full details. */
+.h-acct{margin-bottom:16px; border:1px solid var(--line); border-radius:12px; overflow:hidden; background:var(--panel);}
+.h-acct-head{display:flex; align-items:baseline; gap:8px; padding:10px 12px; background:var(--panel-2); border-bottom:1px solid var(--line);}
+.h-acct-head b{font-size:.98rem;}
+.h-acct-head span{flex:1; min-width:0; color:var(--sub); font-size:.78rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.h-acct-head small{color:var(--sub); font-size:.76rem; white-space:nowrap;}
+.h-row{display:flex; gap:12px; width:100%; text-align:left; background:none; border:0; border-top:1px solid var(--line); border-radius:0; padding:9px 12px; min-height:0; font-weight:400; color:var(--ink);}
+.h-acct-head + .h-row{border-top:0;}
+.h-date{flex:none; width:92px; font-size:.82rem; font-weight:600; color:var(--sub);}
+.h-trays{flex:1; min-width:0; display:flex; flex-direction:column; gap:2px;}
+.h-tray{display:flex; align-items:center; gap:6px; font-size:.88rem; font-weight:600; overflow-wrap:anywhere;}
+.h-tray i{font-style:normal; font-weight:500; font-size:.7rem; color:var(--sub); border:1px solid var(--line); border-radius:999px; padding:0 7px; white-space:nowrap;}
+.h-detail{padding:0 12px 12px;}
+
+/* ---------- delivery photos ---------- */
+.chip svg{width:14px; height:14px;}
+.chip.photo-chip{background:var(--panel); font-weight:600;}
+.chip.photo-chip.has{border-color:var(--good); color:var(--good);}
+.chip.locked{opacity:.55; border-style:dashed;}
+.actions button.pbtn{display:inline-flex; align-items:center; gap:5px;}
+.actions button.pbtn svg{width:15px; height:15px;}
+.actions button.pbtn.has{color:var(--good); border-color:var(--good);}
+.sheet-card{background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:18px; width:100%; max-width:520px; max-height:calc(100vh - 32px); overflow-y:auto;}
+.ps-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:6px; margin:4px 0 12px;}
+.ps-grid button{padding:0; border:1px solid var(--line); border-radius:8px; overflow:hidden; aspect-ratio:1; background:var(--bg);}
+.ps-grid img{width:100%; height:100%; object-fit:cover; display:block;}
+.fav-star{background:none; border:0; padding:0 4px; min-height:0; margin-left:4px; font-size:1.05rem; line-height:1; color:var(--sub); cursor:pointer; vertical-align:middle; font-weight:400;}
+.fav-star.on{color:#e3a008;}
+.fav-star:hover{color:#e3a008;}
+.ps-label{font-size:.78rem; font-weight:700; color:var(--sub); text-transform:uppercase; letter-spacing:.04em; margin:6px 0 2px;}
+.viewer .pv-split{flex:1; min-height:0; display:flex; flex-direction:column; gap:6px;}
+.viewer .pv-split[hidden]{display:none;}
+.viewer .pv-pane{flex:1; min-height:0; display:flex; flex-direction:column;}
+.viewer .pv-pane img{flex:1; min-height:0; width:100%; object-fit:contain;}
+.viewer .pv-cap{color:#fff; font-size:.78rem; font-weight:600; display:flex; align-items:center; gap:8px; padding:2px 0;}
+.viewer .pv-cap button{background:rgba(255,255,255,.15); color:#fff; border:0; border-radius:6px; padding:2px 10px; font-size:.9rem;}
+.ps-empty{grid-column:1 / -1; color:var(--sub); font-size:.86rem; padding:18px 12px; text-align:center; border:1px dashed var(--line); border-radius:10px;}
+.ps-add{display:flex; align-items:center; justify-content:center; gap:8px; margin-top:0;}
+.ps-add svg{width:18px; height:18px;}
+.ps-deliver{display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-top:14px; padding-top:14px; border-top:1px solid var(--line);}
+.ps-deliver .chip{font-size:.9rem; padding:9px 16px; min-height:42px;}
+.ps-deliver .hint{margin:0;}
+.ps-return{margin-top:14px; padding-top:14px; border-top:1px solid var(--line);}
+.ps-return .seg button{font-size:.84rem; min-height:40px;}
+#ps-missing button.active[data-v=yes]{background:var(--ink); color:#fff;}
+#ps-missing button.active[data-v=no]{background:var(--accent); color:#fff;}
+.viewer{position:fixed; inset:0; z-index:95; background:rgba(0,0,0,.92); display:flex; flex-direction:column; padding:calc(12px + var(--sat)) 12px calc(12px + var(--sab));}
+.viewer img{flex:1; min-height:0; width:100%; object-fit:contain;}
+.pv-bar{display:flex; align-items:center; gap:8px; padding-top:10px; color:#ddd; font-size:.8rem;}
+.pv-bar span{flex:1;}
+.pv-bar button{background:#222; border:1px solid #444; color:#fff; padding:10px 14px;}
+.pv-bar #pv-delete{color:#ff8a7a; border-color:#7a3a32;}
+
+/* ---------- modal + toast ---------- */
+.modal-overlay{position:fixed; inset:0; background:rgba(0,0,0,.65); display:flex; align-items:center; justify-content:center; z-index:80; padding:16px;}
+.modal{background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:22px; max-width:340px; width:100%; text-align:center;}
+.modal h3{margin:0 0 8px;}
+.modal p{color:var(--sub); font-size:.85rem; margin:0 0 8px;}
+.toast{position:fixed; left:50%; transform:translateX(-50%); bottom:calc(24px + var(--sab)); z-index:90; background:var(--ink); color:var(--bg); padding:10px 16px; border-radius:10px; font-size:.86rem; font-weight:600; max-width:calc(100% - 32px); box-shadow:0 6px 20px rgba(0,0,0,.3);}
+.offline{background:var(--warn); color:#1b1400; text-align:center; font-size:.78rem; font-weight:700; padding:4px 16px;}
+.fab{display:none;}
+
+/* ---------- pull queue (inventory manager) ---------- */
+.page-title{font-size:1.45rem; font-weight:800; margin:0; letter-spacing:-.01em;}
+.q-head{display:flex; align-items:flex-end; justify-content:space-between; gap:12px; margin-bottom:14px;}
+.q-head .hint{margin:4px 0 0;}
+.btn-new{background:var(--accent); color:#fff; padding:11px 16px; font-size:.9rem; white-space:nowrap; min-height:44px;}
+.q-panels{display:grid; grid-template-columns:minmax(0,1.5fr) minmax(0,1fr); gap:14px; margin-bottom:14px;}
+.q-panel-head{display:flex; justify-content:space-between; align-items:baseline; gap:8px; margin-bottom:10px;}
+.q-panel-head h3{margin:0; font-size:.92rem;}
+.q-panel-head span{color:var(--sub); font-size:.8rem;}
+.chart{display:flex; align-items:flex-end; gap:10px; height:130px; border-bottom:1px solid #d5dce6; padding:0 2px;}
+.bar-col{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; height:100%; gap:3px; min-width:0;}
+.bar-col .v{font-size:.72rem; font-weight:700; min-height:1.1em;}
+.bar{width:100%; max-width:36px; background:var(--baby-strong); border-radius:4px 4px 0 0; min-height:2px;}
+.bar.today{background:var(--accent);}
+.chart-days{display:flex; gap:10px; padding:5px 2px 0;}
+.chart-days span{flex:1; text-align:center; font-size:.68rem; line-height:1.25; color:var(--sub); min-width:0; white-space:nowrap; overflow:hidden;}
+.chart-days span.today{color:var(--ink); font-weight:700;}
+#chart-note{margin:8px 0 0;}
+.alert{display:flex; align-items:center; gap:10px; padding:8px 10px; border-radius:10px; background:var(--panel-2); margin-bottom:6px;}
+.alert .adot{width:8px; height:8px; border-radius:50%; background:var(--baby-strong); flex:none;}
+.alert.putback .adot{background:var(--ink);}
+.alert-text{flex:1; min-width:0;}
+.alert-text b{display:block; font-size:.84rem;}
+.alert-text small{display:block; color:var(--sub); font-size:.76rem; overflow-wrap:anywhere; white-space:pre-line;}
+.alert.early{background:var(--baby-soft); border:1px solid var(--baby-strong);}
+.alert button{background:var(--panel); border:1.5px solid var(--accent); color:var(--accent); padding:7px 10px; font-size:.76rem; white-space:nowrap; min-height:36px;}
+.alerts-empty{color:var(--sub); font-size:.84rem; padding:14px 4px;}
+.q-tools{display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:12px;}
+.q-tools input[type=search]{flex:1 1 200px; width:auto;}
+.q-tools select{width:auto; flex:0 1 200px;}
+.q-tools .seg{flex:0 1 330px;}
+.buckets{display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px;}
+.bucket{background:var(--panel); border:1px solid var(--line); padding:9px 14px; min-height:46px; display:flex; gap:8px; align-items:center; border-radius:10px; font-size:.88rem;}
+.bucket small{font-weight:500; color:var(--sub); font-size:.78rem;}
+.bucket.active{background:var(--ink); color:#fff; border-color:var(--ink);}
+.bucket.active small{color:#c9ced6;}
+.q-table{border:1px solid var(--line); border-radius:12px; overflow:hidden; background:var(--panel);}
+.q-cols, .case-row{display:grid; grid-template-columns:minmax(0,2.3fr) minmax(0,.9fr) minmax(0,.9fr) minmax(0,1.1fr) 52px minmax(0,1.1fr) minmax(0,.9fr) 118px; align-items:center; gap:10px; padding:0 14px;}
+.q-cols{height:38px; background:var(--panel-2); border-bottom:1px solid var(--line); font-size:.68rem; font-weight:700; letter-spacing:.06em; color:var(--sub); text-transform:uppercase;}
+.case-row{min-height:54px; border-bottom:1px solid var(--line); cursor:pointer; font-size:.88rem; padding-top:6px; padding-bottom:6px;}
+.case-row:hover{background:var(--panel-2);}
+.case.expanded .case-row{background:var(--baby-soft);}
+.c-name{display:flex; align-items:center; gap:6px 8px; font-weight:700; flex-wrap:wrap; min-width:0; overflow-wrap:anywhere;}
+.chev{width:14px; height:14px; transition:transform .15s; flex:none; color:var(--sub);}
+.case.expanded .chev{transform:rotate(90deg);}
+.c-sub{color:var(--sub);}
+.c-strong{font-weight:700;}
+.c-meta-m{display:none;}
+.prog{display:flex; align-items:center; gap:8px; min-width:0;}
+.prog-bar{flex:1; height:6px; background:var(--line); border-radius:3px; overflow:hidden; min-width:30px;}
+.prog-bar i{display:block; height:100%; background:var(--accent);}
+.prog span{font-size:.78rem; color:var(--sub); font-variant-numeric:tabular-nums; white-space:nowrap;}
+.pill{padding:3px 10px; border-radius:99px; font-size:.72rem; font-weight:700; display:inline-block; white-space:nowrap; border:1px solid transparent;}
+.pill.ns{border-color:#d5dce6; color:var(--sub); background:var(--panel);}
+.pill.ip{background:var(--baby); color:var(--baby-ink);}
+.pill.done{background:var(--accent); color:#fff;}
+.pill.od{background:var(--ink); color:#fff;}
+.pill.cx{border-color:var(--danger); color:var(--danger);}
+.tag{padding:2px 8px; border-radius:99px; font-size:.68rem; font-weight:700; white-space:nowrap; display:inline-block; line-height:1.4;}
+.tag.dark{background:var(--ink); color:#fff;}
+.tag.baby{background:var(--baby); color:var(--baby-ink);}
+.tag.outline{border:1px solid var(--accent); color:var(--accent);}
+.tag.urgent{background:#fff; border:1.5px solid var(--ink); color:var(--ink);}
+.alert.urgent{background:#fff; border:1.5px solid var(--ink);}
+.alert.urgent .adot{background:var(--accent);}
+/* Loaner needed and urgent returns: red so they stand out from the other alerts. */
+.alert.shortage, .alert.urgent{background:color-mix(in srgb, var(--danger) 9%, var(--panel)); border:1.5px solid var(--danger);}
+.alert.shortage .adot, .alert.urgent .adot{background:var(--danger);}
+.alert.shortage .alert-text b, .alert.urgent .alert-text b{color:var(--danger);}
+.alert.shortage button, .alert.urgent button{background:var(--danger); border-color:var(--danger); color:#fff;}
+.urgent-note{flex-basis:100%; font-size:.76rem; font-weight:600; color:var(--ink); background:var(--baby-soft); border-radius:8px; padding:6px 8px;}
+#mine-alerts .alert button{display:none;}
+.c-act{display:flex; justify-content:flex-end;}
+.c-act button{min-height:38px; padding:6px 12px; border:1.5px solid var(--accent); color:var(--accent); background:var(--panel); white-space:nowrap;}
+.case-trays{background:var(--baby-soft); border-bottom:1px solid var(--line); padding:10px 14px 12px 36px; display:grid; gap:6px;}
+.case-note{font-size:.76rem; color:var(--sub);}
+.tline{background:var(--panel); border:1px solid #d6e6fa; border-radius:10px; padding:6px 10px; display:flex; align-items:center; gap:8px 10px; flex-wrap:wrap;}
+.tline > input[type=checkbox]{width:22px; height:22px; flex:none;}
+.tl-name{font-weight:700; font-size:.86rem; flex:1 1 180px; min-width:0; overflow-wrap:anywhere; display:flex; gap:6px; align-items:center; flex-wrap:wrap;}
+.tline.done .tl-name > span:first-child{color:var(--sub);}
+.tl-note{flex-basis:100%; font-size:.76rem; color:var(--sub); white-space:pre-wrap; overflow-wrap:anywhere;}
+.tl-actions{display:flex; gap:4px; flex-wrap:wrap;}
+.tl-actions button{background:var(--panel); border:1px solid var(--line); padding:5px 10px; min-height:34px; font-size:.76rem; display:inline-flex; align-items:center; gap:4px;}
+.tl-actions button svg{width:14px; height:14px;}
+.tl-actions button.c{color:var(--danger);}
+.tl-actions button.has{color:var(--good); border-color:var(--good);}
+.tl-actions button.ret-go{background:var(--accent); color:#fff; border-color:var(--accent);}
+.tline .comments-box, .mline .comments-box{flex-basis:100%;}
+.q-foot{padding:10px 14px; font-size:.8rem; color:var(--sub);}
+/* dropdown case rows shared by Schedule, SST and My requests */
+/* analysis */
+.an-bar-row{display:grid; grid-template-columns:minmax(0,1fr) auto; gap:4px 12px; padding:10px 12px; border-bottom:1px solid var(--line); background:var(--panel);}
+.an-bar-row:last-child{border-bottom:none;}
+.an-bar-row b{font-size:.86rem; overflow-wrap:anywhere;}
+.an-bar-row .n{font-weight:800; font-variant-numeric:tabular-nums; text-align:right;}
+.an-bar-row .track{grid-column:1 / -1; height:6px; background:var(--panel-2); border-radius:3px; overflow:hidden;}
+.an-bar-row .track i{display:block; height:100%; background:var(--accent); border-radius:3px;}
+.an-bar-row small{grid-column:1 / -1; color:var(--sub); font-size:.74rem;}
+.an-panels{grid-template-columns:repeat(2,minmax(0,1fr));}
+@media (max-width:820px){ .an-panels{grid-template-columns:1fr;} }
+.an-list .an-empty{padding:18px 12px; color:var(--sub); font-size:.84rem; text-align:center;}
+/* SST send-out report */
+#report{position:fixed; inset:0; z-index:100; background:#fff; overflow-y:auto; padding:calc(16px + var(--sat)) 16px calc(32px + var(--sab));}
+.report-bar{display:flex; gap:8px; justify-content:flex-end; max-width:860px; margin:0 auto 12px;}
+#report-body{max-width:860px; margin:0 auto; color:#000;}
+.rp-head{border-bottom:2px solid #000; padding-bottom:10px; margin-bottom:14px;}
+.rp-head h1{margin:0; font-size:1.4rem;}
+.rp-head p{margin:4px 0 0; color:#333; font-size:.9rem;}
+.rp-terr{font-size:.8rem; font-weight:800; letter-spacing:.08em; text-transform:uppercase; margin:18px 0 6px; color:#333;}
+.rp-case{border:1px solid #999; border-radius:8px; padding:12px 14px; margin-bottom:10px; break-inside:avoid;}
+.rp-top{display:flex; justify-content:space-between; gap:10px; align-items:flex-start;}
+.rp-top h2{margin:0; font-size:1.05rem;}
+.rp-top .where{font-size:.86rem; color:#333; margin-top:2px;}
+.rp-top .cnt{font-weight:800; white-space:nowrap;}
+.rp-sst{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:6px 14px; margin:10px 0; padding:8px 10px; background:#f3f5f8; border-radius:6px; font-size:.84rem;}
+.rp-sst span{display:block; color:#555; font-size:.68rem; font-weight:700; text-transform:uppercase; letter-spacing:.05em;}
+.rp-trays{margin:0; padding:0; list-style:none; columns:2; column-gap:20px;}
+.rp-trays li{padding:3px 0; font-size:.9rem; font-weight:600; break-inside:avoid; display:flex; gap:8px; align-items:center;}
+.rp-trays li::before{content:""; width:12px; height:12px; border:1.5px solid #000; border-radius:2px; flex:none;}
+.rp-trays li small{font-weight:500; color:#555;}
+.rp-note{font-size:.82rem; color:#333; margin-top:8px; white-space:pre-wrap;}
+.rp-empty{padding:30px; text-align:center; color:#555; border:1px dashed #999; border-radius:8px;}
+@media (max-width:600px){ .rp-sst{grid-template-columns:repeat(2,minmax(0,1fr));} .rp-trays{columns:1;} }
+@media print{
+  body.report-open > *:not(#report){display:none!important;}
+  #report{position:static; padding:0; overflow:visible;}
+  .no-print{display:none!important;}
+}
+.xrow, .x-cols{display:grid; grid-template-columns:minmax(0,2.2fr) minmax(0,1fr) minmax(0,1.1fr) 52px minmax(0,1fr) 116px; gap:10px; align-items:center; padding:0 14px;}
+.x-cols{height:36px; background:var(--panel-2); border-bottom:1px solid var(--line); font-size:.68rem; font-weight:700; letter-spacing:.06em; color:var(--sub); text-transform:uppercase;}
+.xrow{min-height:52px; padding-top:6px; padding-bottom:6px; border-bottom:1px solid var(--line); cursor:pointer; font-size:.88rem;}
+.xrow:hover{background:var(--panel-2);}
+.case.expanded .xrow{background:var(--baby-soft);}
+/* Whole request highlighted by progress: yellow while partly sent / in progress, green once everything is delivered. */
+.case.st-prog > .case-row, .case.st-prog > .xrow{background:#fff6d6; box-shadow:inset 4px 0 0 #e3b008;}
+.case.st-prog > .case-row:hover, .case.st-prog > .xrow:hover{background:#ffefb8;}
+.case.st-done > .case-row, .case.st-done > .xrow{background:color-mix(in srgb, var(--good) 13%, var(--panel)); box-shadow:inset 4px 0 0 var(--good);}
+.case.st-done > .case-row:hover, .case.st-done > .xrow:hover{background:color-mix(in srgb, var(--good) 20%, var(--panel));}
+.case.st-prog .case-trays{background:#fffbea;}
+.case.st-done .case-trays{background:color-mix(in srgb, var(--good) 6%, var(--panel));}
+.xrow .x-status{justify-self:end;}
+.xrow .c-meta-m{display:none;}
+.day-sec{margin-bottom:18px;}
+.sgroup{border-bottom:1px solid var(--line);}
+.sg-head{display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; padding:9px 14px; background:var(--panel-2); border-bottom:1px solid var(--line); font-size:.84rem;}
+.sg-head span{color:var(--sub); font-size:.78rem;}
+.sgroup .c-name{padding-left:16px;}
+.sgroup > .case:last-child .case-row, .sgroup > .case:last-child .xrow{border-bottom:none;}
+.day-head{display:flex; align-items:center; gap:8px; margin:0 0 8px; font-size:.98rem;}
+.day-head .cnt{color:var(--sub); font-weight:500; font-size:.82rem; margin-left:auto;}
+.day-none{padding:12px 14px; color:var(--sub); font-size:.84rem;}
+.tline .tray-row{border-top:0; padding:0; width:100%;}
+.tline .tray-row .tray-name{flex:0 1 auto; margin-right:auto;}
+
+/* ---------- add request + my requests ---------- */
+#view-add.active{display:grid; grid-template-columns:420px minmax(0,1fr); gap:24px; align-items:start;}
+.form-head-link{background:none; color:var(--accent); padding:6px 0; font-weight:700; font-size:.88rem;}
+.tin{margin-bottom:8px;}
+.tin-row{display:flex; gap:6px;}
+.tin-row input{flex:1; min-width:0;}
+.tin-row button{background:var(--panel); border:1px solid var(--line); width:44px; font-size:1.1rem; color:var(--sub); flex:none;}
+.tray-help{font-size:.76rem; color:var(--sub); margin:2px 0 0;}
+.sent-banner{display:flex; align-items:center; gap:10px; background:var(--baby); color:var(--baby-ink); border-radius:12px; padding:12px 14px; margin-bottom:14px; font-size:.88rem;}
+.sent-banner .ck{width:28px; height:28px; border-radius:50%; background:var(--accent); display:flex; align-items:center; justify-content:center; flex:none;}
+.sent-banner .ck svg{width:16px; height:16px;}
+.sent-banner span{flex:1; min-width:0;}
+.sent-banner button{background:none; color:var(--accent); font-weight:700; padding:6px 4px;}
+.mine-case{background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:14px 16px; margin-bottom:10px; display:grid; gap:10px;}
+.mine-case.fresh{border:1.5px solid var(--accent);}
+.mc-head{display:flex; justify-content:space-between; gap:10px; align-items:flex-start;}
+.mc-date{font-size:.72rem; font-weight:800; letter-spacing:.08em; color:var(--accent); text-transform:uppercase;}
+.mine-case.past .mc-date, .mine-case.cxl .mc-date{color:var(--sub);}
+.mc-title{font-size:1.05rem; font-weight:800; margin-top:2px; overflow-wrap:anywhere;}
+.mc-sub{color:var(--sub); font-size:.82rem; margin-top:1px;}
+.mc-prog{font-size:.8rem; color:var(--sub); font-weight:600; white-space:nowrap; text-align:right;}
+.mc-trays{display:grid; grid-template-columns:repeat(auto-fill,minmax(270px,1fr)); gap:6px;}
+.mline{border:1px solid var(--line); border-radius:10px; padding:8px 10px; display:flex; flex-wrap:wrap; gap:6px; align-items:center;}
+.mline-name{flex:1 1 140px; font-weight:700; font-size:.84rem; overflow-wrap:anywhere; display:flex; gap:6px; align-items:center; flex-wrap:wrap;}
+.mline .tl-actions{flex-basis:100%;}
+
+/* ---------- phone ---------- */
+@media (max-width:820px){
+  main{padding-block:14px calc(var(--nav-h) + 90px + var(--sab));}
+  .appbar{position:sticky; top:0; z-index:30;}
+  nav.tabs{position:fixed; left:0; right:0; bottom:0; z-index:40; display:grid; grid-template-columns:repeat(var(--ncol,5),1fr); gap:0; background:var(--panel); border-top:1px solid var(--line); border-bottom:none; padding:4px 4px calc(4px + var(--sab));}
+  nav.tabs button{flex-direction:column; gap:3px; font-size:.66rem; padding:6px 0; min-height:50px; border-bottom:none; justify-content:center;}
+  nav.tabs button svg{width:22px; height:22px;}
+  nav.tabs button.active{color:var(--accent);}
+  .tab-extra{display:none!important;}
+  .toast{bottom:calc(var(--nav-h) + 16px + var(--sab));}
+
+  #view-requests.active{display:block;}
+  #view-add.active{display:block;}
+  #view-add.m-list #form-panel{display:none;}
+  #view-add.m-form #mine{display:none;}
+  .q-head{align-items:center;}
+  .page-title{font-size:1.3rem;}
+  .q-panels{grid-template-columns:1fr;}
+  .chart{height:90px; gap:5px;}
+  .chart-days{gap:5px;}
+  .chart-days span{font-size:.6rem;}
+  .bucket{flex:1 1 calc(50% - 6px); flex-direction:column; align-items:flex-start; justify-content:center; gap:1px; text-align:left;}
+  .q-tools .seg{flex-basis:100%;}
+  .q-tools select{flex:1 1 100%;}
+  .q-cols{display:none;}
+  .case-row{grid-template-columns:minmax(0,1fr) auto; grid-template-areas:"name status" "meta meta" "prog act"; padding:12px 14px; row-gap:8px;}
+  .case-row .c-name{grid-area:name;}
+  .case-row .c-status{grid-area:status; justify-self:end;}
+  .case-row .c-date, .case-row .c-pull, .case-row .c-proc, .case-row .c-trays{display:none;}
+  .case-row .c-meta-m{grid-area:meta; display:block; color:var(--sub); font-size:.82rem;}
+  .case-row .prog{grid-area:prog;}
+  .case-row .c-act{grid-area:act;}
+  .case-trays{padding:10px;}
+  .x-cols{display:none;}
+  .xrow{grid-template-columns:minmax(0,1fr) auto; grid-template-areas:"name status" "meta meta" "prog prog"; padding:12px 14px; row-gap:6px;}
+  .xrow .c-name{grid-area:name;}
+  .xrow .x-status{grid-area:status;}
+  .xrow .x-c1, .xrow .x-c2, .xrow .x-n{display:none;}
+  .xrow .c-meta-m{grid-area:meta; display:block; color:var(--sub); font-size:.82rem;}
+  .xrow .prog{grid-area:prog;}
+  .mc-trays{grid-template-columns:1fr;}
+  .sheet-close{display:inline-block;}
+
+  .cards{grid-template-columns:1fr;}
+  .actions button{min-height:40px;}
+  .seg{max-width:none; flex-basis:100%;}
+  .toolbar select, .week-nav select{flex:1 1 100%; margin-left:0;}
+  .week-nav{justify-content:space-between;}
+  .week-nav strong{text-align:center; flex:1;}
+  .board{grid-template-columns:1fr; overflow:visible;}
+  .day-col h3{font-size:.95rem;}
+  .card{font-size:.84rem; padding:8px 10px;}
+  .card .title{font-size:.92rem;}
+  .card .badge{font-size:.66rem; padding:2px 7px;}
+  .tname{font-size:.7rem;}
+  .chip{font-size:.78rem; padding:6px 12px; min-height:34px;}
+  .sst-meta{font-size:.74rem;}
+  .inv-add{grid-template-columns:1fr 100px;}
+  .inv-add button{grid-column:1 / -1;}
+  .team-add{grid-template-columns:1fr;}
+}
+@media (min-width:821px){ .m-only{display:none!important;} }
+
+/* ---------- Biologics ---------- */
+main{max-width:1200px; margin:0 auto; padding:18px clamp(16px,3vw,32px) 40px;}
+/* Phone: leave room so the bottom tab bar never covers the last items on the page. */
+@media (max-width:820px){ main{padding-bottom:calc(var(--nav-h) + 90px + var(--sab));} }
+/* App header: title is a menu for switching apps; name + gear on the right open Account / Team. */
+.app-menu, .me-menu{position:relative;}
+.app-title{background:none; color:#fff; display:flex; align-items:center; gap:6px; padding:2px 4px; text-align:left; border-radius:8px;}
+.app-title:hover{background:rgba(255,255,255,.08);}
+.app-title .t{display:block; font-size:1.05rem; font-weight:800; letter-spacing:.01em; line-height:1.2;}
+.app-title small{display:block; color:#8fa0b2; font-size:.66rem; font-weight:600; letter-spacing:.08em; text-transform:uppercase;}
+.app-title svg, .me-btn svg.chev{width:16px; height:16px; color:#8fa0b2; flex:none; transition:transform .15s;}
+.app-title[aria-expanded=true] svg{transform:rotate(180deg);}
+.dd{position:absolute; top:calc(100% + 8px); z-index:60; background:var(--panel); color:var(--ink); border:1px solid var(--line); border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,.18); padding:6px; min-width:220px;}
+.dd a, .dd button{display:flex; align-items:center; gap:10px; width:100%; padding:9px 10px; border-radius:8px; background:none; color:var(--ink); text-decoration:none; font-size:.88rem; font-weight:600; text-align:left;}
+.dd a:hover, .dd button:hover{background:var(--panel-2);}
+.dd a.on{background:var(--baby-soft); color:var(--baby-ink);}
+.dd img{width:28px; height:28px; border-radius:7px; flex:none; object-fit:cover;}
+.dd svg{width:18px; height:18px; flex:none; color:var(--sub);}
+.dd small{display:block; color:var(--sub); font-weight:500; font-size:.72rem;}
+.app-menu .dd{left:0;}
+.me-menu{margin-left:auto; display:flex; align-items:center; gap:4px;}
+.me-menu .dd{right:0;}
+.me-name{background:none; color:#c7d0da; font-size:.8rem; font-weight:600; padding:6px 4px; max-width:220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.gear-btn{background:rgba(255,255,255,.08); color:#c7d0da; width:36px; height:36px; display:inline-flex; align-items:center; justify-content:center; padding:0; border-radius:9px;}
+.gear-btn:hover, .gear-btn[aria-expanded=true]{background:rgba(255,255,255,.18); color:#fff;}
+.gear-btn svg{width:19px; height:19px;}
+@media (max-width:820px){ .app-title .t{font-size:.95rem;} .me-name{max-width:34vw; font-size:.74rem;} .dd{min-width:200px;} }
+.b-table{width:100%; border-collapse:collapse; background:var(--panel); border:1px solid var(--line); border-radius:12px; overflow:hidden; font-size:.86rem;}
+.b-table th{background:var(--panel-2); text-align:left; font-size:.68rem; letter-spacing:.06em; text-transform:uppercase; color:var(--sub); padding:9px 10px; border-bottom:1px solid var(--line); white-space:nowrap;}
+.b-table td{padding:8px 10px; border-bottom:1px solid var(--line); vertical-align:middle;}
+.b-table tr:last-child td{border-bottom:none;}
+.b-table td.num, .b-table th.num{text-align:right; font-variant-numeric:tabular-nums;}
+.b-table .ref{font-weight:700; white-space:nowrap;}
+.b-table .desc{color:var(--sub); font-size:.78rem;}
+.b-wrap{overflow-x:auto; border-radius:12px;}
+.b-actions{display:flex; gap:6px; flex-wrap:wrap; justify-content:flex-end;}
+.b-actions button{background:var(--panel); border:1px solid var(--line); padding:6px 10px; font-size:.76rem;}
+.b-actions button.go{background:var(--accent); border-color:var(--accent); color:#fff;}
+.b-actions button.warn{color:var(--danger); border-color:color-mix(in srgb, var(--danger) 40%, var(--line));}
+.st{padding:3px 10px; border-radius:99px; font-size:.72rem; font-weight:700; white-space:nowrap; display:inline-block;}
+.st.requested{background:var(--baby); color:var(--baby-ink);}
+.st.pulled{background:#fff3c4; color:#7a5600;}
+.st.used{background:color-mix(in srgb, var(--good) 18%, var(--panel)); color:var(--good);}
+.st.returned{background:var(--panel-2); color:var(--sub); border:1px solid var(--line);}
+.st.cancelled{background:color-mix(in srgb, var(--danger) 12%, var(--panel)); color:var(--danger);}
+.short{color:var(--danger); font-weight:700;}
+.ok{color:var(--good); font-weight:700;}
+.seg{display:inline-flex; background:var(--panel-2); border:1px solid var(--line); border-radius:10px; padding:3px; gap:2px; flex-wrap:wrap;}
+.seg button{background:none; padding:7px 12px; font-size:.8rem; color:var(--sub); border-radius:8px;}
+.seg button.active{background:var(--panel); color:var(--ink); box-shadow:0 1px 2px rgba(0,0,0,.08);}
+.grid2{display:grid; grid-template-columns:1fr 1fr; gap:0 12px;}
+.grid3{display:grid; grid-template-columns:1fr 1fr 1fr; gap:0 12px;}
+.form-cols{display:grid; grid-template-columns:minmax(0,420px) minmax(0,1fr); gap:20px; align-items:start;}
+.b-table tr.type-row td{background:var(--panel-2);}
+.b-table tr.size-row td{padding-top:5px; padding-bottom:5px;}
+.b-table tr.size-row .size{padding-left:14px; font-size:.82rem; color:var(--ink);}
+.stepper-sm{display:inline-flex; align-items:center; gap:4px;}
+.stepper-sm button{width:30px; height:30px; background:var(--panel); border:1px solid var(--line); padding:0; font-size:1rem;}
+.stepper-sm input{width:58px; min-height:30px; padding:4px 6px; text-align:center; font-size:.9rem;}
+#view-add.active{display:block;}   /* the Inventory page's two-column rule doesn't apply here */
+.g-search{position:relative;}
+.g-list{position:absolute; left:0; right:0; top:calc(100% + 4px); z-index:50; background:var(--panel); border:1px solid var(--line); border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,.14); max-height:320px; overflow:auto; padding:4px;}
+.g-opt{display:flex; align-items:center; gap:10px; width:100%; padding:8px 10px; border-radius:8px; background:none; text-align:left; font-weight:400; cursor:pointer;}
+.g-opt:hover, .g-opt.active{background:var(--baby-soft);}
+.g-opt .g-main{flex:1; min-width:0;}
+.g-opt b{display:block; font-size:.86rem;}
+.g-opt small{display:block; color:var(--sub); font-size:.76rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.g-opt mark{background:#fff1a8; color:inherit; border-radius:2px; padding:0;}
+.g-opt .g-qty{flex:none; font-size:.74rem; font-weight:700; color:var(--sub);}
+.g-opt .g-qty.zero{color:var(--danger);}
+.g-none{padding:10px; color:var(--sub); font-size:.84rem;}
+.avail-note{font-size:.78rem; margin-top:5px; color:var(--sub);}
+.avail-note.low{color:var(--danger); font-weight:600;}
+.day-label{font-weight:800; font-size:.92rem; margin:16px 0 6px; display:flex; gap:8px; align-items:center;}
+.day-label .cnt{color:var(--sub); font-weight:500; font-size:.8rem; margin-left:auto;}
+.totals{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px;}
+.totals span{background:var(--panel-2); border:1px solid var(--line); border-radius:99px; padding:4px 10px; font-size:.78rem;}
+.totals b{margin-left:4px;}
+.modal-overlay{position:fixed; inset:0; background:rgba(11,13,18,.45); z-index:80; display:flex; align-items:flex-end; justify-content:center;}
+.sheet-card{background:var(--panel); width:100%; max-width:520px; border-radius:16px 16px 0 0; padding:18px 18px calc(18px + var(--sab)); max-height:92vh; overflow:auto;}
+@media (min-width:821px){ .modal-overlay{align-items:center;} .sheet-card{border-radius:16px;} }
+@media (max-width:820px){
+  .form-cols{grid-template-columns:1fr;}
+  .grid3{grid-template-columns:1fr 1fr;}
+  .b-table .hide-m{display:none;}
+  /* Request tables become stacked cards on a phone. */
+  .req-t thead{display:none;}
+  .req-t, .req-t tbody{display:block;}
+  .req-t tr{display:grid; grid-template-columns:minmax(0,1fr) auto; gap:6px 10px; padding:12px; border-bottom:1px solid var(--line);}
+  .req-t tr:last-child{border-bottom:none;}
+  .req-t td{padding:0; border:0; display:block;}
+  .req-t td:nth-child(2){grid-column:2; grid-row:1; font-weight:700; font-size:1rem;}
+  .req-t td:nth-child(2)::before{content:'×'; color:var(--sub); font-weight:500; margin-right:1px;}
+  .req-t td:nth-child(n+3){grid-column:1 / -1;}
+  .req-t .b-actions{justify-content:flex-start;}
+}
+
+/* ---- biologic cases ---- */
+.bcase{background:var(--panel); border:1px solid var(--line); border-radius:12px; margin-bottom:8px; overflow:hidden;}
+.bcase.drop{outline:2px dashed var(--accent); outline-offset:-2px; background:var(--baby-soft);}
+.bcase.st-prog > .bc-head{background:#fff6d6; box-shadow:inset 4px 0 0 #e3b008;}
+.bcase.st-done > .bc-head{background:color-mix(in srgb, var(--good) 11%, var(--panel)); box-shadow:inset 4px 0 0 var(--good);}
+.bc-head{display:flex; gap:10px; align-items:flex-start; padding:11px 12px; cursor:pointer;}
+.po-head{cursor:default;}
+.bc-head .chev{width:16px; height:16px; color:var(--sub); flex:none; margin-top:2px; transition:transform .15s;}
+.bcase.open .bc-head .chev{transform:rotate(90deg);}
+.bc-main{flex:1; min-width:0;}
+.bc-main b{display:block; font-size:.92rem;}
+.bc-main small{display:block; color:var(--sub); font-size:.78rem; margin-top:1px;}
+.bc-grafts{display:flex; flex-wrap:wrap; gap:4px; margin-top:6px;}
+.bc-grafts span{font-size:.72rem; font-weight:700; background:var(--panel-2); border:1px solid var(--line); border-radius:6px; padding:1px 6px;}
+.bc-side{display:flex; flex-direction:column; align-items:flex-end; gap:4px; flex:none; text-align:right;}
+.bc-side small{color:var(--sub); font-size:.72rem;}
+.pdf-chip{font-size:.66rem; font-weight:800; color:#b42318; border:1px solid currentColor; border-radius:5px; padding:1px 5px; background:none; letter-spacing:.04em;}
+.bc-body{border-top:1px solid var(--line); padding:10px 12px 12px; background:var(--panel);}
+.bc-note{font-size:.82rem; color:var(--sub); margin-bottom:8px;}
+.bc-lines{display:grid; gap:6px;}
+.bc-line{display:flex; align-items:center; gap:10px; margin:0; padding:8px 10px; border:1px solid var(--line); border-radius:10px; background:var(--panel); color:var(--ink); cursor:pointer; font-size:.86rem;}
+.bc-line.cx{opacity:.55;}
+.bc-line input{width:20px; height:20px; flex:none;}
+.bc-nocheck{width:20px; flex:none;}
+.bc-g{flex:1; min-width:0;}
+.bc-g b{font-size:.88rem;}
+.bc-g .qty{font-weight:700; color:var(--sub);}
+.bc-g small{display:block; color:var(--sub); font-size:.74rem;}
+.exp-past{color:var(--danger); font-weight:700;}
+.exp-soon{color:#a15c00; font-weight:700;}
+.bc-bar{display:flex; flex-wrap:wrap; gap:6px; align-items:center; margin-top:10px;}
+.bc-bar button, .bc-tools button, .po-form button{background:var(--panel); border:1px solid var(--line); padding:8px 12px; font-size:.8rem;}
+.bc-bar button.go, .po-form button.go{background:var(--accent); border-color:var(--accent); color:#fff;}
+.bc-bar button.warn, .bc-tools button.warn{color:var(--danger); border-color:color-mix(in srgb, var(--danger) 40%, var(--line));}
+.bc-bar button.armed, .bc-tools button.armed{background:var(--danger); border-color:var(--danger); color:#fff;}
+.bc-bar .bc-all{font-size:.76rem; padding:6px 10px;}
+.bc-tools{display:flex; flex-wrap:wrap; gap:6px; margin-top:10px; padding-top:10px; border-top:1px dashed var(--line);}
+.bc-tools .pdf-open{display:inline-flex; align-items:center; gap:6px; color:#b42318; border-color:color-mix(in srgb, #b42318 35%, var(--line)); max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.bc-tools .pdf-open svg{width:16px; height:16px; flex:none;}
+.bc-link{display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin-top:10px; padding-top:10px; border-top:1px dashed var(--line);}
+.bc-link .link-open{display:inline-flex; align-items:center; gap:6px; max-width:100%; min-width:0; padding:8px 12px; border:1px solid color-mix(in srgb, var(--accent) 40%, var(--line)); border-radius:10px; color:var(--accent); font-size:.8rem; font-weight:600; text-decoration:none; background:var(--panel);}
+.bc-link .link-open span{overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.bc-link .link-open svg{width:16px; height:16px; flex:none;}
+.bc-link form{display:flex; gap:6px; flex:1 1 260px; min-width:0;}
+.bc-link input{flex:1; min-width:0; min-height:36px; padding:6px 10px; font-size:.85rem;}
+.bc-link button{background:var(--panel); border:1px solid var(--line); padding:8px 12px; font-size:.8rem;}
+.bc-link button.go{background:var(--accent); border-color:var(--accent); color:#fff;}
+.bc-link button.warn{color:var(--danger); border-color:color-mix(in srgb, var(--danger) 40%, var(--line));}
+.bc-link button.armed{background:var(--danger); border-color:var(--danger); color:#fff;}
+.link-chip{font-size:.66rem; font-weight:800; color:var(--accent); border:1px solid currentColor; border-radius:5px; padding:1px 5px; background:none; letter-spacing:.04em; text-decoration:none;}
+.bc-photos{margin-top:10px;}
+.bc-thumbs, .ret-thumbs{display:flex; flex-wrap:wrap; gap:6px; margin-top:6px;}
+.bc-thumbs button{padding:0; border:1px solid var(--line); border-radius:8px; overflow:hidden; width:72px; height:72px; background:var(--bg);}
+.bc-thumbs img, .ret-thumbs img{width:72px; height:72px; object-fit:cover; display:block; border-radius:8px;}
+.ps-label{font-size:.72rem; font-weight:700; color:var(--sub); text-transform:uppercase; letter-spacing:.04em;}
+.bc-none{padding:12px 14px; color:var(--sub); font-size:.84rem; border:1px solid var(--line); border-radius:12px; background:var(--panel);}
+.case-locked{background:var(--panel-2); border:1px solid var(--line); border-radius:10px; padding:10px 12px; margin:12px 0 4px;}
+.case-locked b{display:block;} .case-locked small{color:var(--sub);}
+.g-line{margin-bottom:8px;}
+.g-row{display:flex; gap:6px; align-items:flex-start;}
+.g-row .g-search{flex:1; min-width:0;}
+.g-qty-in{width:70px; flex:none; text-align:center;}
+.g-rm{width:40px; min-height:44px; flex:none; background:var(--panel); border:1px solid var(--line); font-size:1.1rem; color:var(--danger);}
+.pk-line{border:1px solid var(--line); border-radius:10px; padding:10px 12px; margin-bottom:8px;}
+.pk-line b{display:block;} .pk-line small{color:var(--sub);}
+.pk-line label{margin-top:8px;}
+.pk-src{max-width:none;}
+.so-box{display:flex; align-items:center; gap:8px; flex-wrap:wrap; padding:0 14px 12px;}
+.so-box input{flex:1; min-width:180px;}
+.so-box button{background:var(--panel); border:1px solid var(--line); padding:8px 12px; font-size:.8rem;}
+.so-box button.go{background:var(--accent); color:#fff; border-color:var(--accent);}
+.so-open{display:inline-flex; align-items:center; gap:6px; padding:8px 12px; border:1px solid color-mix(in srgb, var(--accent) 40%, var(--line)); border-radius:10px; color:var(--accent); font-size:.8rem; font-weight:700; text-decoration:none; background:var(--panel);}
+.so-open svg{width:16px; height:16px;}
+.so-mail{display:inline-flex; align-items:center; padding:8px 12px; border-radius:10px; background:var(--accent); color:#fff; font-size:.8rem; font-weight:700; text-decoration:none;}
+.so-box small{color:var(--sub); font-size:.74rem;}
+.po-form{display:flex; flex-wrap:wrap; gap:6px; align-items:center; padding:0 12px 12px 12px;}
+.po-form input{flex:1 1 180px; width:auto; min-height:38px; padding:7px 10px;}
+.po-num{font-size:.86rem; margin-right:auto;} .po-num small{color:var(--sub);}
+.seg button.active[data-v=no]{background:var(--danger); color:#fff;}
+.seg button.active[data-v=yes]{background:var(--good); color:#fff;}
+@media (max-width:820px){ .bc-side small{display:none;} .po-form{padding:0 12px 12px;} }
+/* Request-sent pop-up */
+.celebrate{position:fixed; inset:0; z-index:120; display:flex; align-items:center; justify-content:center; background:rgba(11,13,18,.35); opacity:0; transition:opacity .2s; cursor:pointer;}
+.celebrate.show{opacity:1;}
+.celebrate img{width:min(72vw, 340px); height:auto; filter:drop-shadow(0 12px 30px rgba(0,0,0,.35)); transform:scale(.6) rotate(-8deg); transition:transform .35s cubic-bezier(.2,1.6,.4,1);}
+.celebrate.show img{transform:scale(1) rotate(0);}
+@media (prefers-reduced-motion:reduce){ .celebrate img{transition:none; transform:none;} }
+/* Team list: each person is a card (name + badge, email, territories, then controls) so it fits on a phone. */
+.member{display:block; padding:12px 14px;}
+.member-top{display:flex; align-items:center; gap:8px; min-width:0;}
+.member-top b{flex:1; min-width:0; font-size:.95rem; overflow-wrap:anywhere;}
+.member-top .badge{flex:none;}
+.member-email{display:block; color:var(--sub); font-size:.8rem; overflow-wrap:anywhere; margin-top:2px;}
+.member .member-terrs{margin-top:6px;}
+.member-actions{display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; align-items:center;}
+.member-actions .role-sel{flex:1 1 170px; min-width:0; width:auto; min-height:40px;}
+.member-actions button{flex:0 0 auto; min-height:40px; padding:8px 14px;}
+.member .member-edit{margin-top:10px; padding-top:10px; border-top:1px dashed var(--line);}
+.member .member-edit .row{flex-wrap:wrap;}
+@media (max-width:480px){ .member-actions .role-sel{flex-basis:100%;} .member-actions button{flex:1 1 0;} }
+</style>
+</head>
+<body>
+
+<section class="gate" id="screen-loading"><div class="gate-card"><div class="brand"><img src="bio-icon-192.png" alt=""><div><small data-agency-name>TurnTray</small><b>Biologics</b></div></div><p id="loading-msg">Loading…</p></div></section>
+<section class="gate" id="screen-signin" hidden><div class="gate-card"><div class="brand"><img src="bio-icon-192.png" alt=""><div><small data-agency-name>TurnTray</small><b>Biologics</b></div></div>
+  <h2>Sign in first</h2><p>Biologics uses the same sign-in as Inventory Requests.</p>
+  <a class="btn-primary" style="display:block; text-align:center; text-decoration:none;" href="index.html?next=bio">Go to sign in</a></div></section>
+<section class="gate" id="screen-noaccess" hidden><div class="gate-card"><div class="brand"><img src="bio-icon-192.png" alt=""><div><small data-agency-name>TurnTray</small><b>Biologics</b></div></div>
+  <h2>No access</h2><p><strong id="noaccess-email"></strong> isn't on a team yet. Ask your agency's admin to add you.</p><a href="index.html">Back to Inventory Requests</a></div></section>
+
+<div id="app" hidden>
+<header class="appbar">
+  <img class="appbar-logo" src="bio-icon-192.png" alt="">
+  <div class="app-menu">
+    <button type="button" class="app-title" id="app-title-btn" aria-haspopup="menu" aria-expanded="false"><span><small data-agency-name>TurnTray</small><span class="t">Biologics</span></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></button>
+    <div class="dd" id="app-dd" role="menu" hidden>
+      <a href="index.html" role="menuitem"><img src="icon-192.png" alt=""><span>Inventory Requests<small>Trays, pulls, deliveries, returns</small></span></a>
+      <a href="bio.html" role="menuitem" class="on" aria-current="page"><img src="bio-icon-64.png" alt=""><span>Biologics<small>Grafts, stock, reorder, usage</small></span></a>
+    </div>
+  </div>
+  <div class="me-menu">
+    <button type="button" class="me-name" id="signed-in-as" title="Account">Signed in</button>
+    <button type="button" class="gear-btn" id="gear-btn" aria-label="Settings" aria-haspopup="menu" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
+    <div class="dd" id="gear-dd" role="menu" hidden>
+      <button type="button" role="menuitem" data-go="account"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4.2-6.5 8-6.5s7 2.5 8 6.5"/></svg><span>Account<small id="gear-account-sub">Your role and sign out</small></span></button>
+      <button type="button" role="menuitem" data-go="team" id="gear-team" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.5 3.4-5.5 6.5-5.5s5.7 2 6.5 5.5"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18 14.8c1.9.7 3.1 2.5 3.5 5.2"/></svg><span>Team<small>Who can sign in and their roles</small></span></button>
+      <button type="button" role="menuitem" id="gear-help" onclick="location.href='index.html#help'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6V14"/><circle cx="12" cy="17.5" r="0.6"/></svg><span>Help &amp; tips<small>How to use both apps</small></span></button>
+    </div>
+  </div>
+</header>
+
+<nav class="tabs" id="tabs">
+  <button data-view="requests" id="tab-requests"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h4"/></svg>Requests</button>
+  <button data-view="add" id="tab-add"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M12 8v8M8 12h8"/></svg>New Request</button>
+  <button data-view="schedule"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>Schedule</button>
+  <button data-view="returns"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-3"/></svg>Returns</button>
+  <button data-view="po"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M8 13h8M8 17h5"/></svg>PO</button>
+  <button data-view="stock" id="tab-stock" class="tab-extra"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8 12 3 3 8v8l9 5 9-5z"/><path d="m3 8 9 5 9-5M12 13v8"/></svg>Stock</button>
+  <button data-view="reorder" id="tab-reorder" class="tab-extra"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h2l2.4 11h11.2L21 7H6.2"/><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/></svg>Reorder</button>
+  <button data-view="usage" id="tab-usage" class="tab-extra"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Usage</button>
+  <button data-view="more" id="tab-more" class="m-only"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg>More</button>
+</nav>
+
+<main>
+  <!-- Requests (inventory team): everything still to pack or out on a case -->
+  <div class="view" id="view-requests">
+    <div class="toolbar">
+      <div class="seg" id="req-status"><button data-s="pack" class="active">To pack</button><button data-s="out">Packed</button><button data-s="all">All open</button></div>
+      <select id="req-territory"><option value="All">All territories</option></select>
+      <input type="search" id="req-search" placeholder="Search biologic, account, surgeon…">
+    </div>
+    <p class="hint">Tap a case to open it. Tick the grafts, then Pack (add the expiration), Used or Returned. Paste a link on a case and it stays with it from request to PO.</p>
+    <div id="req-list"></div>
+    <div class="empty" id="req-empty" hidden>Nothing here.</div>
+  </div>
+
+  <!-- New request -->
+  <div class="view" id="view-add">
+    <div class="form-cols">
+      <section class="panel">
+        <div class="section-head"><h2 id="form-title" style="margin:0;">New biologic request</h2><button type="button" class="linkbtn" id="form-cancel" hidden>Cancel</button></div>
+        <form id="req-form" autocomplete="off">
+          <div id="case-fields">
+            <div class="grid2">
+              <div><label for="f-date">Surgery date</label><input id="f-date" type="date" required></div>
+              <div><label for="f-ampm">AM / PM</label><select id="f-ampm"><option value="">—</option><option>AM</option><option>PM</option></select></div>
+            </div>
+            <label for="f-account">Account</label>
+            <input id="f-account" list="dl-accounts" placeholder="e.g. STV" autocapitalize="characters" required>
+            <div class="grid2">
+              <div><label for="f-territory">Territory</label><select id="f-territory" required><option value="">Select…</option></select></div>
+              <div><label for="f-surgeon">Surgeon</label><input id="f-surgeon" list="dl-surgeons" placeholder="e.g. A. Herzka"></div>
+            </div>
+            <label for="f-packon">Pack on <span class="opt">(optional, default is the business day before surgery)</span></label><input id="f-packon" type="date">
+          </div>
+          <div class="case-locked" id="case-locked" hidden></div>
+          <label>Biologics</label>
+          <div id="g-lines"></div>
+          <button type="button" class="linkbtn" id="g-add-line">+ Add another biologic</button>
+          <label for="f-notes">Notes</label>
+          <textarea id="f-notes" rows="2"></textarea>
+          <button type="submit" class="btn-primary" id="f-submit">Submit request</button>
+          <div class="status-msg" id="f-msg"></div>
+        </form>
+      </section>
+      <section>
+        <div class="section-head"><h2 style="margin:0;">My requests</h2></div>
+        <div id="mine-list"></div>
+        <div class="empty" id="mine-empty" hidden>You haven't requested any biologics yet.</div>
+      </section>
+    </div>
+  </div>
+
+  <!-- Schedule: every case by surgery date, week by week -->
+  <div class="view" id="view-schedule">
+    <div class="week-nav">
+      <button id="wk-prev" aria-label="Previous week">&larr; Prev</button>
+      <strong id="wk-label"></strong>
+      <button id="wk-next" aria-label="Next week">Next &rarr;</button>
+      <select id="sch-territory"><option value="All">All territories</option></select>
+    </div>
+    <p class="hint">Every biologic case by surgery date. Tap a case to see its grafts.</p>
+    <div id="sch-list"></div>
+  </div>
+
+  <!-- Returns: after surgery, mark what was used and what came back -->
+  <div class="view" id="view-returns">
+    <div class="toolbar"><select id="ret-territory"><option value="All">All territories</option></select></div>
+    <p class="hint">After surgery, open the case, tick what was used and tap <b>Used</b> (LifeNet and JRF grafts move to the PO page; RedSpot doesn't need a PO). Tick what came back and tap <b>Returned</b>.</p>
+    <div id="ret-list"></div>
+    <div class="empty" id="ret-empty" hidden>Nothing waiting to be used or returned.</div>
+  </div>
+
+  <!-- PO: used grafts, rep adds the PO, admin closes -->
+  <div class="view" id="view-po">
+    <div class="toolbar">
+      <div class="seg" id="po-status"><button data-s="need" class="active">Needs PO</button><button data-s="ready">Ready to close</button><button data-s="closed">Closed</button></div>
+      <select id="po-territory"><option value="All">All territories</option></select>
+      <input type="search" id="po-search" placeholder="Search biologic, account, surgeon, PO…">
+    </div>
+    <p class="hint" id="po-hint"></p>
+    <div id="po-list"></div>
+    <div class="empty" id="po-empty" hidden>Nothing here.</div>
+  </div>
+
+  <!-- Stock -->
+  <div class="view" id="view-stock">
+    <section class="panel">
+      <div class="section-head"><h2>Add or update a biologic</h2></div>
+      <form id="stock-form" class="inv-add" autocomplete="off">
+        <input id="s-ref" placeholder="Reference (e.g. ABS-1010-BC)" autocapitalize="characters" required>
+        <input id="s-qty" type="number" inputmode="numeric" min="0" step="1" placeholder="Qty">
+        <button type="submit">Save</button>
+        <details class="bio-more"><summary>Description, graft type and target</summary>
+          <div class="bio-more-grid">
+            <div><label for="s-desc">Description</label><input id="s-desc" placeholder="BIOCARTILAGE 1CC"></div>
+            <div><label for="s-type">Graft type (if sized)</label><input id="s-type" placeholder="e.g. FQL" autocapitalize="characters"></div>
+            <div><label for="s-target">Target</label><input id="s-target" type="number" inputmode="numeric" min="0" step="1" placeholder="—"></div>
+          </div>
+        </details>
+      </form>
+      <div class="status-msg" id="s-msg"></div>
+    </section>
+    <div class="section-head" style="margin-top:18px;"><h2>In stock</h2><span class="hint" id="stock-count" style="margin:0;"></span></div>
+    <p class="hint">On hand is what's on the shelf or in the freezer. Reserved is what open cases are holding. Available is on hand minus reserved, compared against your target (par).</p>
+    <div class="toolbar">
+      <input type="search" id="stock-search" placeholder="Search reference or description…">
+      <label class="chip" style="font-size:.78rem; padding:6px 10px;"><input type="checkbox" id="stock-below"> Below target only</label>
+    </div>
+    <div class="inv-list" id="stock-list"></div>
+    <div class="empty" id="stock-empty" hidden>No biologics yet. Add one above.</div>
+  </div>
+
+  <!-- Reorder -->
+  <div class="view" id="view-reorder">
+    <div class="section-head"><h2 style="margin:0;">To order</h2></div>
+    <p class="hint">Everything where available stock is below target, plus anything open cases are short on.</p>
+    <div class="b-wrap"><table class="b-table" id="order-table"></table></div>
+    <div class="empty" id="order-empty" hidden>Everything is at or above target.</div>
+    <div class="section-head" style="margin-top:22px;"><h2 style="margin:0;">Notes &amp; items of concern</h2></div>
+    <form id="note-form" class="toolbar" autocomplete="off">
+      <select id="n-kind" style="flex:0 0 150px;"><option value="concern">Item of concern</option><option value="order">Order note</option></select>
+      <input id="n-ref" list="dl-grafts" placeholder="Reference" autocapitalize="characters" style="flex:0 1 160px;">
+      <input id="n-text" placeholder="What's going on (e.g. left out at room temp)" style="flex:1 1 220px;" required>
+      <input id="n-link" placeholder="Link (optional)" style="flex:1 1 180px;">
+      <button type="submit" class="btn-primary" style="width:auto; margin:0; padding:10px 16px;">Add</button>
+    </form>
+    <div id="note-list"></div>
+    <div class="empty" id="note-empty" hidden>Nothing flagged.</div>
+  </div>
+
+  <!-- Usage -->
+  <div class="view" id="view-usage">
+    <div class="toolbar">
+      <select id="u-range"><option value="30">Last 30 days</option><option value="90">Last 90 days</option><option value="365">Last 12 months</option><option value="all">All time</option></select>
+      <select id="u-territory"><option value="All">All territories</option></select>
+      <input type="search" id="u-search" placeholder="Search biologic, account, surgeon…">
+      <button type="button" class="btn-secondary" id="u-export" style="width:auto; margin:0;">Download CSV</button>
+    </div>
+    <div class="totals" id="u-totals"></div>
+    <div class="b-wrap"><table class="b-table" id="u-table"></table></div>
+    <div class="empty" id="u-empty" hidden>No biologics used in this range.</div>
+  </div>
+
+  <!-- More (phones) -->
+  <div class="view" id="view-more">
+    <div class="more-list">
+      <button data-go="stock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8 12 3 3 8v8l9 5 9-5z"/><path d="m3 8 9 5 9-5M12 13v8"/></svg><span>Stock<small>On hand, reserved and targets</small></span></button>
+      <button data-go="reorder"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h2l2.4 11h11.2L21 7H6.2"/><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/></svg><span>Reorder<small>Below target and items of concern</small></span></button>
+      <button data-go="usage"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><span>Usage<small>What was used, by date</small></span></button>
+    </div>
+  </div>
+
+  <!-- Account & Team (from the gear menu) -->
+  <div class="view" id="view-account">
+    <section class="panel narrow">
+      <div class="section-head"><h2>Your account</h2></div>
+      <dl class="kv"><dt>Name</dt><dd id="acct-name"></dd><dt>Email</dt><dd id="acct-email"></dd><dt>Role</dt><dd id="acct-role-text"></dd><dt>Access</dt><dd id="acct-access"></dd><dt>Territories</dt><dd id="acct-terrs"></dd></dl>
+      <p class="hint" style="margin-top:8px;">An admin sets your role under ⚙ → Team. Sales Reps request biologics, see the schedule, mark grafts used or returned and add POs. Inventory and Product Managers also pack, and see Stock, Reorder and Usage.</p>
+      <button type="button" class="danger-btn" id="sign-out">Sign out</button>
+    </section>
+  </div>
+  <div class="view" id="view-team">
+    <section class="panel narrow">
+      <div class="section-head"><h2>Add someone</h2></div>
+      <p class="hint">Only people on this list can sign in, to both Inventory Requests and Biologics. They must use this exact email, with Google or with an email and password.</p>
+      <form id="team-form" class="team-add">
+        <input id="team-email" class="full" type="email" inputmode="email" autocapitalize="off" autocomplete="off" placeholder="name@example.com" required>
+        <input id="team-name" placeholder="Name (optional)" autocomplete="off">
+        <select id="team-role" aria-label="Role"><option value="rep">Sales Rep</option><option value="inventory">Inventory Manager</option><option value="product">Product Manager</option></select>
+        <label class="check full"><input type="checkbox" id="team-admin"> Admin (can manage the team and roles)</label>
+        <div class="full"><label style="margin-top:4px;">Territories <span class="opt">(pick one or more)</span></label><div class="terr-picks" id="team-terrs"></div></div>
+        <button type="submit" class="full">Add to team</button>
+      </form>
+      <div class="status-msg" id="team-msg"></div>
+    </section>
+    <div class="section-head narrow" style="margin-top:18px;"><h2>Team</h2><span class="hint" id="team-count" style="margin:0;"></span></div>
+    <div class="narrow" id="team-list"></div>
+  </div>
+</main>
+</div>
+
+<!-- Pack: expiration for each graft -->
+<div class="modal-overlay" id="pack-sheet" hidden>
+  <form class="sheet-card" id="pack-form" autocomplete="off">
+    <div class="section-head"><h2 style="margin:0;">Pack</h2><button type="button" class="linkbtn" data-close>Cancel</button></div>
+    <p class="hint" id="pack-sub"></p>
+    <div id="pack-lines"></div>
+    <button type="submit" class="btn-primary">Mark packed</button>
+  </form>
+</div>
+<!-- Used: pick sizes where the request was for "any size" -->
+<div class="modal-overlay" id="used-sheet" hidden>
+  <form class="sheet-card" id="used-form" autocomplete="off">
+    <div class="section-head"><h2 style="margin:0;">Mark used</h2><button type="button" class="linkbtn" data-close>Cancel</button></div>
+    <p class="hint">These come off stock. LifeNet and JRF grafts move to the PO page; RedSpot grafts don't need a PO.</p>
+    <div id="used-lines"></div>
+    <button type="submit" class="btn-primary">Mark used</button>
+  </form>
+</div>
+<!-- Returned: back on the shelf/freezer? + optional photo -->
+<div class="modal-overlay" id="ret-sheet" hidden>
+  <form class="sheet-card" id="ret-form" autocomplete="off">
+    <div class="section-head"><h2 style="margin:0;">Returned</h2><button type="button" class="linkbtn" data-close>Cancel</button></div>
+    <p class="hint" id="ret-sub"></p>
+    <label style="margin-top:4px;">Returned to shelf/freezer?</label>
+    <div class="seg" id="ret-shelf" style="display:flex;"><button type="button" data-v="yes" style="flex:1;">Yes</button><button type="button" data-v="no" style="flex:1;">No</button></div>
+    <p class="hint" id="ret-shelf-hint" style="margin:6px 0 0;"></p>
+    <label>Photo <span class="opt">(optional)</span></label>
+    <input type="file" id="ret-photo" accept="image/*" capture="environment" multiple>
+    <div class="ret-thumbs" id="ret-thumbs"></div>
+    <button type="submit" class="btn-primary" id="ret-submit">Mark returned</button>
+  </form>
+</div>
+<!-- Photo viewer -->
+<div class="viewer" id="photo-viewer" hidden><img id="pv-img" alt="Return photo"><div class="pv-bar"><span id="pv-meta"></span><button type="button" id="pv-close">Close</button></div></div>
+<input type="file" id="pdf-input" accept="application/pdf" hidden>
+
+<datalist id="dl-grafts"></datalist>
+<datalist id="dl-accounts"></datalist>
+<datalist id="dl-surgeons"></datalist>
+<div class="toast" id="toast" hidden></div>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="agency.js"></script>
+<script>
+const OWNER_EMAIL = TT.OWNER_EMAIL;
+/* This agency's accounts (code, name, territory), from its agency record. Filled in at sign-in. */
+let ACCOUNTS = [];
+const TERR_CANON = new Map();
+const canonTerr = s => TERR_CANON.get(String(s||'').toLowerCase()) || s || '';
+const accMap = new Map();
+let TERRITORIES = [];
+function setAccounts(rows){
+  ACCOUNTS = rows; TERR_CANON.clear(); accMap.clear();
+  ACCOUNTS.forEach(a=>{ const k=(a[2]||'').toLowerCase(); if(a[2] && (!TERR_CANON.has(k) || /[a-z]/.test(a[2]))) TERR_CANON.set(k, a[2]); });
+  ACCOUNTS.forEach(([c,n,t])=>accMap.set(c.toUpperCase(), {name:n, territory:canonTerr(t)}));
+  TERRITORIES = [...new Set(ACCOUNTS.map(a=>canonTerr(a[2])).filter(Boolean))].sort();
+}
+const $ = (s,r)=> (r||document).querySelector(s);
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+let toastTimer;
+function toast(msg){ const t=$('#toast'); t.textContent=msg; t.hidden=false; clearTimeout(toastTimer); toastTimer=setTimeout(()=>{t.hidden=true;}, 3500); }
+function fmtDate(iso){
+  if(!iso) return '';
+  const d = new Date(iso+'T00:00:00');
+  if(isNaN(d)) return iso;
+  return d.toLocaleDateString(undefined,{weekday:'short', month:'short', day:'numeric'});
+}
+
+function addBizDays(iso, n){
+  const d = new Date(iso+'T00:00:00'); if(isNaN(d)) return iso;
+  const step = n<0 ? -1 : 1; let k = Math.abs(n);
+  while(k>0){ d.setDate(d.getDate()+step); const w=d.getDay(); if(w!==0 && w!==6) k--; }
+  return isoDate(d);
+}
+function isoDate(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+function normName(s){ return String(s||'').trim().toLowerCase().replace(/^dr\.?\s+/,''); }
+function todayIso(){ return isoDate(new Date()); }
+
+/* ================= State ================= */
+let auth=null, db=null, adb=null, agency=null, me=null, myRole='rep';
+let stock = [];        // {id, ref, type, desc, qty, target}
+let bioReqs = [];      // one doc per graft line; lines of one case share caseId
+let notes = [];        // reorder notes / items of concern
+let usersMap = {}, membersList = [];
+let surgeonNames = [];
+const ROLES = ['rep','inventory','product'];
+const isManager = ()=> myRole==='inventory' || myRole==='product';
+const refKey = ref => String(ref||'').trim().toUpperCase();
+const docIdFor = ref => refKey(ref).replace(/\//g,'∕').slice(0,200) || 'BLANK';
+function roleLabel(r){ return r==='inventory' ? 'Inventory Manager' : (r==='product' ? 'Product Manager' : 'Sales Rep'); }
+function withArticle(label){ return (/^[AEIOU]/i.test(label) ? 'an ' : 'a ') + label; }
+function myTerrs(){ return (me && me.territories || []).map(canonTerr).filter(t=>TERRITORIES.includes(t)); }
+
+/* ================= Screens & sign-in ================= */
+function showScreen(name){
+  ['loading','signin','noaccess'].forEach(s=>{ $('#screen-'+s).hidden = s!==name; });
+  $('#app').hidden = name!=='app';
+}
+async function boot(){
+  const cfg = window.FIREBASE_CONFIG;
+  if(!cfg){ $('#loading-msg').textContent = 'This app isn’t connected to its Firebase project yet.'; return; }
+  firebase.initializeApp(cfg);
+  auth = firebase.auth(); db = firebase.firestore();
+  auth.onAuthStateChanged(handleUser);
+}
+let unsubs = [];
+async function handleUser(user){
+  unsubs.forEach(u=>{ try{u();}catch(e){} }); unsubs = [];
+  if(!user){ showScreen('signin'); return; }
+  const email = (user.email||'').toLowerCase();
+  const isOwner = TT.isOwnerEmail(email);
+  const where = await TT.resolve(db, user);
+  // Not in an approved agency yet: Inventory Requests explains why and handles signing up.
+  if(where.state!=='active'){ if(where.state==='none'){ $('#noaccess-email').textContent = user.email; showScreen('noaccess'); } else location.replace('index.html'); return; }
+  agency = where.agency; adb = TT.scoped(db, where.agencyId); TT.brand(agency); setAccounts(TT.accountsOf(agency));
+  const member = where.member;
+  let selfRole = null;
+  try{ const u = await adb.doc('users/'+user.uid).get(); if(u.exists) selfRole = u.data().role || null; }catch(e){}
+  myRole = (member && ROLES.includes(member.role)) ? member.role : ((selfRole==='rep'||selfRole==='inventory') ? selfRole : (isOwner ? 'inventory' : 'rep'));
+  me = { uid:user.uid, email, isOwner, name: user.displayName || (member && member.name) || email.split('@')[0], isAdmin: isOwner || !!(member && member.admin),
+         territories: (member && Array.isArray(member.territories)) ? member.territories.map(canonTerr) : [] };
+  enterApp();
+}
+let started = false;
+function enterApp(){
+  showScreen('app');
+  $('#signed-in-as').textContent = me.name;
+  $('#gear-team').hidden = !me.isAdmin;
+  applyRoleUI();
+  if(!started){
+    started = true;
+    for(const sel of ['#f-territory','#req-territory','#sch-territory','#ret-territory','#po-territory','#u-territory']) TERRITORIES.forEach(t=>{ const o=document.createElement('option'); o.value=t; o.textContent=t; $(sel).appendChild(o); });
+    $('#dl-accounts').innerHTML = ACCOUNTS.map(a=>`<option value="${escapeHtml(a[0])}">${escapeHtml(a[1])}</option>`).join('');
+    terrPicker($('#team-terrs'), []);
+  }
+  // Reps start on their own territory; the menus still offer every territory.
+  const mine = myTerrs();
+  if(mine.length) $('#f-territory').value = mine[0];
+  if(myRole==='rep' && mine.length===1) ['#sch-territory','#ret-territory','#po-territory'].forEach(s=>$(s).value = mine[0]);
+  resetForm();
+  const hv = location.hash.replace('#','');
+  showView(['account','team'].includes(hv) ? hv : (isManager() ? 'requests' : 'add'));
+  if(hv) history.replaceState(null, '', location.pathname + location.search);
+  // ?sync: opened by the hourly Google Sheet sync. Skip the live listeners so it costs only a few reads.
+  if(new URLSearchParams(location.search).has('sync')){ window.syncReady = true; return; }
+  unsubs.push(adb.collection('bioStock').onSnapshot(snap=>{ stock = snap.docs.map(d=>({id:d.id, ...d.data()})); refreshGraftList(); renderAll(); }, listenErr));
+  unsubs.push(adb.collection('bioRequests').onSnapshot(snap=>{ bioReqs = snap.docs.map(d=>({id:d.id, ...d.data()})); refreshSurgeons(); renderAll(); }, listenErr));
+  unsubs.push(adb.collection('users').onSnapshot(snap=>{ usersMap = {}; snap.docs.forEach(d=>{ usersMap[d.id] = d.data(); }); if(activeViewId()==='team') renderTeam(); }, console.error));
+  if(isManager()) unsubs.push(adb.collection('bioNotes').onSnapshot(snap=>{ notes = snap.docs.map(d=>({id:d.id, ...d.data()})); renderAll(); }, listenErr));
+  if(me.isAdmin) unsubs.push(adb.collection('members').onSnapshot(snap=>{ membersList = snap.docs.map(d=>({email:d.id, ...d.data()})); if(activeViewId()==='team') renderTeam(); }, console.error));
+  // Pick up role or territory changes an admin makes while the page is open.
+  unsubs.push(adb.doc('members/'+me.email).onSnapshot(s=>{
+    if(!s.exists) return; const d = s.data();
+    const role = ROLES.includes(d.role) ? d.role : myRole;
+    const tr = Array.isArray(d.territories) ? d.territories.map(canonTerr) : [];
+    if(role!==myRole || JSON.stringify(tr)!==JSON.stringify(me.territories)){ myRole = role; me.territories = tr; me.isAdmin = me.isOwner || !!d.admin; $('#gear-team').hidden = !me.isAdmin; applyRoleUI(); renderAll(); }
+  }, ()=>{}));
+  // Surgeon names from the tray requests, for autocomplete. Reading every request is costly, so it's done at most once a day per device.
+  let cachedSurg = null;
+  try{ const c = JSON.parse(localStorage.getItem('surgeonNames')||'null'); if(c && Date.now()-c.at < 864e5) cachedSurg = c.names; }catch(e){}
+  if(cachedSurg){ surgeonNames = cachedSurg; refreshSurgeons(); }
+  else adb.collection('requests').get().then(s=>{ surgeonNames = [...new Set(s.docs.map(d=>d.data().surgeon).filter(Boolean))]; refreshSurgeons();
+    try{ localStorage.setItem('surgeonNames', JSON.stringify({at:Date.now(), names:surgeonNames})); }catch(e){} }).catch(()=>{});
+}
+/* ---- Google Sheet sync for biologics (run by the hourly scheduled task on bio.html?sync) ----
+   values = the BIOLOGICS sheet's REQUESTS!L2:T rows exactly as returned. Rows already in the app are remembered in
+   inventory/syncState, so an hour with nothing new costs one read; stock is only loaded when there's something to add. */
+async function runBioSync(SHEET_ROWS){
+  if(!db || !me) throw new Error('turntray is not signed in');
+  const pad = n=>String(n).padStart(2,'0');
+  const now = new Date(new Date().toLocaleString('en-US',{timeZone:'America/Los_Angeles'}));
+  const today = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}`;
+  const toIso = s=>{ const m=String(s||'').trim().match(/^(\d{1,2})\/(\d{1,2})(?:\/(\d{2,4}))?$/); if(!m) return '';
+    const mo=+m[1], d=+m[2]; if(mo<1||mo>12||d<1||d>31) return '';
+    let y = m[3] ? (m[3].length===2 ? 2000+ +m[3] : +m[3]) : now.getFullYear();
+    if(!m[3] && mo < now.getMonth()+1-6) y++;
+    if(y<2000||y>2100) return ''; return `${y}-${pad(mo)}-${pad(d)}`; };
+  const hash = s=>{ let h=2166136261; for(const ch of s){ h^=ch.charCodeAt(0); h=Math.imul(h,16777619); } return (h>>>0).toString(36); };
+  const ALIAS = {'LEG GOOD SAM':'LGS','SUNNYBROOK':'KZR SYB','SALEM HOSP':'SAL HOS','GOOD SAM CORV':'GSH','PSC (LONGVIEW)':'PSC',
+    'LEG EMANUEL':'LEH','PROV PDX':'PPMC','WIL FALLS':'PWF','KAISER WEST':'KZR WESTSIDE','SALMON CR':'LSC','LEG MERIDIAN':'MPH',
+    'KAISER SUNNYSIDE':'KZR SUNNYSIDE','KAISER INTERSTATE':'KZR INTERSTATE','ST VINCENT':'STV','PROV ST V':'STV','LEG MT HOOD':'MHMC'};
+  const TERR_ALIAS = {salem:'SLM', corvallis:'CRV', crv:'CRV', slm:'SLM', lab:'LAB'};
+  const stRef = adb.doc('inventory/syncState');
+  const st = (await stRef.get()).data() || {};
+  const known = new Set(st.bioIds || []);
+  const seen = {}, items = [];
+  for(let i=0;i<SHEET_ROWS.length;i++){
+    const r = (SHEET_ROWS[i]||[]).map(x=>String(x==null?'':x).trim());
+    const [rawGraft='', qtyS='', person='', dReq='', dPack='', amp='', terr='', acctRaw='', hcp=''] = r;
+    const date = toIso(dReq);
+    if(!rawGraft || !date || date < today) continue;
+    const base = [rawGraft.toUpperCase(), person.toLowerCase(), date, acctRaw.toUpperCase(), hcp.toLowerCase()].join('|');
+    seen[base] = (seen[base]||0) + 1;
+    items.push({i, rawGraft, qtyS, person, date, dPack, amp, terr, acctRaw, hcp, id:'bsheet_'+hash(base+'#'+seen[base])});
+  }
+  const fresh = items.filter(it=>!known.has(it.id));
+  let added = 0; const newCases = new Set(), addedList = [];
+  if(fresh.length){
+    if(!stock.length) stock = (await adb.collection('bioStock').get()).docs.map(d=>({id:d.id, ...d.data()}));
+    const terrOf = (t, acct)=>{ const a=accMap.get(acct); if(a && a.territory) return a.territory;
+      const k=String(t||'').trim().toLowerCase().replace(/^pdx\s+/,''); return canonTerr(TERR_ALIAS[k] || k); };
+    const graftOf = raw=>{ const tries=[raw, raw.replace(/\s*\[\*\]\s*$/,'')];
+      for(const t of tries){ const s=stockFor(t); if(s) return {graft:s.ref, desc:s.desc||''}; const ty=typeForRef(t); if(ty) return {graft:ty, desc:(rowsOfType(ty)[0]||{}).desc||''}; }
+      return {graft:refKey(raw), desc:''}; };
+    const users = (await adb.collection('users').get()).docs.map(d=>({uid:d.id, ...d.data()}));
+    const personOf = p=>{ const k=String(p||'').trim().toLowerCase(); if(!k) return null;
+      const hits = users.filter(u=>{ const parts=String(u.name||'').trim().toLowerCase().split(/\s+/); return parts[parts.length-1]===k || parts.join(' ')===k; });
+      return hits.length===1 ? hits[0] : null; };
+    const b = db.batch(); const owner = {};
+    for(const it of fresh){
+      if((await adb.doc('bioRequests/'+it.id).get()).exists) continue;
+      const acct = ALIAS[it.acctRaw.toUpperCase()] || it.acctRaw.toUpperCase();
+      const u = personOf(it.person);
+      const caseId = 'bsheet_' + hash([it.date, acct, it.hcp.toLowerCase(), it.person.toLowerCase()].join('|'));
+      const g = graftOf(it.rawGraft);
+      const pulled = /^pulled$/i.test(it.amp);
+      const packOn = toIso(it.dPack);
+      const qty = Math.max(1, parseInt(it.qtyS,10)||1);
+      b.set(adb.doc('bioRequests/'+it.id), {...g, qty, caseId, dateNeeded:it.date, packOn: packOn && packOn<=it.date ? packOn : '',
+        ampm: /^(AM|PM)$/i.test(it.amp) ? it.amp.toUpperCase() : '', account:acct, territory:terrOf(it.terr, acct), surgeon:it.hcp, notes:'',
+        status: pulled ? 'pulled' : 'requested', person: u ? (u.name||it.person) : it.person, requestedById: me.uid, importedById: me.uid,
+        createdAt: Date.now()+added, fromSheet:true, sheetRow:it.i+2, sheetGraft:it.rawGraft,
+        ...(pulled ? {pulledAt:Date.now(), pulledByName:'Google Sheet', lot:'', expiresAt:''} : {})});
+      owner[it.id] = u ? u.uid : '';
+      newCases.add(caseId); added++; addedList.push(qty+'× '+g.graft+' · '+acct+' · '+it.date);
+    }
+    if(added){ await b.commit();
+      const b2 = db.batch(); let moved=0;
+      for(const [id, uid] of Object.entries(owner)){ if(uid !== me.uid){ b2.update(adb.doc('bioRequests/'+id), {requestedById: uid}); moved++; } }
+      if(moved) await b2.commit(); }
+  }
+  await stRef.set({bioIds: items.map(i=>i.id), bioAt: Date.now()}, {merge:true});
+  return {upcomingRows: items.length, newRows: fresh.length, added, newCases: newCases.size, addedList};
+}
+window.runBioSync = runBioSync;
+function listenErr(err){
+  console.error(err);
+  if(err && err.code==='permission-denied') toast('Biologics isn’t turned on yet. An admin needs to publish the latest security rules in Firebase.');
+}
+$('#sign-out').addEventListener('click', ()=>{ unsubs.forEach(u=>{ try{u();}catch(e){} }); unsubs=[]; auth.signOut().then(()=>{ location.href='index.html'; }); });
+$('#signed-in-as').addEventListener('click', ()=>showView('account'));
+document.querySelectorAll('#gear-dd [data-go]').forEach(b=>b.addEventListener('click', ()=>showView(b.dataset.go)));
+
+/* ================= Stock math ================= */
+const OPEN = s => s==='requested' || s==='pulled';
+// A graft is spoken for while it's requested, packed, or back but not yet on the shelf/freezer.
+const HOLDS = r => OPEN(r.status) || (r.status==='returned' && r.onShelf===false);
+/* Grafts can be stocked by size (e.g. "FQL [10 x 63 mm]") under one graft type ("FQL").
+   The target (par) belongs to the type; on-hand is counted per size and added up per type. */
+function stockFor(ref){ return stock.find(s=>refKey(s.ref)===refKey(ref)); }
+function typeOf(s){ return refKey(s.type || s.ref); }
+function allTypes(){ return [...new Set(stock.map(typeOf))]; }
+function rowsOfType(t){ return stock.filter(s=>typeOf(s)===refKey(t)); }
+function typeForRef(ref){ const s=stockFor(ref); if(s) return typeOf(s); const k=refKey(ref); return allTypes().includes(k) ? k : null; }
+function targetOfType(t){ const r=rowsOfType(t).find(s=>typeof s.target==='number'); return r ? r.target : null; }
+function onHandOfType(t){ return rowsOfType(t).reduce((n,s)=>n+(+s.qty||0),0); }
+function reservedFor(ref, excludeIds){ const ex = new Set(excludeIds||[]); return bioReqs.filter(r=>HOLDS(r) && !ex.has(r.id) && refKey(r.graft)===refKey(ref)).reduce((n,r)=>n+(+r.qty||0),0); }
+function reservedOfType(t, excludeIds){ const ex = new Set(excludeIds||[]); return bioReqs.filter(r=>HOLDS(r) && !ex.has(r.id) && typeForRef(r.graft)===refKey(t)).reduce((n,r)=>n+(+r.qty||0),0); }
+function availableOfType(t, excludeIds){ return onHandOfType(t) - reservedOfType(t, excludeIds); }
+function refreshGraftList(){
+  $('#dl-grafts').innerHTML = stock.slice().sort((a,b)=>refKey(a.ref).localeCompare(refKey(b.ref))).map(s=>`<option value="${escapeHtml(s.ref)}">${escapeHtml(s.desc||'')}</option>`).join('');
+}
+function refreshSurgeons(){
+  const names = [...new Set(bioReqs.map(r=>r.surgeon).concat(surgeonNames).map(s=>String(s||'').trim()).filter(Boolean))].sort();
+  $('#dl-surgeons').innerHTML = names.map(n=>`<option value="${escapeHtml(n)}">`).join('');
+}
+
+/* ================= Navigation ================= */
+const MANAGER_ONLY = ['requests','stock','reorder','usage','more'];
+function applyRoleUI(){
+  const mgr = isManager();
+  ['#tab-requests','#tab-stock','#tab-reorder','#tab-usage','#tab-more'].forEach(s=>{ $(s).hidden = !mgr; });
+  $('#tabs').style.setProperty('--ncol', [...document.querySelectorAll('nav.tabs button')].filter(b=>!b.hidden && !b.classList.contains('tab-extra')).length);
+  if(MANAGER_ONLY.includes(activeViewId()) && !mgr) showView('add');
+}
+function activeViewId(){ const v=document.querySelector('.view.active'); return v ? v.id.replace('view-','') : ''; }
+function showView(view){
+  if(MANAGER_ONLY.includes(view) && !isManager()) view = 'add';
+  if(view==='team' && !(me && me.isAdmin)) view = 'account';
+  document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active', v.id==='view-'+view));
+  const mobile = matchMedia('(max-width:820px)').matches;
+  document.querySelectorAll('nav.tabs button').forEach(b=>b.classList.toggle('active', b.dataset.view===view || (b.dataset.view==='more' && mobile && ['stock','reorder','usage'].includes(view))));
+  renderAll(); window.scrollTo(0,0);
+}
+document.querySelectorAll('nav.tabs button').forEach(b=>b.addEventListener('click', ()=>showView(b.dataset.view)));
+document.querySelectorAll('.more-list [data-go]').forEach(b=>b.addEventListener('click', ()=>showView(b.dataset.go)));
+// Don't redraw under someone typing a link; catch up once they leave the box.
+let linkRenderPending = false;
+document.addEventListener('focusout', e=>{ if(linkRenderPending && e.target.closest && e.target.closest('.bc-link')) setTimeout(()=>{ if(linkRenderPending){ const ae=document.activeElement; if(!(ae && ae.closest && ae.closest('.bc-link') && ae.tagName==='INPUT')){ linkRenderPending=false; renderAll(); } } }, 250); });
+function renderAll(){
+  if(!me) return;
+  const ae = document.activeElement;
+  if(ae && ae.tagName==='INPUT' && ae.closest && ae.closest('.bc-link')){ linkRenderPending = true; return; }
+  const v = activeViewId();
+  if(v==='requests') renderRequests();
+  if(v==='add'){ renderMine(); refreshAllAvail(); }
+  if(v==='schedule') renderSchedule();
+  if(v==='returns') renderReturns();
+  if(v==='po') renderPO();
+  if(v==='stock') renderStock();
+  if(v==='reorder') renderReorder();
+  if(v==='usage') renderUsage();
+  if(v==='account') renderAccount();
+  if(v==='team') renderTeam();
+}
+
+/* ================= Cases ================= */
+/* One request (case) can hold several grafts. Each graft is its own line so it can be packed,
+   used or returned on its own; the case keeps one PDF and one PO. */
+const ST_LABEL = {requested:'Requested', pulled:'Packed', used:'Used', returned:'Returned', cancelled:'Cancelled'};
+const caseIdOf = r => r.caseId || r.id;
+function packOnFor(c){ return c.packOn || (c.date ? addBizDays(c.date, -1) : ''); }
+function groupCases(lines){
+  const m = new Map();
+  lines.forEach(r=>{
+    const k = caseIdOf(r);
+    if(!m.has(k)) m.set(k, {id:k, date:r.dateNeeded||'', account:r.account||'', surgeon:r.surgeon||'', territory:canonTerr(r.territory)||'', ampm:r.ampm||'', packOn:r.packOn||'', person:r.person||'', requestedById:r.requestedById||'', notes:r.notes||'', lines:[]});
+    m.get(k).lines.push(r);
+  });
+  for(const c of m.values()){
+    c.lines.sort((a,b)=>(a.createdAt||0)-(b.createdAt||0) || refKey(a.graft).localeCompare(refKey(b.graft)));
+    const f = c.lines.find(l=>l.pdfName); c.pdfName = f ? f.pdfName : ''; c.pdfByName = f ? f.pdfByName : '';
+    const lk = c.lines.find(l=>l.link); c.link = lk ? lk.link : ''; c.linkByName = lk ? (lk.linkByName||'') : '';
+    const p = c.lines.find(l=>l.poNumber); c.poNumber = p ? p.poNumber : '';
+  }
+  return [...m.values()];
+}
+function linesOfCase(id){ return bioReqs.filter(r=>caseIdOf(r)===id); }
+function caseMatches(c, q){ return !q || [c.account, (accMap.get(refKey(c.account))||{}).name, c.surgeon, c.person, c.notes, c.poNumber, ...c.lines.flatMap(l=>[l.graft, l.desc, l.lot, l.usedRef, l.poNumber, l.salesOrder])].join(' ').toLowerCase().includes(q); }
+function expClass(iso){ if(!iso) return ''; const days = (new Date(iso+'T00:00:00') - new Date(todayIso()+'T00:00:00'))/86400000; return days < 0 ? 'exp-past' : (days <= 7 ? 'exp-soon' : ''); }
+function fmtShort(iso){ if(!iso) return ''; const d=new Date(iso+'T00:00:00'); return isNaN(d) ? iso : d.toLocaleDateString(undefined,{month:'short', day:'numeric', year: d.getFullYear()!==new Date().getFullYear() ? 'numeric' : undefined}); }
+function caseStatus(c){
+  const live = c.lines.filter(l=>l.status!=='cancelled');
+  if(!live.length) return {cls:'cancelled', text:'Cancelled'};
+  if(live.some(l=>l.status==='returned' && l.onShelf===false)) return {cls:'pulled', text:'Not on shelf yet'};
+  if(live.every(l=>l.status==='used' || l.status==='returned')) return live.some(l=>l.status==='used') ? {cls:'used', text:'Done'} : {cls:'returned', text:'Returned'};
+  if(live.some(l=>l.status==='requested')) return live.some(l=>l.status!=='requested') ? {cls:'pulled', text:'Partly packed'} : {cls:'requested', text:'Requested'};
+  return {cls:'pulled', text:'Packed'};
+}
+const openCases = new Set();          // which cases are expanded
+const picked = new Map();             // caseId -> Set of selected line ids
+const photoCache = new Map();         // caseId -> [{data, authorName, at}]
+function pickSet(id){ if(!picked.has(id)) picked.set(id, new Set()); return picked.get(id); }
+
+/* A case card: tap to open; inside, tick grafts and act on them. Used everywhere (Requests, Schedule, Returns, My requests). */
+function buildCase(c, opts){
+  opts = opts || {};
+  const el = document.createElement('div'); el.className='bcase';
+  const st = caseStatus(c), isOpen = openCases.has(c.id) || opts.alwaysOpen;
+  const live = c.lines.filter(l=>l.status!=='cancelled');
+  const n = live.reduce((k,l)=>k+(+l.qty||0),0);
+  const done = live.filter(l=>l.status==='used' || (l.status==='returned' && l.onShelf!==false)).length;
+  el.classList.toggle('open', isOpen);
+  el.classList.toggle('st-prog', st.cls==='pulled');
+  el.classList.toggle('st-done', st.cls==='used' || st.cls==='returned');
+  el.innerHTML = `<div class="bc-head" role="button" tabindex="0" aria-expanded="${isOpen}">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>
+      <div class="bc-main"><b>${escapeHtml([c.account||'—', c.surgeon].filter(Boolean).join(' · '))}</b>
+        <small>${escapeHtml([opts.showDate===false ? '' : 'Surgery '+fmtDate(c.date)+(c.ampm?' '+c.ampm:''), 'pack '+fmtShort(packOnFor(c)), c.territory, c.person].filter(Boolean).join(' · '))}</small>
+        <div class="bc-grafts">${live.slice(0,4).map(l=>`<span>${escapeHtml(l.usedRef||l.graft)}${+l.qty>1?' ×'+l.qty:''}</span>`).join('')}${live.length>4?`<span>+${live.length-4} more</span>`:''}</div></div>
+      <div class="bc-side">${c.link?'<span class="link-chip" title="Link attached">LINK</span>':''}${c.pdfName?'<span class="pdf-chip" title="PDF attached">PDF</span>':''}<span class="st ${st.cls}">${st.text}</span><small>${done}/${live.length} done · ${n} graft${n===1?'':'s'}</small></div>
+    </div>`;
+  const head = el.querySelector('.bc-head');
+  const toggle = ()=>{ openCases.has(c.id) ? openCases.delete(c.id) : openCases.add(c.id); renderAll(); };
+  if(!opts.alwaysOpen){ head.addEventListener('click', toggle); head.addEventListener('keydown', e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); toggle(); } }); }
+  if(isOpen) el.appendChild(caseBody(c, opts));
+  return el;
+}
+function caseBody(c, opts){
+  const box = document.createElement('div'); box.className='bc-body';
+  const sel = pickSet(c.id);
+  // Drop selections for lines that changed state or vanished.
+  [...sel].forEach(id=>{ if(!c.lines.some(l=>l.id===id)) sel.delete(id); });
+  const mgr = isManager();
+  const mineCase = c.requestedById===me.uid;
+  const actionable = l => l.status==='requested' || l.status==='pulled' || (mgr && (l.status==='used' || l.status==='returned'));
+  if(c.notes) box.insertAdjacentHTML('beforeend', `<div class="bc-note">${escapeHtml(c.notes)}</div>`);
+  const list = document.createElement('div'); list.className='bc-lines';
+  c.lines.forEach(l=>{
+    const row = document.createElement('label'); row.className='bc-line' + (l.status==='cancelled'?' cx':'');
+    const s = stockFor(l.usedRef||l.graft);
+    const desc = l.desc || (s && s.desc) || '';
+    const avail = OPEN(l.status) ? availableOfType(typeForRef(l.graft)||'') : null;
+    const meta = [
+      l.source ? escapeHtml(l.source) + (l.status==='used' && !needsPO(l) ? ' · no PO needed' : '') : '',
+      l.lot ? 'Lot '+escapeHtml(l.lot) : '',
+      l.expiresAt ? `<span class="${expClass(l.expiresAt)}">Exp ${escapeHtml(fmtShort(l.expiresAt))}</span>` : '',
+      l.status==='used' && l.poNumber ? 'PO '+escapeHtml(l.poNumber) : '',
+      l.status==='returned' ? (l.onShelf===false ? '<span class="exp-soon">Not on shelf yet</span>' : 'On shelf') : '',
+      (l.status==='requested' && typeForRef(l.graft)!==null && avail<0) ? '<span class="exp-past">Not enough in stock</span>' : (l.status==='requested' && typeForRef(l.graft)===null ? '<span class="exp-past">Not in stock list</span>' : '')
+    ].filter(Boolean).join(' · ');
+    row.innerHTML = `${actionable(l) ? `<input type="checkbox" ${sel.has(l.id)?'checked':''} aria-label="Select ${escapeHtml(l.graft)}">` : '<span class="bc-nocheck"></span>'}
+      <span class="bc-g"><b>${escapeHtml(l.usedRef||l.graft)}</b>${+l.qty>1?` <span class="qty">×${+l.qty}</span>`:''}<small>${escapeHtml(desc)}</small>${meta?`<small>${meta}</small>`:''}</span>
+      <span class="st ${l.status}">${ST_LABEL[l.status]||l.status}</span>`;
+    const cb = row.querySelector('input');
+    if(cb) cb.addEventListener('change', ()=>{ cb.checked ? sel.add(l.id) : sel.delete(l.id); updateBar(); });
+    list.appendChild(row);
+  });
+  box.appendChild(list);
+  // Action bar for the ticked grafts.
+  const bar = document.createElement('div'); bar.className='bc-bar';
+  const selected = ()=>c.lines.filter(l=>sel.has(l.id));
+  const fitsFor = show => l => show.split(',').includes(l.status) || (show.includes('notshelf') && l.status==='returned' && l.onShelf===false);
+  // Each button acts on the ticked grafts it applies to (e.g. Returned skips ones already used).
+  const btn = (label, cls, fn, show)=>{ const b=document.createElement('button'); b.type='button'; b.textContent=label; if(cls) b.className=cls; b.onclick=()=>fn(selected().filter(fitsFor(show)), b); b.dataset.show=show; bar.appendChild(b); return b; };
+  const openish = l => OPEN(l.status) || (l.status==='returned' && l.onShelf===false);
+  const allBox = document.createElement('label'); allBox.className='chip bc-all'; allBox.innerHTML='<input type="checkbox"> All'; bar.appendChild(allBox);
+  // "All" ticks the grafts still in play; used/returned ones can still be ticked one by one (to undo).
+  const allTargets = ()=>{ const o=c.lines.filter(openish); return o.length ? o : c.lines.filter(actionable); };
+  allBox.querySelector('input').addEventListener('change', e=>{ if(e.target.checked) allTargets().forEach(l=>sel.add(l.id)); else c.lines.forEach(l=>sel.delete(l.id)); renderAll(); });
+  if(mgr) btn('Pack','go', packLines, 'requested');
+  btn('Used','go', usedLines, 'requested,pulled');
+  btn('Returned','', returnLines, 'pulled');
+  if(mgr) btn('Put away','', putAway, 'notshelf');
+  if(mgr || mineCase) applyArm(btn('Cancel','warn', cancelLines, 'requested,pulled'), 'bx|'+c.id);
+  if(mgr) btn('Undo','', undoLines, 'used,returned');
+  function updateBar(){
+    const s = selected();
+    bar.querySelectorAll('button[data-show]').forEach(b=>{
+      const fits = fitsFor(b.dataset.show);
+      b.disabled = !s.some(fits);
+      b.hidden = !c.lines.some(fits);
+    });
+    allBox.querySelector('input').checked = allTargets().length>0 && allTargets().every(l=>sel.has(l.id));
+    allBox.hidden = allTargets().length < 2;
+    bar.hidden = !c.lines.some(actionable);
+  }
+  box.appendChild(bar); updateBar();
+  // Case tools: PDF, photos, add more grafts, edit.
+  const tools = document.createElement('div'); tools.className='bc-tools';
+  if(c.pdfName){ const a=document.createElement('button'); a.type='button'; a.className='pdf-open'; a.innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6"/></svg>${escapeHtml(c.pdfName)}`; a.onclick=()=>openPdf(c); tools.appendChild(a); }
+  // Older cases may still have a PDF; admins can remove it. New attachments are links (below).
+  if(me.isAdmin && c.pdfName){ const r=document.createElement('button'); r.type='button'; r.className='warn'; r.textContent='Remove PDF'; r.onclick=()=>removePdf(c, r); applyArm(r, 'pdf|'+c.id); tools.appendChild(r); }
+  if(c.lines.some(l=>l.status!=='cancelled') && (mgr || mineCase)){
+    const add=document.createElement('button'); add.type='button'; add.textContent='+ Add biologics'; add.onclick=()=>startAddToCase(c); tools.appendChild(add);
+    if(c.lines.some(l=>l.status==='requested')){ const ed=document.createElement('button'); ed.type='button'; ed.textContent='Edit'; ed.onclick=()=>startEditCase(c); tools.appendChild(ed); }
+    const openLines = c.lines.filter(l=>OPEN(l.status));
+    if(openLines.length){ const cx=document.createElement('button'); cx.type='button'; cx.className='warn'; cx.textContent='Cancel request'; cx.onclick=()=>confirmTap('cx|'+c.id, cx, ()=>doCancel(openLines), 'Tap again to cancel'); applyArm(cx, 'cx|'+c.id); tools.appendChild(cx); }
+  }
+  box.appendChild(tools);
+  box.appendChild(linkBox(c, mgr || me.isAdmin));
+  // Return photos for this case.
+  const ph = document.createElement('div'); ph.className='bc-photos'; box.appendChild(ph);
+  loadPhotos(c.id, ph);
+  return box;
+}
+function caseList(container, cases, emptyEl, opts){
+  container.innerHTML = '';
+  if(emptyEl) emptyEl.hidden = cases.length>0;
+  cases.forEach(c=>container.appendChild(buildCase(c, opts)));
+}
+function byDateSections(container, cases, emptyEl, dateOf, opts){
+  container.innerHTML = ''; if(emptyEl) emptyEl.hidden = cases.length>0;
+  const m = new Map(); cases.forEach(c=>{ const d=dateOf(c)||''; if(!m.has(d)) m.set(d, []); m.get(d).push(c); });
+  const today = todayIso();
+  [...m.keys()].sort().forEach(d=>{
+    const list = m.get(d);
+    const h = document.createElement('div'); h.className='day-label';
+    h.innerHTML = `${escapeHtml(d ? new Date(d+'T00:00:00').toLocaleDateString(undefined,{weekday:'long', month:'short', day:'numeric'}) : 'No date')}${d===today?' <span class="tag baby">Today</span>':''}${d && d<today ? ' <span class="tag dark">Late</span>' : ''}<span class="cnt">${list.length} case${list.length===1?'':'s'}</span>`;
+    container.appendChild(h);
+    list.sort((a,b)=>(a.account||'').localeCompare(b.account||'')).forEach(c=>container.appendChild(buildCase(c, opts)));
+  });
+}
+
+/* ---- Requests (inventory team) ---- */
+let reqFilter = 'pack';
+function renderRequests(){
+  const terr = $('#req-territory').value, q = $('#req-search').value.trim().toLowerCase();
+  const cases = groupCases(bioReqs).filter(c=>{
+    const live = c.lines.filter(l=>l.status!=='cancelled');
+    if(reqFilter==='pack' && !live.some(l=>l.status==='requested')) return false;
+    if(reqFilter==='out' && !live.some(l=>l.status==='pulled')) return false;
+    if(reqFilter==='all' && !live.some(HOLDS)) return false;
+    return (terr==='All' || c.territory===terr) && caseMatches(c, q);
+  });
+  byDateSections($('#req-list'), cases, $('#req-empty'), c=>reqFilter==='pack' ? packOnFor(c) : c.date, {});
+}
+$('#req-status').addEventListener('click', e=>{ const b=e.target.closest('button'); if(!b) return; reqFilter=b.dataset.s; document.querySelectorAll('#req-status button').forEach(x=>x.classList.toggle('active', x===b)); renderRequests(); });
+$('#req-territory').addEventListener('change', renderRequests);
+$('#req-search').addEventListener('input', renderRequests);
+
+/* ---- Schedule (everyone) ---- */
+let weekOffset = 0;
+function mondayOf(date){ const d=new Date(date); const day=d.getDay(); d.setDate(d.getDate()+(day===0?-6:1-day)); d.setHours(0,0,0,0); return d; }
+function weekDays(){ const base=mondayOf(new Date()); base.setDate(base.getDate()+weekOffset*7); return [0,1,2,3,4,5,6].map(i=>{const d=new Date(base); d.setDate(d.getDate()+i); return d;}); }
+function renderSchedule(){
+  const days = weekDays(), terr = $('#sch-territory').value, today = todayIso();
+  $('#wk-label').textContent = `${days[0].toLocaleDateString(undefined,{month:'short',day:'numeric'})} – ${days[6].toLocaleDateString(undefined,{month:'short',day:'numeric'})}`;
+  const cases = groupCases(bioReqs).filter(c=>c.lines.some(l=>l.status!=='cancelled') && (terr==='All' || c.territory===terr));
+  const wrap = $('#sch-list'); wrap.innerHTML = '';
+  days.forEach(day=>{
+    const iso = isoDate(day), list = cases.filter(c=>c.date===iso);
+    if((day.getDay()===0 || day.getDay()===6) && !list.length) return;
+    const sec = document.createElement('section'); sec.className='day-sec';
+    sec.innerHTML = `<div class="day-head"><b>${escapeHtml(day.toLocaleDateString(undefined,{weekday:'long', month:'short', day:'numeric'}))}</b>${iso===today?'<span class="tag baby">Today</span>':''}<span class="cnt">${list.length ? `${list.length} case${list.length===1?'':'s'}` : ''}</span></div>`;
+    if(!list.length) sec.insertAdjacentHTML('beforeend', '<div class="day-none bc-none">No biologics scheduled.</div>');
+    list.sort((a,b)=>(a.territory||'').localeCompare(b.territory||'') || (a.account||'').localeCompare(b.account||'')).forEach(c=>sec.appendChild(buildCase(c, {showDate:false})));
+    wrap.appendChild(sec);
+  });
+}
+$('#wk-prev').addEventListener('click', ()=>{ weekOffset--; renderSchedule(); });
+$('#wk-next').addEventListener('click', ()=>{ weekOffset++; renderSchedule(); });
+$('#sch-territory').addEventListener('change', renderSchedule);
+
+/* ---- Returns (everyone) ---- */
+function renderReturns(){
+  const terr = $('#ret-territory').value, today = todayIso();
+  // Packed grafts once surgery day comes, plus anything back but not on the shelf yet.
+  const cases = groupCases(bioReqs).filter(c=>(terr==='All' || c.territory===terr) && c.lines.some(l=>(l.status==='pulled' && (c.date||'')<=today) || (l.status==='returned' && l.onShelf===false)));
+  byDateSections($('#ret-list'), cases, $('#ret-empty'), c=>c.date, {});
+}
+$('#ret-territory').addEventListener('change', renderReturns);
+
+/* ---- My requests ---- */
+function renderMine(){
+  const cases = groupCases(bioReqs.filter(r=>r.requestedById===me.uid)).filter(c=>c.lines.some(l=>l.status!=='cancelled'))
+    .sort((a,b)=>(b.date||'').localeCompare(a.date||'')).slice(0, 40);
+  caseList($('#mine-list'), cases, $('#mine-empty'), {});
+}
+
+/* ================= Line actions ================= */
+const FV = ()=>firebase.firestore.FieldValue;
+/* Two-tap confirm: first tap arms the button, second tap does it (browser confirm pop-ups get blocked in some apps).
+   The armed state is remembered by key so it survives the list refreshing between taps. */
+let armed = {key:'', until:0, label:''};
+function confirmTap(key, b, fn, label){
+  if(armed.key===key && Date.now() < armed.until){ armed = {key:'', until:0, label:''}; fn(); return; }
+  armed = {key, until: Date.now()+4000, label: label || 'Tap again to confirm'};
+  if(b){ b.textContent = armed.label; b.classList.add('armed'); }
+  setTimeout(()=>{ if(armed.key===key && Date.now() >= armed.until){ armed = {key:'', until:0, label:''}; renderAll(); } }, 4100);
+}
+function applyArm(b, key){ if(armed.key===key && Date.now() < armed.until){ b.textContent = armed.label; b.classList.add('armed'); } }
+function openSheet(id){ $(id).hidden = false; }
+document.querySelectorAll('.modal-overlay [data-close]').forEach(b=>b.addEventListener('click', ()=>{ b.closest('.modal-overlay').hidden = true; }));
+document.querySelectorAll('.modal-overlay').forEach(o=>o.addEventListener('click', e=>{ if(e.target===o) o.hidden = true; }));
+function clearPicks(lines){ lines.forEach(l=>picked.forEach(s=>s.delete(l.id))); }
+
+/* Where a graft came from. RedSpot grafts don't need a PO once used; LifeNet and JRF do.
+   Older grafts packed before this (no source) still go to the PO page. */
+const SOURCES = ['RedSpot', 'LifeNet', 'JRF'];
+function needsPO(l){ return l.source !== 'RedSpot'; }
+// Pack: inventory picks the source and adds the expiration for each graft.
+let packing = [];
+function packLines(lines){
+  packing = lines.filter(l=>l.status==='requested'); if(!packing.length) return;
+  $('#pack-sub').textContent = `${packing.length} graft${packing.length===1?'':'s'} · pick where each came from and add the expiration from the label.`;
+  $('#pack-lines').innerHTML = packing.map((l,i)=>`<div class="pk-line"><b>${escapeHtml(l.graft)}${+l.qty>1?' ×'+l.qty:''}</b><small>${escapeHtml(l.desc||'')}</small>
+    <label>Source</label><div class="seg pk-src" data-i="${i}">${SOURCES.map(x=>`<button type="button" data-v="${x}" class="${l.source===x?'active':''}">${x}</button>`).join('')}</div>
+    <div><label for="pk-exp-${i}">Expires</label><input id="pk-exp-${i}" type="date" value="${escapeHtml(l.expiresAt||'')}"></div></div>`).join('');
+  $('#pack-lines').querySelectorAll('.pk-src').forEach(seg=>seg.addEventListener('click', e=>{ const b=e.target.closest('button'); if(!b) return; seg.querySelectorAll('button').forEach(x=>x.classList.toggle('active', x===b)); }));
+  openSheet('#pack-sheet');
+}
+$('#pack-form').addEventListener('submit', async e=>{
+  e.preventDefault();
+  const srcOf = i=>{ const a = document.querySelector(`.pk-src[data-i="${i}"] button.active`); return a ? a.dataset.v : ''; };
+  const missing = packing.findIndex((l,i)=>!srcOf(i));
+  if(missing>=0){ toast(`Pick RedSpot, LifeNet or JRF for ${packing[missing].graft}.`); return; }
+  const b = db.batch(), now = Date.now();
+  packing.forEach((l,i)=>b.update(adb.doc('bioRequests/'+l.id), {status:'pulled', source:srcOf(i), expiresAt:$('#pk-exp-'+i).value||'', pulledAt:now, pulledByName:me.name}));
+  try{ await b.commit(); $('#pack-sheet').hidden = true; clearPicks(packing); toast(`Packed ${packing.length}.`); }catch(err){ console.error(err); toast('That didn’t save. Try again.'); }
+});
+
+// Used: off stock, onto the PO page. "Any size" lines ask which size was used.
+let using = [];
+function usedLines(lines){
+  using = lines.filter(l=>OPEN(l.status)); if(!using.length) return;
+  $('#used-lines').innerHTML = using.map((l,i)=>{
+    const exact = stockFor(l.graft), t = typeForRef(l.graft);
+    const sizes = !exact && t ? rowsOfType(t) : [];
+    return `<div class="pk-line"><b>${escapeHtml(l.graft)}${+l.qty>1?' ×'+l.qty:''}</b><small>${escapeHtml(l.desc||'')}${l.lot?' · Lot '+escapeHtml(l.lot):''}</small>
+      ${sizes.length ? `<label for="us-size-${i}">Size used</label><select id="us-size-${i}">${sizes.map(s=>`<option value="${escapeHtml(s.id)}">${escapeHtml(s.ref)} (${+s.qty||0} on hand)</option>`).join('')}</select>` : ''}
+      ${+l.qty>1 ? `<label for="us-qty-${i}">How many were used?</label><input id="us-qty-${i}" type="number" min="1" max="${+l.qty}" value="${+l.qty}">` : ''}</div>`;
+  }).join('');
+  openSheet('#used-sheet');
+}
+$('#used-form').addEventListener('submit', async e=>{
+  e.preventDefault();
+  const b = db.batch(), now = Date.now();
+  using.forEach((l,i)=>{
+    const sizeSel = $('#us-size-'+i), qtyIn = $('#us-qty-'+i);
+    const s = stockFor(l.graft) || (sizeSel ? stock.find(x=>x.id===sizeSel.value) : null);
+    const usedQty = qtyIn ? Math.min(+l.qty, Math.max(1, parseInt(qtyIn.value,10)||1)) : (+l.qty||1);
+    const patch = {status:'used', usedQty, usedAt:now, usedByName:me.name};
+    if(s && refKey(s.ref)!==refKey(l.graft)) patch.usedRef = s.ref;
+    // Part of a multi-pack used: the rest stays on the case as its own line, still out.
+    if(usedQty < +l.qty){
+      patch.qty = usedQty;
+      const rest = {...l}; delete rest.id; rest.qty = +l.qty - usedQty; rest.createdAt = (l.createdAt||now)+1; rest.splitFrom = l.id;
+      b.set(adb.collection('bioRequests').doc(), rest);
+    }
+    b.update(adb.doc('bioRequests/'+l.id), patch);
+    if(s) b.update(adb.doc('bioStock/'+s.id), {qty: FV().increment(-usedQty)});
+  });
+  try{ await b.commit(); $('#used-sheet').hidden = true; clearPicks(using); toast(using.some(needsPO) ? `Marked used. LifeNet/JRF grafts are on the PO page now.` : 'Marked used. RedSpot: no PO needed.'); }catch(err){ console.error(err); toast('That didn’t save. Try again.'); }
+});
+
+// Returned: asks if it's back on the shelf/freezer; optional photo.
+let returning = [], retShelf = null, retFiles = [];
+function returnLines(lines){
+  returning = lines.filter(l=>l.status==='pulled'); if(!returning.length) return;
+  retShelf = null; retFiles = []; $('#ret-photo').value=''; $('#ret-thumbs').innerHTML='';
+  $('#ret-sub').textContent = returning.map(l=>l.graft+(+l.qty>1?' ×'+l.qty:'')).join(', ');
+  document.querySelectorAll('#ret-shelf button').forEach(b=>b.classList.remove('active')); $('#ret-shelf-hint').textContent='';
+  openSheet('#ret-sheet');
+}
+$('#ret-shelf').addEventListener('click', e=>{ const b=e.target.closest('button'); if(!b) return; retShelf=b.dataset.v; document.querySelectorAll('#ret-shelf button').forEach(x=>x.classList.toggle('active', x===b));
+  $('#ret-shelf-hint').textContent = retShelf==='no' ? 'It stays on Returns as "Not on shelf yet" until inventory puts it away.' : ''; });
+$('#ret-photo').addEventListener('change', e=>{ retFiles = [...e.target.files]; $('#ret-thumbs').innerHTML = retFiles.map(f=>`<img src="${URL.createObjectURL(f)}" alt="">`).join(''); });
+$('#ret-form').addEventListener('submit', async e=>{
+  e.preventDefault();
+  if(!retShelf){ toast('Pick Yes or No: is it back on the shelf/freezer?'); return; }
+  const btn = $('#ret-submit'); btn.disabled = true;
+  try{
+    const b = db.batch(), now = Date.now(), onShelf = retShelf==='yes';
+    returning.forEach(l=>b.update(adb.doc('bioRequests/'+l.id), {status:'returned', onShelf, returnedAt:now, returnedByName:me.name, ...(onShelf ? {putAwayAt:now, putAwayByName:me.name} : {})}));
+    await b.commit();
+    const caseId = caseIdOf(returning[0]);
+    for(const f of retFiles){ const {data, w, h} = await compressPhoto(f); await adb.collection('bioPhotos').add({caseId, lineIds: returning.map(l=>l.id), data, w, h, authorId:me.uid, authorName:me.name, at:Date.now()}); }
+    photoCache.delete(caseId);
+    $('#ret-sheet').hidden = true; clearPicks(returning);
+    toast(onShelf ? 'Returned to the shelf/freezer.' : 'Returned. Marked not on shelf yet.');
+  }catch(err){ console.error(err); toast('That didn’t save. Try again.'); }
+  btn.disabled = false;
+});
+async function putAway(lines){
+  const b = db.batch(), now = Date.now();
+  lines.forEach(l=>b.update(adb.doc('bioRequests/'+l.id), {onShelf:true, putAwayAt:now, putAwayByName:me.name}));
+  try{ await b.commit(); clearPicks(lines); toast('Put away.'); }catch(e){ console.error(e); toast('That didn’t save.'); }
+}
+function cancelLines(lines, btnEl){
+  if(!lines.length) return;
+  confirmTap('bx|'+caseIdOf(lines[0]), btnEl, ()=>doCancel(lines), lines.length===1 ? `Cancel ${lines[0].graft}?` : `Cancel ${lines.length}?`);
+}
+async function doCancel(lines){
+  const b = db.batch(), now = Date.now();
+  lines.forEach(l=>b.update(adb.doc('bioRequests/'+l.id), {status:'cancelled', cancelledAt:now, cancelledByName:me.name}));
+  try{ await b.commit(); clearPicks(lines); toast('Cancelled.'); }catch(e){ console.error(e); toast('That didn’t save.'); }
+}
+// Undo (inventory): used or returned back to packed; used grafts go back on stock.
+async function undoLines(lines){
+  const b = db.batch();
+  lines.forEach(l=>{
+    b.update(adb.doc('bioRequests/'+l.id), {status:'pulled', usedAt:null, usedQty:null, usedRef:null, returnedAt:null, onShelf:null, poNumber:null, poClosed:null});
+    if(l.status==='used'){ const s = stockFor(l.usedRef || l.graft); const q = +l.usedQty || +l.qty || 0; if(s && q) b.update(adb.doc('bioStock/'+s.id), {qty: FV().increment(q)}); }
+  });
+  try{ await b.commit(); clearPicks(lines); toast('Undone.'); }catch(e){ console.error(e); toast('Couldn’t undo.'); }
+}
+
+/* ================= Link (one per case, inventory team adds) =================
+   Saved on every line of the case, and copied onto grafts added later, so it
+   follows the case from request through packing, returns and the PO page. */
+const LINK_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.1 0l3-3a5 5 0 0 0-7.1-7.1l-1.3 1.3"/><path d="M14 11a5 5 0 0 0-7.1 0l-3 3a5 5 0 0 0 7.1 7.1l1.3-1.3"/></svg>';
+function cleanLink(v){
+  v = String(v||'').trim(); if(!v) return '';
+  if(!/^[a-z][a-z0-9+.-]*:/i.test(v)) v = 'https://' + v;
+  try{ const u = new URL(v); return /^https?:$/.test(u.protocol) && u.hostname.includes('.') ? u.href : null; }catch(e){ return null; }
+}
+function linkLabel(href){ try{ const u = new URL(href); const path = (u.pathname + u.search).replace(/\/$/,''); return u.hostname.replace(/^www\./,'') + (path.length > 1 ? (path.length > 28 ? path.slice(0,28)+'…' : path) : ''); }catch(e){ return href; } }
+const linkEditing = new Set();
+function linkBox(c, canEdit){
+  const box = document.createElement('div'); box.className = 'bc-link';
+  if(!c.link && !canEdit){ box.hidden = true; return box; }
+  const editing = canEdit && (!c.link || linkEditing.has(c.id));
+  if(c.link && !editing){
+    const a = document.createElement('a'); a.className = 'link-open'; a.href = c.link; a.target = '_blank'; a.rel = 'noopener noreferrer';
+    a.title = c.link + (c.linkByName ? ' · added by ' + c.linkByName : '');
+    a.innerHTML = LINK_ICON + '<span></span>'; a.querySelector('span').textContent = linkLabel(c.link);
+    a.addEventListener('click', e=>e.stopPropagation());
+    box.appendChild(a);
+    if(canEdit){
+      const ch = document.createElement('button'); ch.type = 'button'; ch.textContent = 'Change link'; ch.onclick = ()=>{ linkEditing.add(c.id); renderAll(); }; box.appendChild(ch);
+      const rm = document.createElement('button'); rm.type = 'button'; rm.className = 'warn'; rm.textContent = 'Remove link';
+      rm.onclick = ()=>confirmTap('lnk|'+c.id, rm, ()=>saveLink(c, ''), 'Tap again to remove'); applyArm(rm, 'lnk|'+c.id); box.appendChild(rm);
+    }
+    return box;
+  }
+  const f = document.createElement('form'); f.autocomplete = 'off'; f.noValidate = true;
+  f.innerHTML = `<input type="url" inputmode="url" placeholder="Paste a link (https://…)" aria-label="Link for this case"><button type="submit" class="go">Save link</button>`;
+  const inp = f.querySelector('input'); inp.value = c.link || '';
+  f.addEventListener('submit', async e=>{ e.preventDefault(); const v = cleanLink(inp.value); if(v===null){ toast('That doesn’t look like a web link.'); inp.focus(); return; } if(!v){ toast('Paste a link first.'); return; } await saveLink(c, v); });
+  box.appendChild(f);
+  if(c.link){ const x = document.createElement('button'); x.type = 'button'; x.textContent = 'Cancel'; x.onclick = ()=>{ linkEditing.delete(c.id); renderAll(); }; box.appendChild(x); }
+  return box;
+}
+async function saveLink(c, link){
+  const b = db.batch(), now = Date.now();
+  linesOfCase(c.id).forEach(l=>b.update(adb.doc('bioRequests/'+l.id), link ? {link, linkByName:me.name, linkAt:now} : {link:null, linkByName:null, linkAt:null}));
+  try{ await b.commit(); linkEditing.delete(c.id); toast(link ? 'Link saved.' : 'Link removed.'); }
+  catch(err){ console.error(err); toast('Couldn’t save the link. Try again.'); }
+}
+
+/* ================= PDFs (older cases only: open or remove) ================= */
+let pdfFor = null;
+function pickPdf(c){ pdfFor = c; $('#pdf-input').value=''; $('#pdf-input').click(); }
+$('#pdf-input').addEventListener('change', e=>{ const f=e.target.files[0]; if(f && pdfFor) uploadPdf(pdfFor, f); });
+function readAsDataURL(f){ return new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=rej; r.readAsDataURL(f); }); }
+async function uploadPdf(c, f){
+  if(!me.isAdmin) return;
+  if(!(f.type==='application/pdf' || /\.pdf$/i.test(f.name))){ toast('That isn’t a PDF.'); return; }
+  // Files are kept in the database, which holds up to about 700 KB per file.
+  if(f.size > 700*1024){ toast(`That PDF is ${(f.size/1024/1024).toFixed(1)} MB. The limit is 700 KB. Try “Reduce file size” or print it to PDF again.`); return; }
+  toast('Attaching PDF…');
+  try{
+    const data = await readAsDataURL(f);
+    await adb.doc('bioFiles/'+c.id).set({caseId:c.id, name:f.name, size:f.size, data, byName:me.name, at:Date.now()});
+    const b = db.batch(); linesOfCase(c.id).forEach(l=>b.update(adb.doc('bioRequests/'+l.id), {pdfName:f.name, pdfByName:me.name, pdfAt:Date.now()})); await b.commit();
+    toast(`Attached ${f.name}.`);
+  }catch(err){ console.error(err); toast('Couldn’t attach the PDF. Only admins can, and the latest security rules need to be published.'); }
+}
+async function openPdf(c){
+  const w = window.open('', '_blank');
+  try{
+    const snap = await adb.doc('bioFiles/'+c.id).get();
+    if(!snap.exists){ if(w) w.close(); toast('PDF not found.'); return; }
+    const blob = await (await fetch(snap.data().data)).blob();
+    const url = URL.createObjectURL(blob);
+    if(w) w.location = url; else location.href = url;
+  }catch(err){ console.error(err); if(w) w.close(); toast('Couldn’t open the PDF.'); }
+}
+function removePdf(c, btnEl){ confirmTap('pdf|'+c.id, btnEl, ()=>doRemovePdf(c), 'Tap again to remove'); }
+async function doRemovePdf(c){
+  try{ await adb.doc('bioFiles/'+c.id).delete(); const b=db.batch(); linesOfCase(c.id).forEach(l=>b.update(adb.doc('bioRequests/'+l.id), {pdfName:null, pdfByName:null, pdfAt:null})); await b.commit(); toast('PDF removed.'); }
+  catch(err){ console.error(err); toast('Couldn’t remove it.'); }
+}
+
+/* ================= Return photos ================= */
+function loadImage(file){ return new Promise((res, rej)=>{ const url = URL.createObjectURL(file); const img = new Image(); img.onload = ()=>{ URL.revokeObjectURL(url); res(img); }; img.onerror = ()=>{ URL.revokeObjectURL(url); rej(new Error('unreadable')); }; img.src = url; }); }
+async function compressPhoto(file){
+  const img = await loadImage(file);
+  for(const [max,q] of [[1600,0.75],[1280,0.7],[1024,0.6],[800,0.5]]){
+    const scale = Math.min(1, max/Math.max(img.naturalWidth, img.naturalHeight));
+    const w = Math.max(1, Math.round(img.naturalWidth*scale)), h = Math.max(1, Math.round(img.naturalHeight*scale));
+    const c = document.createElement('canvas'); c.width=w; c.height=h; c.getContext('2d').drawImage(img, 0, 0, w, h);
+    const data = c.toDataURL('image/jpeg', q);
+    if(data.length < 800000) return {data, w, h};
+  }
+  throw new Error('too big');
+}
+async function loadPhotos(caseId, el){
+  if(!photoCache.has(caseId)){
+    photoCache.set(caseId, null);
+    try{ const s = await adb.collection('bioPhotos').where('caseId','==',caseId).get(); photoCache.set(caseId, s.docs.map(d=>d.data()).sort((a,b)=>(a.at||0)-(b.at||0))); }
+    catch(e){ photoCache.set(caseId, []); }
+  }
+  const list = photoCache.get(caseId);
+  if(!list){ setTimeout(()=>loadPhotos(caseId, el), 300); return; }
+  if(!list.length){ el.hidden = true; return; }
+  el.hidden = false;
+  el.innerHTML = '<div class="ps-label">Return photos</div><div class="bc-thumbs"></div>';
+  list.forEach(p=>{ const b=document.createElement('button'); b.type='button'; b.innerHTML=`<img src="${p.data}" alt="Return photo" loading="lazy">`; b.onclick=()=>{ $('#pv-img').src=p.data; $('#pv-meta').textContent=`${p.authorName||''} · ${new Date(p.at).toLocaleString(undefined,{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})}`; $('#photo-viewer').hidden=false; }; el.querySelector('.bc-thumbs').appendChild(b); });
+}
+$('#pv-close').addEventListener('click', ()=>{ $('#photo-viewer').hidden = true; });
+
+/* ================= PO page ================= */
+let poFilter = 'need';
+function renderPO(){
+  const terr = $('#po-territory').value, q = $('#po-search').value.trim().toLowerCase();
+  $('#po-hint').textContent = poFilter==='need' ? 'Used grafts waiting for a PO. Enter the PO number for the case and save.' : (poFilter==='ready' ? (me.isAdmin ? 'PO entered. Add the sales order if you have it, then close.' : 'PO entered, waiting for an admin to close it.') : 'Closed.');
+  const used = bioReqs.filter(l=>l.status==='used' && needsPO(l) && (poFilter==='need' ? !l.poNumber : poFilter==='ready' ? (l.poNumber && !l.poClosed) : l.poClosed));
+  const cases = groupCases(used).filter(c=>(terr==='All' || c.territory===terr) && caseMatches(c, q)).sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  const wrap = $('#po-list'); wrap.innerHTML=''; $('#po-empty').hidden = cases.length>0;
+  cases.forEach(c=>{
+    const el = document.createElement('div'); el.className='bcase po-case';
+    const all = linesOfCase(c.id).filter(l=>l.status==='used');
+    const l0 = c.lines[0];
+    el.innerHTML = `<div class="bc-head po-head"><div class="bc-main"><b>${escapeHtml([c.account||'—', c.surgeon].filter(Boolean).join(' · '))}</b>
+        <small>${escapeHtml(['Surgery '+fmtDate(c.date), c.territory, c.person].filter(Boolean).join(' · '))}</small>
+        <div class="bc-grafts">${c.lines.map(l=>`<span>${escapeHtml(l.usedRef||l.graft)}${(+l.usedQty||+l.qty)>1?' ×'+(+l.usedQty||+l.qty):''}${l.lot?' · Lot '+escapeHtml(l.lot):''}</span>`).join('')}</div></div>
+        <div class="bc-side">${c.link?`<a class="link-chip" href="${escapeHtml(c.link)}" target="_blank" rel="noopener noreferrer" title="${escapeHtml(c.link)}">LINK</a>`:''}${c.pdfName?'<button type="button" class="pdf-chip">PDF</button>':''}${l0.poClosed?`<span class="st used">Closed</span><small>${escapeHtml(l0.closedByName||'')}</small>`:''}</div></div>
+      <div class="po-form"></div><div class="so-box"></div>`;
+    const pdf = el.querySelector('.pdf-chip'); if(pdf) pdf.onclick = ()=>openPdf(c);
+    el.querySelector('.so-box').replaceWith(soLinkBox(c, all));
+    const f = el.querySelector('.po-form');
+    if(poFilter==='need'){
+      f.innerHTML = `<input placeholder="PO number" aria-label="PO number"><button type="button" class="go">Save PO</button>`;
+      f.querySelector('button').onclick = async ()=>{ const v=f.querySelector('input').value.trim(); if(!v){ toast('Enter the PO number.'); return; }
+        const b=db.batch(); all.forEach(l=>b.update(adb.doc('bioRequests/'+l.id), {poNumber:v, poAt:Date.now(), poByName:me.name})); try{ await b.commit(); toast(`PO ${v} saved.`); }catch(e){ console.error(e); toast('That didn’t save.'); } };
+    } else if(poFilter==='ready'){
+      f.innerHTML = `<span class="po-num">PO <b>${escapeHtml(c.poNumber)}</b> <small>${escapeHtml(l0.poByName||'')}</small></span>` + (me.isAdmin ? `<input placeholder="Sales order (optional)" aria-label="Sales order" value="${escapeHtml(l0.salesOrder||'')}"><button type="button" class="go">Close</button>` : '') + `<button type="button" class="edit">Change PO</button>`;
+      if(me.isAdmin) f.querySelector('.go').onclick = async ()=>{ const so=f.querySelector('input').value.trim(); const b=db.batch(); all.forEach(l=>b.update(adb.doc('bioRequests/'+l.id), {salesOrder:so, poClosed:true, closedAt:Date.now(), closedByName:me.name})); try{ await b.commit(); toast('Closed.'); }catch(e){ console.error(e); toast('That didn’t save.'); } };
+      f.querySelector('.edit').onclick = async ()=>{ const v=prompt('PO number', c.poNumber); if(v===null) return; const b=db.batch(); all.forEach(l=>b.update(adb.doc('bioRequests/'+l.id), {poNumber:v.trim(), poAt:Date.now(), poByName:me.name})); await b.commit().catch(()=>toast('That didn’t save.')); };
+    } else {
+      const so = l0.salesOrder ? (/^https?:\/\//.test(l0.salesOrder) ? `<a href="${escapeHtml(l0.salesOrder)}" target="_blank" rel="noopener">Sales order</a>` : 'SO '+escapeHtml(l0.salesOrder)) : '';
+      f.innerHTML = `<span class="po-num">PO <b>${escapeHtml(c.poNumber)}</b>${so?' · '+so:''}</span>` + (me.isAdmin ? `<button type="button" class="edit">Reopen</button>` : '');
+      if(me.isAdmin) f.querySelector('.edit').onclick = async ()=>{ const b=db.batch(); all.forEach(l=>b.update(adb.doc('bioRequests/'+l.id), {poClosed:false})); await b.commit().catch(()=>toast('That didn’t save.')); };
+    }
+    wrap.appendChild(el);
+  });
+}
+/* Updated Sales Order: the inventory manager pastes its link on the PO page; reps open it and email it to the account. */
+const soEditing = new Set();
+function soLinkBox(c, all){
+  const box = document.createElement('div'); box.className = 'so-box';
+  const l0 = c.lines.find(l=>l.soLink) || {};
+  const link = l0.soLink || '';
+  const canEdit = isManager();
+  if(link && !soEditing.has(c.id)){
+    const a = document.createElement('a'); a.className = 'so-open'; a.href = link; a.target = '_blank'; a.rel = 'noopener noreferrer';
+    a.innerHTML = LINK_ICON + '<span>Updated Sales Order</span>'; box.appendChild(a);
+    const subj = `Updated sales order · ${[c.account, c.surgeon].filter(Boolean).join(' · ')} · ${fmtDate(c.date)}`;
+    const body = `Hi,\n\nHere is the updated sales order for ${[c.surgeon ? 'Dr. '+c.surgeon.replace(/^dr\.?\s+/i,'') : '', 'the '+fmtDate(c.date)+' case'].filter(Boolean).join(', ')}${c.poNumber ? ' (PO '+c.poNumber+')' : ''}:\n${link}\n\nThank you,\n${me.name}`;
+    const m = document.createElement('a'); m.className = 'so-mail'; m.href = `mailto:?subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(body)}`; m.textContent = 'Email to account'; box.appendChild(m);
+    if(canEdit){ const e = document.createElement('button'); e.type='button'; e.textContent='Change'; e.onclick=()=>{ soEditing.add(c.id); renderPO(); }; box.appendChild(e); }
+    if(l0.soLinkByName){ const s = document.createElement('small'); s.textContent = 'Added by '+l0.soLinkByName; box.appendChild(s); }
+    return box;
+  }
+  if(!canEdit){ if(!link){ const s=document.createElement('small'); s.className='so-wait'; s.textContent='Updated Sales Order: not added yet.'; box.appendChild(s); } return box; }
+  box.innerHTML = `<input type="url" placeholder="Updated Sales Order link (paste)" aria-label="Updated Sales Order link"><button type="button" class="go">Save link</button>`;
+  const inp = box.querySelector('input'); inp.value = link;
+  box.querySelector('.go').onclick = async ()=>{
+    let v = inp.value.trim();
+    if(v && !/^https?:\/\//i.test(v)) v = 'https://' + v;
+    const b = db.batch(), now = Date.now();
+    all.forEach(l=>b.update(adb.doc('bioRequests/'+l.id), v ? {soLink:v, soLinkByName:me.name, soLinkAt:now} : {soLink:null, soLinkByName:null, soLinkAt:null}));
+    try{ await b.commit(); soEditing.delete(c.id); toast(v ? 'Updated Sales Order link saved.' : 'Link removed.'); }catch(e){ console.error(e); toast('That didn’t save.'); }
+  };
+  if(link){ const x = document.createElement('button'); x.type='button'; x.textContent='Cancel'; x.onclick=()=>{ soEditing.delete(c.id); renderPO(); }; box.appendChild(x); }
+  return box;
+}
+$('#po-status').addEventListener('click', e=>{ const b=e.target.closest('button'); if(!b) return; poFilter=b.dataset.s; document.querySelectorAll('#po-status button').forEach(x=>x.classList.toggle('active', x===b)); renderPO(); });
+$('#po-territory').addEventListener('change', renderPO);
+$('#po-search').addEventListener('input', renderPO);
+
+/* ================= Request form (several biologics per case) ================= */
+let formMode = 'new', formCase = null;     // 'new' | 'add' (more grafts on a case) | 'edit'
+function graftChoices(){
+  const out = stock.map(s=>({ref:s.ref, desc:s.desc||'', type:typeOf(s), size:true}));
+  allTypes().forEach(t=>{ if(!stockFor(t)){ const r=rowsOfType(t)[0]; out.push({ref:t, desc:(r.desc||'')+' · any size', type:t, size:false}); } });
+  return out;
+}
+/* Search by ABS number or any words from the description (e.g. "biocart", "quadlink 10"). */
+function searchGrafts(q){
+  const words = q.toLowerCase().split(/\s+/).filter(Boolean);
+  if(!words.length) return [];
+  const qk = refKey(q);
+  return graftChoices().map(c=>{
+    const hay = (c.ref+' '+c.desc).toLowerCase();
+    if(!words.every(w=>hay.includes(w))) return null;
+    const ref = refKey(c.ref);
+    let score = ref===qk ? 0 : ref.startsWith(qk) ? 1 : ref.includes(qk) ? 2 : c.desc.toLowerCase().startsWith(words[0]) ? 3 : 4;
+    if(!c.size) score -= .5;
+    return {...c, score};
+  }).filter(Boolean).sort((a,b)=>a.score-b.score || refKey(a.ref).localeCompare(refKey(b.ref))).slice(0, 12);
+}
+function hl(text, words){
+  let h = escapeHtml(text);
+  words.forEach(w=>{ if(w.length<2) return; const re = new RegExp('('+w.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','ig'); h = h.replace(re, '<mark>$1</mark>'); });
+  return h;
+}
+function graftLine(val, qty, lineId){
+  const w = document.createElement('div'); w.className='g-line'; if(lineId) w.dataset.id = lineId;
+  w.innerHTML = `<div class="g-row"><div class="g-search"><input class="g-in" placeholder="ABS number or description, e.g. biocartilage" autocomplete="off" spellcheck="false" aria-label="Biologic"><div class="g-list" hidden></div></div>
+    <input class="g-qty-in" type="number" inputmode="numeric" min="1" step="1" value="${qty||1}" aria-label="Qty"><button type="button" class="g-rm" aria-label="Remove">×</button></div><div class="avail-note"></div>`;
+  const inp = w.querySelector('.g-in'), box = w.querySelector('.g-list'), qtyIn = w.querySelector('.g-qty-in');
+  if(val) inp.value = val;
+  let opts = [], active = -1;
+  const render = ()=>{
+    const q = inp.value.trim(); opts = searchGrafts(q); active = opts.length ? 0 : -1;
+    if(!q || (opts.length===1 && refKey(opts[0].ref)===refKey(q)) || document.activeElement!==inp){ box.hidden = true; return; }
+    const words = q.toLowerCase().split(/\s+/).filter(Boolean);
+    box.innerHTML = opts.length ? opts.map((c,i)=>{ const avail = c.size ? (+(stockFor(c.ref)||{}).qty||0) : availableOfType(c.type);
+      return `<button type="button" class="g-opt${i===active?' active':''}" data-i="${i}"><span class="g-main"><b>${hl(c.ref, words)}</b><small>${hl(c.desc, words)}</small></span><span class="g-qty${avail<=0?' zero':''}">${c.size ? avail+' on hand' : Math.max(0,avail)+' avail.'}</span></button>`; }).join('')
+      : `<div class="g-none">No match. Keep typing, or submit it as typed and the inventory team will order it.</div>`;
+    box.hidden = false;
+  };
+  const pick = i=>{ const c=opts[i]; if(!c) return; inp.value=c.ref; box.hidden=true; refreshLineAvail(w); qtyIn.focus(); qtyIn.select(); };
+  inp.addEventListener('input', ()=>{ render(); refreshLineAvail(w); });
+  inp.addEventListener('focus', render);
+  inp.addEventListener('keydown', e=>{
+    if(box.hidden || !opts.length) return;
+    if(e.key==='ArrowDown'||e.key==='ArrowUp'){ e.preventDefault(); active=(active+(e.key==='ArrowDown'?1:-1)+opts.length)%opts.length; box.querySelectorAll('.g-opt').forEach((b,i)=>b.classList.toggle('active', i===active)); box.querySelectorAll('.g-opt')[active].scrollIntoView({block:'nearest'}); }
+    else if(e.key==='Enter'){ e.preventDefault(); pick(active); }
+    else if(e.key==='Escape'){ box.hidden = true; }
+  });
+  box.addEventListener('mousedown', e=>{ const b=e.target.closest('.g-opt'); if(!b) return; e.preventDefault(); pick(+b.dataset.i); });
+  inp.addEventListener('blur', ()=>{ setTimeout(()=>{ box.hidden=true; }, 150);
+    const q = inp.value.trim(); if(q && !stockFor(q) && typeForRef(q)===null){ const m=searchGrafts(q); if(m.length===1){ inp.value=m[0].ref; refreshLineAvail(w); } } });
+  qtyIn.addEventListener('input', ()=>refreshLineAvail(w));
+  w.querySelector('.g-rm').onclick = ()=>{ if($('#g-lines').children.length<=1){ inp.value=''; qtyIn.value=1; refreshLineAvail(w); return; } w.remove(); refreshAllAvail(); };
+  refreshLineAvail(w);
+  return w;
+}
+function refreshLineAvail(w){
+  const ref = w.querySelector('.g-in').value.trim(), el = w.querySelector('.avail-note');
+  if(!ref){ el.textContent=''; el.className='avail-note'; return; }
+  const t = typeForRef(ref);
+  if(t===null){ el.textContent = 'Not in the stock list. The inventory team will order it.'; el.className='avail-note low'; return; }
+  const want = parseInt(w.querySelector('.g-qty-in').value,10)||1;
+  const editing = formMode==='edit' ? linesOfCase(formCase.id).map(l=>l.id) : [];
+  // Other lines on this form for the same graft type count too.
+  const others = [...document.querySelectorAll('#g-lines .g-line')].filter(x=>x!==w && typeForRef(x.querySelector('.g-in').value.trim())===t).reduce((n,x)=>n+(parseInt(x.querySelector('.g-qty-in').value,10)||1),0);
+  const s = stockFor(ref), avail = availableOfType(t, editing) - others;
+  const sized = rowsOfType(t).length > 1 || !stockFor(t);
+  let txt = (s && s.desc) || (rowsOfType(t)[0]||{}).desc || '';
+  if(s && sized) txt += `${txt?' · ':''}${+s.qty||0} of this size on hand`;
+  txt += `${txt?' · ':''}${Math.max(0,avail)} ${sized?t+' ':''}available`;
+  if(avail < want) txt += '. Not enough. This will need to be ordered.';
+  el.textContent = txt; el.className = 'avail-note' + (avail < want ? ' low' : '');
+}
+function refreshAllAvail(){ document.querySelectorAll('#g-lines .g-line').forEach(refreshLineAvail); }
+$('#g-add-line').addEventListener('click', ()=>{ const w=graftLine(); $('#g-lines').appendChild(w); w.querySelector('.g-in').focus(); });
+$('#f-account').addEventListener('change', ()=>{ const hit = accMap.get(refKey($('#f-account').value)); if(hit && hit.territory && !$('#f-territory').value) $('#f-territory').value = hit.territory; });
+function resetForm(){
+  formMode = 'new'; formCase = null;
+  $('#req-form').reset();
+  $('#case-fields').hidden = false; $('#case-locked').hidden = true;
+  $('#case-fields').querySelectorAll('input,select').forEach(x=>x.required = ['f-date','f-account','f-territory'].includes(x.id));
+  $('#form-title').textContent = 'New biologic request'; $('#f-submit').textContent = 'Submit request'; $('#form-cancel').hidden = true;
+  if(me && myTerrs().length) $('#f-territory').value = myTerrs()[0];
+  $('#g-lines').innerHTML = ''; $('#g-lines').appendChild(graftLine());
+}
+$('#form-cancel').onclick = ()=>{ resetForm(); };
+function caseSummary(c){ return `<b>${escapeHtml([c.account, c.surgeon].filter(Boolean).join(' · '))}</b><small>${escapeHtml(['Surgery '+fmtDate(c.date)+(c.ampm?' '+c.ampm:''), c.territory].filter(Boolean).join(' · '))}</small>`; }
+function startAddToCase(c){
+  showView('add'); resetForm(); formMode='add'; formCase=c;
+  $('#form-title').textContent = 'Add biologics to this case'; $('#f-submit').textContent = 'Add to case'; $('#form-cancel').hidden = false;
+  $('#case-fields').hidden = true; $('#case-fields').querySelectorAll('input,select').forEach(x=>x.required=false);
+  $('#case-locked').hidden = false; $('#case-locked').innerHTML = caseSummary(c);
+  $('#g-lines .g-in').focus();
+}
+function startEditCase(c){
+  showView('add'); resetForm(); formMode='edit'; formCase=c;
+  $('#form-title').textContent = 'Edit request'; $('#f-submit').textContent = 'Save changes'; $('#form-cancel').hidden = false;
+  $('#f-date').value=c.date; $('#f-ampm').value=c.ampm; $('#f-account').value=c.account; $('#f-territory').value=c.territory; $('#f-surgeon').value=c.surgeon; $('#f-packon').value=c.packOn; $('#f-notes').value=c.notes;
+  $('#g-lines').innerHTML='';
+  // Only grafts that haven't been packed yet can be changed here.
+  linesOfCase(c.id).filter(l=>l.status==='requested').forEach(l=>$('#g-lines').appendChild(graftLine(l.graft, l.qty, l.id)));
+  const fixed = linesOfCase(c.id).filter(l=>l.status!=='requested' && l.status!=='cancelled');
+  if(fixed.length) $('#g-lines').insertAdjacentHTML('beforebegin', '');
+  $('#case-locked').hidden = !fixed.length; $('#case-locked').innerHTML = fixed.length ? `<small>Already packed or done (not changed here): ${escapeHtml(fixed.map(l=>l.graft).join(', '))}</small>` : '';
+}
+$('#req-form').addEventListener('submit', async e=>{
+  e.preventDefault();
+  const msg = $('#f-msg');
+  const rows = [...document.querySelectorAll('#g-lines .g-line')].map(w=>({id:w.dataset.id||null, graft:w.querySelector('.g-in').value.trim(), qty:Math.max(1, parseInt(w.querySelector('.g-qty-in').value,10)||1)})).filter(r=>r.graft);
+  if(!rows.length){ msg.textContent='Add at least one biologic.'; msg.className='status-msg err'; return; }
+  const caseData = formMode==='add' ? {dateNeeded:formCase.date, packOn:formCase.packOn, ampm:formCase.ampm, account:formCase.account, territory:formCase.territory, surgeon:formCase.surgeon, notes:formCase.notes}
+    : {dateNeeded:$('#f-date').value, packOn:$('#f-packon').value||'', ampm:$('#f-ampm').value, account:$('#f-account').value.trim().toUpperCase(), territory:$('#f-territory').value, surgeon:$('#f-surgeon').value.trim(), notes:$('#f-notes').value.trim()};
+  if(formMode==='add' && $('#f-notes').value.trim()) caseData.notes = [formCase.notes, $('#f-notes').value.trim()].filter(Boolean).join(' · ');
+  if(!caseData.dateNeeded || !caseData.account || !caseData.territory){ msg.textContent='Fill in the surgery date, account and territory.'; msg.className='status-msg err'; return; }
+  if(caseData.packOn && caseData.packOn > caseData.dateNeeded){ msg.textContent='Pack-on date can’t be after surgery.'; msg.className='status-msg err'; return; }
+  const lineData = r=>{ const s=stockFor(r.graft); return {graft: s ? s.ref : (typeForRef(r.graft) || refKey(r.graft)), desc: s ? (s.desc||'') : ((rowsOfType(typeForRef(r.graft)||'')[0]||{}).desc||''), qty:r.qty}; };
+  const b = db.batch(), now = Date.now();
+  const priorRequests = new Set(bioReqs.filter(r=>r.requestedById===me.uid).map(caseIdOf)).size;
+  try{
+    if(formMode==='edit'){
+      const caseLines = linesOfCase(formCase.id);
+      caseLines.filter(l=>l.status!=='cancelled').forEach(l=>b.update(adb.doc('bioRequests/'+l.id), {...caseData, editedAt:now, editedByName:me.name}));
+      rows.forEach((r,i)=>{ if(r.id) b.update(adb.doc('bioRequests/'+r.id), lineData(r)); else b.set(adb.collection('bioRequests').doc(), {...caseData, ...lineData(r), ...(formCase.link ? {link:formCase.link, linkByName:formCase.linkByName||''} : {}), caseId:formCase.id, status:'requested', person:formCase.person||me.name, requestedById:formCase.requestedById||me.uid, createdAt:now+i, addedByName:me.name}); });
+      caseLines.filter(l=>l.status==='requested' && !rows.some(r=>r.id===l.id)).forEach(l=>b.update(adb.doc('bioRequests/'+l.id), {status:'cancelled', cancelledAt:now, cancelledByName:me.name}));
+      await b.commit(); toast('Saved.'); openCases.add(formCase.id); resetForm(); showView(isManager() ? 'requests' : 'add'); return;
+    }
+    const caseId = formMode==='add' ? formCase.id : adb.collection('bioRequests').doc().id;
+    const pdf = formMode==='add' ? {...(formCase.pdfName ? {pdfName:formCase.pdfName, pdfByName:formCase.pdfByName||''} : {}), ...(formCase.link ? {link:formCase.link, linkByName:formCase.linkByName||''} : {})} : {};
+    rows.forEach((r,i)=>b.set(adb.collection('bioRequests').doc(), {...caseData, ...lineData(r), ...pdf, caseId, status:'requested',
+      person: formMode==='add' ? (formCase.person||me.name) : me.name, requestedById: formMode==='add' ? (formCase.requestedById||me.uid) : me.uid, createdAt: now+i, ...(formMode==='add' ? {addedByName:me.name} : {})}));
+    await b.commit();
+    const n = rows.reduce((k,r)=>k+r.qty,0);
+    if(formMode==='new' && priorRequests + 1 === 69) celebrate();
+    msg.textContent = formMode==='add' ? `Added ${n} graft${n===1?'':'s'} to ${formCase.account}.` : `Requested ${n} graft${n===1?'':'s'} for ${fmtDate(caseData.dateNeeded)}.`; msg.className='status-msg ok';
+    openCases.add(caseId);
+    if(formMode==='add'){ resetForm(); }
+    else { const keep = {...caseData}; resetForm(); $('#f-date').value=keep.dateNeeded; $('#f-account').value=keep.account; $('#f-territory').value=keep.territory; $('#f-surgeon').value=keep.surgeon; $('#f-ampm').value=keep.ampm; }
+  }catch(err){ console.error(err); msg.textContent = 'That didn’t save. Check your connection and try again.'; msg.className='status-msg err'; }
+});
+
+/* ================= Account & Team ================= */
+function renderAccount(){
+  if(!me) return;
+  $('#acct-name').textContent = me.name; $('#acct-email').textContent = me.email;
+  $('#acct-access').textContent = me.isOwner ? 'Owner' : (me.isAdmin ? 'Admin' : 'Member');
+  $('#acct-terrs').textContent = myTerrs().length ? myTerrs().join(', ') : 'None assigned. An admin can set these under Team.';
+  $('#acct-role-text').textContent = roleLabel(myRole);
+  $('#gear-account-sub').textContent = `${me.email} · ${roleLabel(myRole)}`;
+}
+/* ---- team (admins) ---- */
+function terrPicker(container, selected){
+  container.innerHTML = '';
+  TERRITORIES.forEach(tr=>{
+    const l = document.createElement('label'); l.className='terr-pick';
+    l.innerHTML = '<input type="checkbox"><span></span>';
+    l.querySelector('input').value = tr; l.querySelector('input').checked = (selected||[]).map(canonTerr).includes(tr);
+    l.querySelector('span').textContent = tr;
+    container.appendChild(l);
+  });
+}
+function pickedTerrs(container){ return [...container.querySelectorAll('input:checked')].map(i=>i.value); }
+terrPicker($('#team-terrs'), []);
+let editingMember = null;
+function memberRow(m){
+  const isOwnerRow = m.owner || m.email===OWNER_EMAIL.toLowerCase();
+  const u = Object.values(usersMap).find(x=>x.email===m.email);
+  const el = document.createElement('div'); el.className='member';
+  el.innerHTML = `<div class="member-top"><b></b></div><small class="member-email"></small><div class="member-terrs"></div><div class="member-actions"></div>`;
+  el.querySelector('b').textContent = (u && u.name) || m.name || m.email;
+  el.querySelector('small').textContent = m.email + (u ? '' : ' · hasn’t signed in yet');
+  const acts = el.querySelector('.member-actions');
+  const tw = el.querySelector('.member-terrs');
+  const terrs = (m.territories||[]).map(canonTerr);
+  if(terrs.length) terrs.forEach(tr=>{ const s=document.createElement('span'); s.textContent=tr; tw.appendChild(s); });
+  else { const s=document.createElement('span'); s.textContent='No territory'; tw.appendChild(s); }
+  if(isOwnerRow || m.admin){ const b=document.createElement('span'); b.className='badge admin'; b.textContent= isOwnerRow ? 'Owner' : 'Admin'; el.querySelector('.member-top').appendChild(b); }
+  // Admins choose each person's role here; it decides which pages they see.
+  const curRole = ROLES.includes(m.role) ? m.role : ((u && (u.role==='rep'||u.role==='inventory')) ? u.role : (isOwnerRow ? 'inventory' : 'rep'));
+  const rs = document.createElement('select'); rs.className='role-sel'; rs.setAttribute('aria-label', 'Role for '+m.email);
+  rs.innerHTML = '<option value="rep">Sales Rep</option><option value="inventory">Inventory Manager</option><option value="product">Product Manager</option>';
+  rs.value = curRole;
+  rs.onchange = async ()=>{
+    try{ await adb.doc('members/'+m.email).set({role: rs.value, ...(isOwnerRow ? {admin:true} : {})}, {merge:true}); toast(`${(u && u.name) || m.name || m.email} is now ${withArticle(roleLabel(rs.value))}.`); }
+    catch(e){ console.error(e); rs.value = curRole; toast('Could not change the role. Only admins can.'); }
+  };
+  acts.appendChild(rs);
+  const ed = document.createElement('button'); ed.type='button'; ed.className='edit-btn'; ed.textContent='Territories';
+  ed.onclick = ()=>{ editingMember = editingMember===m.email ? null : m.email; renderTeam(); };
+  acts.appendChild(ed);
+  if(!isOwnerRow && m.email!==me.email){
+    const rm = document.createElement('button'); rm.type='button'; rm.textContent='Remove';
+    let armed = false;
+    rm.onclick = async ()=>{
+      if(!armed){ armed = true; rm.textContent='Tap to confirm'; setTimeout(()=>{ armed=false; rm.textContent='Remove'; }, 4000); return; }
+      try{ await TT.removeMember(db, adb.agencyId, m.email); toast(`Removed ${m.email}.`); }catch(e){ console.error(e); toast('Could not remove. Try again.'); }
+    };
+    acts.appendChild(rm);
+  }
+  if(editingMember===m.email){
+    const box = document.createElement('div'); box.className='member-edit';
+    box.innerHTML = '<div class="terr-picks"></div><div class="row"><button type="button" class="cancel">Cancel</button><button type="button" class="save">Save territories</button></div>';
+    terrPicker(box.querySelector('.terr-picks'), terrs);
+    box.querySelector('.cancel').onclick = ()=>{ editingMember=null; renderTeam(); };
+    box.querySelector('.save').onclick = async ()=>{
+      const picked = pickedTerrs(box);
+      try{
+        await adb.doc('members/'+m.email).set({territories: picked, ...(isOwnerRow ? {admin:true} : {})}, {merge:true});
+        editingMember=null; toast(picked.length ? `${m.email}: ${picked.join(', ')}` : `Cleared territories for ${m.email}.`);
+      }catch(e){ console.error(e); toast('Could not save. Only admins can change the team.'); }
+    };
+    el.appendChild(box);
+  }
+  return el;
+}
+function renderTeam(){
+  if(!me || !me.isAdmin) return;
+  const list = $('#team-list'); list.innerHTML = '';
+  const rows = [...membersList];
+  rows.sort((a,b)=> ((b.owner||b.email===OWNER_EMAIL.toLowerCase())?1:0)-((a.owner||a.email===OWNER_EMAIL.toLowerCase())?1:0) || (b.admin?1:0)-(a.admin?1:0) || a.email.localeCompare(b.email));
+  $('#team-count').textContent = `${rows.length} ${rows.length===1?'person':'people'}`;
+  // One section per territory; someone in two territories shows up in both.
+  const groups = TERRITORIES.map(tr=>({name:tr, people: rows.filter(m=>(m.territories||[]).map(canonTerr).includes(tr))})).filter(g=>g.people.length);
+  const none = rows.filter(m=>!(m.territories||[]).map(canonTerr).some(tr=>TERRITORIES.includes(tr)));
+  if(none.length) groups.push({name:'No territory yet', people:none});
+  const seen = new Set();
+  for(const g of groups){
+    const sec = document.createElement('section'); sec.className='team-group';
+    const h = document.createElement('h3'); h.textContent = g.name;
+    const c = document.createElement('span'); c.textContent = `${g.people.length} ${g.people.length===1?'person':'people'}`; h.appendChild(c);
+    sec.appendChild(h);
+    const wrap = document.createElement('div'); wrap.className='member-list';
+    g.people.forEach(m=>{
+      // Show the territory editor only once, under the person's first section.
+      const showEdit = editingMember===m.email && !seen.has(m.email);
+      const keep = editingMember; if(!showEdit && editingMember===m.email) editingMember = null;
+      wrap.appendChild(memberRow(m));
+      editingMember = keep; seen.add(m.email);
+    });
+    sec.appendChild(wrap); list.appendChild(sec);
+  }
+}
+$('#team-form').addEventListener('submit', async e=>{
+  e.preventDefault();
+  const email = $('#team-email').value.trim().toLowerCase();
+  const name = $('#team-name').value.trim();
+  const admin = $('#team-admin').checked;
+  const role = $('#team-role').value;
+  const territories = pickedTerrs($('#team-terrs'));
+  const msg = $('#team-msg');
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ msg.textContent='Enter a full email address.'; msg.className='status-msg err'; return; }
+  try{
+    await TT.addMember(db, adb.agencyId, email, {name, admin, role, territories, addedBy: me.email, addedAt: Date.now()});
+    msg.textContent = `Added ${email} as ${withArticle(roleLabel(role))}${territories.length ? ' ('+territories.join(', ')+')' : ''}. Send them the app link and tell them to sign in with this email.`; msg.className='status-msg ok';
+    e.target.reset(); terrPicker($('#team-terrs'), []);
+  }catch(err){ console.error(err); msg.textContent= err.code==='other-agency' ? err.message : 'Could not add. Only admins can change the team.'; msg.className='status-msg err'; }
+});
+
+
+/* ================= Stock ================= */
+function renderStock(){
+  // Don't redraw while someone is typing a count or target in the list.
+  const active = document.activeElement;
+  if(active && active.closest && active.closest('#stock-list') && active.tagName==='INPUT') return;
+  const q = $('#stock-search').value.trim().toLowerCase(), below = $('#stock-below').checked;
+  const types = allTypes().map(t=>{ const rows=rowsOfType(t).sort((a,b)=>refKey(a.ref).localeCompare(refKey(b.ref))); const target=targetOfType(t), avail=availableOfType(t); return {t, rows, target, onHand:onHandOfType(t), reserved:reservedOfType(t), avail, off: target===null ? null : avail-target}; })
+    .filter(g=>(!q || g.rows.some(s=>[s.ref, s.desc, g.t].join(' ').toLowerCase().includes(q))) && (!below || (g.off!==null && g.off<0)))
+    .sort((a,b)=>a.t.localeCompare(b.t));
+  const list = $('#stock-list'); list.innerHTML = '';
+  $('#stock-empty').hidden = types.length>0; list.hidden = !types.length;
+  $('#stock-empty').textContent = (q || below) ? 'Nothing matches.' : 'No biologics yet. Add one above.';
+  const shortCount = types.filter(g=>g.off!==null && g.off<0).length;
+  $('#stock-count').textContent = types.length ? `${types.length} item${types.length===1?'':'s'}${shortCount ? ` · ${shortCount} below target` : ''}` : '';
+  const flash = (msg, text)=>{ if(!msg) return; msg.textContent = text; clearTimeout(msg._t); msg._t = setTimeout(()=>{ msg.textContent=''; }, 1500); };
+  const statusLines = g=>{
+    const out = [];
+    if(g.onHand===0) out.push(`<span class="inv-zero">None on hand${g.reserved ? ` · ${g.reserved} reserved` : ''}</span>`);
+    else if(g.reserved) out.push(`<span class="inv-out">${g.reserved} reserved · ${g.avail} available</span>`);
+    if(g.off!==null && g.off<0) out.push(`<span class="inv-low">${-g.off} below target</span>`);
+    return out.join('');
+  };
+  const stepper = s=>`<div class="stepper"><button type="button" class="dec" aria-label="One fewer">−</button><input type="number" inputmode="numeric" min="0" step="1" value="${+s.qty||0}" aria-label="On hand for ${escapeHtml(s.ref)}"><button type="button" class="inc" aria-label="One more">+</button></div><span class="inv-row-msg"></span>`;
+  const targetBox = g=>`<label class="tgt-box">Target<input class="tgt" type="number" inputmode="numeric" min="0" step="1" value="${g.target===null?'':g.target}" placeholder="—" aria-label="Target for ${escapeHtml(g.t)}"></label>`;
+  const wireQty = (row, s)=>{
+    const inp = row.querySelector('.stepper input'), msg = row.querySelector('.inv-row-msg');
+    const cur = ()=>{ const n=parseInt(inp.value,10); return isNaN(n)?0:n; };
+    const save = n=>{ inp.value = n; saveStock(s, {qty:n}).then(ok=>flash(msg, ok ? 'Saved' : '')); };
+    row.querySelector('.dec').onclick = ()=>save(Math.max(0, cur()-1));
+    row.querySelector('.inc').onclick = ()=>save(cur()+1);
+    inp.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); inp.blur(); } });
+    inp.addEventListener('blur', ()=>{ const v=inp.value.trim(); if(v==='') { inp.value = +s.qty||0; return; } const n=Math.max(0, parseInt(v,10)||0); if(n!==(+s.qty||0)) save(n); });
+  };
+  const wireTgt = (row, g)=>{
+    const inp = row.querySelector('.tgt');
+    inp.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); inp.blur(); } });
+    inp.addEventListener('change', ()=>{ const v=inp.value.trim(), n=parseInt(v,10); saveTypeTarget(g.t, v==='' ? null : (isNaN(n)||n<0 ? 0 : n)); });
+  };
+  const rowCls = g=>'inv-row bio-row' + (g.onHand===0 ? ' zero-row' : '') + (g.off!==null && g.off<0 ? ' low-row' : '');
+  types.forEach(g=>{
+    const single = g.rows.length===1 && refKey(g.rows[0].ref)===g.t;
+    if(single){
+      const s = g.rows[0], row = document.createElement('div'); row.className = rowCls(g);
+      row.innerHTML = `<div class="inv-name">${escapeHtml(s.ref)}${s.desc ? `<span class="inv-desc">${escapeHtml(s.desc)}</span>` : ''}${statusLines(g)}</div>${targetBox(g)}${stepper(s)}`;
+      wireQty(row, s); wireTgt(row, g); list.appendChild(row); return;
+    }
+    // A graft type stocked by size: a total row with the target, then a row per size with its own count.
+    const head = document.createElement('div'); head.className = rowCls(g) + ' type-head';
+    head.innerHTML = `<div class="inv-name">${escapeHtml(g.t)} <span style="font-weight:500; color:var(--sub);">· ${g.rows.length} sizes</span>${g.rows[0].desc ? `<span class="inv-desc">${escapeHtml(g.rows[0].desc)}</span>` : ''}${statusLines(g)}</div>${targetBox(g)}<div class="inv-total">${g.onHand}<small>on hand</small></div><span class="inv-row-msg"></span>`;
+    wireTgt(head, g); list.appendChild(head);
+    g.rows.forEach(s=>{
+      const row = document.createElement('div'); row.className = 'inv-row bio-row size-row' + ((+s.qty||0)===0 ? ' zero-row' : '');
+      const size = refKey(s.ref).startsWith(g.t) ? s.ref.slice(g.t.length).trim() || s.ref : s.ref;
+      const res = reservedFor(s.ref);
+      row.innerHTML = `<div class="inv-name">${escapeHtml(size)}${res ? `<span class="inv-out">${res} reserved · ${(+s.qty||0)-res} available</span>` : ''}</div>${stepper(s)}`;
+      wireQty(row, s); list.appendChild(row);
+    });
+  });
+}
+async function saveTypeTarget(t, target){
+  const batch = db.batch();
+  rowsOfType(t).forEach(s=>batch.update(adb.doc('bioStock/'+s.id), {target, updatedAt:Date.now(), updatedByName:me.name}));
+  try{ await batch.commit(); }catch(e){ console.error(e); toast('Couldn’t save that target. Try again.'); }
+}
+async function saveStock(s, patch){
+  try{ await adb.doc('bioStock/'+s.id).update({...patch, updatedAt:Date.now(), updatedByName:me.name}); return true; }
+  catch(e){ console.error(e); toast('Couldn’t save that. Try again.'); return false; }
+}
+$('#stock-search').addEventListener('input', renderStock);
+$('#stock-below').addEventListener('change', renderStock);
+$('#stock-form').addEventListener('submit', async e=>{
+  e.preventDefault();
+  const ref = refKey($('#s-ref').value), msg = $('#s-msg'); if(!ref) return;
+  const ex = stockFor(ref);
+  const patch = {ref: ex ? ex.ref : ref, updatedAt:Date.now(), updatedByName:me.name};
+  if($('#s-desc').value.trim()) patch.desc = $('#s-desc').value.trim();
+  if($('#s-type').value.trim()) patch.type = refKey($('#s-type').value);
+  const typeKey = refKey($('#s-type').value) || (ex ? typeOf(ex) : ref);
+  if($('#s-qty').value!=='') patch.qty = Math.max(0, parseInt($('#s-qty').value,10)||0);
+  if($('#s-target').value!=='') patch.target = Math.max(0, parseInt($('#s-target').value,10)||0);
+  else if(!ex && targetOfType(typeKey)!==null) patch.target = targetOfType(typeKey);
+  if(!ex && patch.qty===undefined) patch.qty = 0;
+  try{ await adb.doc('bioStock/'+(ex ? ex.id : docIdFor(ref))).set(patch, {merge:true}); if(patch.target!==undefined) await saveTypeTarget(typeKey, patch.target); msg.textContent = `Saved ${ref}.`; msg.className='status-msg ok'; e.target.reset(); const m=e.target.querySelector('.bio-more'); if(m) m.open=false; }
+  catch(err){ console.error(err); msg.textContent='Couldn’t save. Try again.'; msg.className='status-msg err'; }
+});
+
+/* ================= Reorder ================= */
+function renderReorder(){
+  const rows = allTypes().map(t=>{ const r0=rowsOfType(t)[0]; const reserved=reservedOfType(t), avail=availableOfType(t), tgt=targetOfType(t)||0; return {s:{ref:t, desc:r0.desc, qty:onHandOfType(t), target:targetOfType(t)}, reserved, avail, need: Math.max(0, tgt - avail)}; })
+    .filter(x=>x.need>0).sort((a,b)=>b.need-a.need || refKey(a.s.ref).localeCompare(refKey(b.s.ref)));
+  // Requested grafts that aren't in the stock list at all also need ordering.
+  const unknown = {};
+  bioReqs.filter(r=>OPEN(r.status) && typeForRef(r.graft)===null).forEach(r=>{ const k=refKey(r.graft); unknown[k]=(unknown[k]||0)+(+r.qty||0); });
+  const t = $('#order-table');
+  const total = rows.length + Object.keys(unknown).length;
+  $('#order-empty').hidden = total>0; t.hidden = !total;
+  t.innerHTML = '<thead><tr><th>Reference</th><th class="num">On hand</th><th class="num hide-m">Reserved</th><th class="num">Available</th><th class="num">Target</th><th class="num">Order</th></tr></thead>';
+  const tb = document.createElement('tbody');
+  rows.forEach(({s,reserved,avail,need})=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML = `<td><div class="ref">${escapeHtml(s.ref)}</div><div class="desc">${escapeHtml(s.desc||'')}</div></td><td class="num">${+s.qty||0}</td><td class="num hide-m">${reserved||''}</td><td class="num ${avail<0?'short':''}">${avail}</td><td class="num">${s.target??'—'}</td><td class="num short">${need}</td>`;
+    tb.appendChild(tr);
+  });
+  Object.entries(unknown).forEach(([k,n])=>{ const tr=document.createElement('tr'); tr.innerHTML=`<td><div class="ref">${escapeHtml(k)}</div><div class="desc">Requested but not in the stock list</div></td><td class="num">—</td><td class="num hide-m">${n}</td><td class="num">—</td><td class="num">—</td><td class="num short">${n}</td>`; tb.appendChild(tr); });
+  t.appendChild(tb);
+  // Notes
+  const list = $('#note-list'); list.innerHTML='';
+  const open = notes.filter(n=>!n.done).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+  $('#note-empty').hidden = open.length>0;
+  if(open.length){
+    const wrap=document.createElement('div'); wrap.className='b-wrap';
+    const nt=document.createElement('table'); nt.className='b-table';
+    nt.innerHTML='<thead><tr><th>Type</th><th>Reference</th><th>Note</th><th class="hide-m">Added</th><th></th></tr></thead>';
+    const nb=document.createElement('tbody');
+    open.forEach(n=>{
+      const tr=document.createElement('tr');
+      tr.innerHTML = `<td><span class="st ${n.kind==='concern'?'cancelled':'requested'}">${n.kind==='concern'?'Concern':'Order'}</span></td><td class="ref">${escapeHtml(n.ref||'')}</td><td>${escapeHtml(n.text||'')}${n.link?` · <a href="${escapeHtml(n.link)}" target="_blank" rel="noopener">Link</a>`:''}</td><td class="desc hide-m">${escapeHtml(n.byName||'')} · ${new Date(n.createdAt||0).toLocaleDateString(undefined,{month:'short',day:'numeric'})}</td><td><div class="b-actions"><button type="button">Resolved</button></div></td>`;
+      tr.querySelector('button').onclick = ()=>adb.doc('bioNotes/'+n.id).update({done:true, doneAt:Date.now(), doneByName:me.name}).catch(()=>toast('Couldn’t save.'));
+      nb.appendChild(tr);
+    });
+    nt.appendChild(nb); wrap.appendChild(nt); list.appendChild(wrap);
+  }
+}
+$('#note-form').addEventListener('submit', async e=>{
+  e.preventDefault();
+  const text = $('#n-text').value.trim(); if(!text) return;
+  const link = $('#n-link').value.trim();
+  try{ await adb.collection('bioNotes').add({kind:$('#n-kind').value, ref:refKey($('#n-ref').value), text, link: /^https?:\/\//.test(link) ? link : '', byName:me.name, createdAt:Date.now(), done:false}); e.target.reset(); }
+  catch(err){ console.error(err); toast('Couldn’t add that. Try again.'); }
+});
+
+/* ================= Usage ================= */
+function usageRows(){
+  const range = $('#u-range').value, terr = $('#u-territory').value, q = $('#u-search').value.trim().toLowerCase();
+  const from = range==='all' ? '' : isoDate(new Date(Date.now() - (+range)*86400000));
+  return bioReqs.filter(r=>r.status==='used' && (!from || (r.dateNeeded||'')>=from) && (terr==='All' || canonTerr(r.territory)===terr) && matchesSearch(r,q))
+    .sort((a,b)=>(b.dateNeeded||'').localeCompare(a.dateNeeded||''));
+}
+function renderUsage(){
+  const rows = usageRows();
+  const tot = {}; rows.forEach(r=>{ tot[r.graft]=(tot[r.graft]||0)+(+r.usedQty||+r.qty||0); });
+  $('#u-totals').innerHTML = Object.entries(tot).sort((a,b)=>b[1]-a[1]).map(([k,n])=>`<span>${escapeHtml(k)}<b>${n}</b></span>`).join('');
+  const t = $('#u-table'); $('#u-empty').hidden = rows.length>0; t.hidden = !rows.length;
+  t.innerHTML = '<thead><tr><th>Surgery</th><th>Biologic</th><th class="num">Qty</th><th>Account · Surgeon</th><th class="hide-m">Territory</th><th>PO · Lot · Sales order</th></tr></thead>';
+  const tb=document.createElement('tbody');
+  rows.forEach(r=>{
+    const so = r.salesOrder ? (/^https?:\/\//.test(r.salesOrder) ? `<a href="${escapeHtml(r.salesOrder)}" target="_blank" rel="noopener">Sales order</a>` : 'SO '+escapeHtml(r.salesOrder)) : '';
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${escapeHtml(fmtDate(r.dateNeeded))}</td><td><div class="ref">${escapeHtml(r.usedRef||r.graft||'')}</div><div class="desc">${escapeHtml(r.desc||'')}</div></td><td class="num">${+r.usedQty||+r.qty||0}</td><td>${escapeHtml([r.account, r.surgeon].filter(Boolean).join(' · '))}</td><td class="hide-m">${escapeHtml(canonTerr(r.territory)||'')}</td><td class="desc">${[r.poNumber?'PO '+escapeHtml(r.poNumber):'<span class="exp-soon">No PO yet</span>', r.lot?'Lot '+escapeHtml(r.lot):'', so].filter(Boolean).join(' · ')}</td>`;
+    tb.appendChild(tr);
+  });
+  t.appendChild(tb);
+}
+['#u-range','#u-territory'].forEach(s=>$(s).addEventListener('change', renderUsage));
+$('#u-search').addEventListener('input', renderUsage);
+$('#u-export').addEventListener('click', ()=>{
+  const rows = usageRows();
+  const cell = v=>`"${String(v??'').replace(/"/g,'""')}"`;
+  const csv = [['Surgery date','Territory','Account','Surgeon','Biologic','Description','Qty','Sales order','Lot','PO'].map(cell).join(',')]
+    .concat(rows.map(r=>[r.dateNeeded, canonTerr(r.territory), r.account, r.surgeon, r.usedRef||r.graft, r.desc, +r.usedQty||+r.qty||0, r.salesOrder, r.lot, r.poNumber].map(cell).join(','))).join('\n');
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv],{type:'text/csv'})); a.download = `biologics-usage-${todayIso()}.csv`; a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href), 2000);
+});
+
+/* Header menus: app switcher (title) and settings (gear). */
+function wireMenu(btnSel, ddSel){
+  const btn=$(btnSel), dd=$(ddSel);
+  const close=()=>{ dd.hidden=true; btn.setAttribute('aria-expanded','false'); };
+  btn.addEventListener('click', e=>{ e.stopPropagation(); const open=dd.hidden; document.querySelectorAll('.dd').forEach(d=>d.hidden=true); document.querySelectorAll('[aria-haspopup=menu]').forEach(b=>b.setAttribute('aria-expanded','false')); dd.hidden=!open; btn.setAttribute('aria-expanded', String(open)); });
+  dd.addEventListener('click', e=>{ if(e.target.closest('a,button')) close(); });
+  document.addEventListener('click', e=>{ if(!dd.hidden && !e.target.closest(ddSel)) close(); });
+  document.addEventListener('keydown', e=>{ if(e.key==='Escape') close(); });
+}
+wireMenu('#app-title-btn', '#app-dd');
+wireMenu('#gear-btn', '#gear-dd');
+/* Brief pop-up on someone's 69th biologic request. Tap to close early. */
+function celebrate(){
+  const d = document.createElement('div'); d.className='celebrate'; d.setAttribute('role','status'); d.setAttribute('aria-label','Request sent. Nice!');
+  d.innerHTML = '<img src="request-nice.png" alt="">';
+  document.body.appendChild(d);
+  requestAnimationFrame(()=>requestAnimationFrame(()=>d.classList.add('show')));
+  const close = ()=>{ d.classList.remove('show'); setTimeout(()=>d.remove(), 250); };
+  d.addEventListener('click', close); setTimeout(close, 2200);
+}
+if(window.firebase) boot(); else $('#loading-msg').textContent = 'Could not load. Check your connection and reload.';
+</script>
+<script>
+/* Save a copy of the app on this device so it still opens on Wi-Fi networks that block turntray.com. */
+if('serviceWorker' in navigator && (location.protocol==='https:' || location.hostname==='localhost') && !location.pathname.startsWith('/beta/')) window.addEventListener('load', ()=>{ navigator.serviceWorker.register('sw.js').catch(()=>{}); });
+</script>
+</body>
+</html>

@@ -939,13 +939,13 @@ main{max-width:1200px; margin:0 auto; padding:18px clamp(16px,3vw,32px) 40px;}
     <section class="panel">
       <div class="section-head"><h2>Add or update a biologic</h2></div>
       <form id="stock-form" class="inv-add" autocomplete="off">
-        <input id="s-ref" placeholder="Reference (e.g. ABS-1010-BC)" autocapitalize="characters" required>
+        <input id="s-ref" placeholder="Reference (e.g. GRAFT-100)" autocapitalize="characters" required>
         <input id="s-qty" type="number" inputmode="numeric" min="0" step="1" placeholder="Qty">
         <button type="submit">Save</button>
         <details class="bio-more"><summary>Description, graft type and target</summary>
           <div class="bio-more-grid">
-            <div><label for="s-desc">Description</label><input id="s-desc" placeholder="BIOCARTILAGE 1CC"></div>
-            <div><label for="s-type">Graft type (if sized)</label><input id="s-type" placeholder="e.g. FQL" autocapitalize="characters"></div>
+            <div><label for="s-desc">Description</label><input id="s-desc" placeholder="CARTILAGE GRAFT 1CC"></div>
+            <div><label for="s-type">Graft type (if sized)</label><input id="s-type" placeholder="e.g. SIZED" autocapitalize="characters"></div>
             <div><label for="s-target">Target</label><input id="s-target" type="number" inputmode="numeric" min="0" step="1" placeholder="—"></div>
           </div>
         </details>
@@ -1887,7 +1887,7 @@ function hl(text, words){
 }
 function graftLine(val, qty, lineId){
   const w = document.createElement('div'); w.className='g-line'; if(lineId) w.dataset.id = lineId;
-  w.innerHTML = `<div class="g-row"><div class="g-search"><input class="g-in" placeholder="ABS number or description, e.g. biocartilage" autocomplete="off" spellcheck="false" aria-label="Biologic"><div class="g-list" hidden></div></div>
+  w.innerHTML = `<div class="g-row"><div class="g-search"><input class="g-in" placeholder="Reference or description, e.g. cartilage graft" autocomplete="off" spellcheck="false" aria-label="Biologic"><div class="g-list" hidden></div></div>
     <input class="g-qty-in" type="number" inputmode="numeric" min="1" step="1" value="${qty||1}" aria-label="Qty"><button type="button" class="g-rm" aria-label="Remove">×</button></div><div class="avail-note"></div>`;
   const inp = w.querySelector('.g-in'), box = w.querySelector('.g-list'), qtyIn = w.querySelector('.g-qty-in');
   if(val) inp.value = val;

@@ -866,7 +866,7 @@ textarea{resize:vertical; min-height:64px;}
       <div class="lp-case">
         <div class="lp-case-top"><b>Dr. Okafor · Swedish Medical</b><span>7:30 AM</span></div>
         <ul>
-          <li><span class="tag">ACL Toolbox</span><span class="state done">Delivered</span></li>
+          <li><span class="tag">Knee Instrument Set</span><span class="state done">Delivered</span></li>
           <li><span class="tag">Knee Scope Set</span><span class="state done">Delivered</span></li>
         </ul>
       </div>
@@ -911,7 +911,7 @@ textarea{resize:vertical; min-height:64px;}
         <li>One pull queue, sorted by ship date, with overdue items at the top</li>
         <li>Counts of every set you own, what's out, and what's on the shelf</li>
         <li>Loaner and urgent-return alerts before a case is at risk</li>
-        <li>Consigned trays, same-day turnovers and SST send-out reports</li>
+        <li>Consigned trays, same-day turnovers and send-out reports</li>
       </ul>
     </div>
     <div class="lp-who">
@@ -1565,7 +1565,7 @@ textarea{resize:vertical; min-height:64px;}
         <p class="hint">Each tray you loan out and how many sets you own. Reps pick from this list. Fine-tune Low inventory and Bank on the Inventory page.</p>
         <details class="import" id="tray-import"><summary>Import from a spreadsheet</summary>
           <p class="hint">Columns: <b>Tray, Quantity</b>. Existing trays get the new quantity.</p>
-          <textarea rows="5" id="tray-paste" spellcheck="false" placeholder="ACL TOOLBOX&#9;3"></textarea>
+          <textarea rows="5" id="tray-paste" spellcheck="false" placeholder="KNEE INSTRUMENT SET&#9;3"></textarea>
           <div class="setup-row"><label class="btn-file">Choose file<input type="file" id="tray-file" accept=".csv,.tsv,.txt,.xlsx,.xls" hidden></label><button type="button" id="tray-import-go">Import</button></div>
         </details>
         <div class="toolbar"><input type="search" id="tray-search" placeholder="Search trays…"></div>
@@ -1583,7 +1583,7 @@ textarea{resize:vertical; min-height:64px;}
         <p class="hint">Grafts you keep on the shelf. Import a list here, then manage it in the Biologics app.</p>
         <details class="import"><summary>Import from a spreadsheet</summary>
           <p class="hint">Columns: <b>Reference, Description, Graft type, Quantity, Target</b> (only Reference is required).</p>
-          <textarea rows="5" id="bio-paste" spellcheck="false" placeholder="ABS-1010-BC&#9;BIOCARTILAGE 1CC&#9;&#9;4&#9;6"></textarea>
+          <textarea rows="5" id="bio-paste" spellcheck="false" placeholder="GRAFT-100&#9;CARTILAGE GRAFT 1CC&#9;&#9;4&#9;6"></textarea>
           <div class="setup-row"><label class="btn-file">Choose file<input type="file" id="bio-file" accept=".csv,.tsv,.txt,.xlsx,.xls" hidden></label><button type="button" id="bio-import-go">Import</button></div>
         </details>
         <a href="bio.html" class="linkbtn">Open Biologics →</a>
@@ -2210,7 +2210,7 @@ function refreshAvailFor(inp, el){
 function refreshAllAvail(){ document.querySelectorAll('#tray-lines .tin').forEach(w=>refreshAvailFor(w.querySelector('.f-tray-input'), w.querySelector('.avail'))); }
 function trayInputRow(val){
   const wrap = document.createElement('div'); wrap.className='tin';
-  wrap.innerHTML = `<div class="tin-row"><input class="f-tray-input" list="dl-trays" placeholder="e.g. ACLTOOLBOX" autocapitalize="characters" autocomplete="off" aria-label="Tray / item"><button type="button" class="tin-rm" aria-label="Remove tray">×</button></div><div class="avail"></div>`;
+  wrap.innerHTML = `<div class="tin-row"><input class="f-tray-input" list="dl-trays" placeholder="e.g. KNEE SET" autocapitalize="characters" autocomplete="off" aria-label="Tray / item"><button type="button" class="tin-rm" aria-label="Remove tray">×</button></div><div class="avail"></div>`;
   const inp = wrap.querySelector('.f-tray-input');
   const availEl = wrap.querySelector('.avail');
   if(val) inp.value = val;

@@ -548,6 +548,7 @@ textarea{resize:vertical; min-height:64px;}
 .case.st-late > .case-row:hover, .case.st-late > .xrow:hover{background:color-mix(in srgb, var(--danger) 18%, var(--panel));}
 .case.st-late .case-trays{background:color-mix(in srgb, var(--danger) 5%, var(--panel));}
 .case.st-late .c-pull{color:var(--danger);}
+.tag.late-tag{background:var(--danger); color:#fff;}
 .tline.late{border-color:var(--danger); background:color-mix(in srgb, var(--danger) 9%, var(--panel));}
 .pill.od{background:var(--danger); color:#fff;}
 .xrow .x-status{justify-self:end;}
@@ -3188,7 +3189,11 @@ function buildDayCaseRow(c, iso, prefix, mode){
   if(c.trays.some(t=>(t.status||'open')==='open' && turnoverSourceFor(t))) tags.push('<span class="tag turn">Can turn over</span>');
   const start = (c.trays.find(t=>t.sstStart)||{}).sstStart;
   const col2 = mode==='sst' ? `Surgery ${fmtDate(c.date)}${start?' · '+start:''}` : (c.procedure || c.type);
-  const el = document.createElement('div'); el.className = 'case' + (open ? ' expanded' : '') + caseStage(c.trays);
+  // Red when a tray still isn't delivered by 12 PM on the day it has to be at the account.
+  const lateDel = t=>t.status!=='cancelled' && !t.delivered && isOverdueSend(sendByFor(t));
+  const late = c.trays.some(lateDel);
+  if(late) tags.push('<span class="tag late-tag">Not delivered</span>');
+  const el = document.createElement('div'); el.className = 'case' + (open ? ' expanded' : '') + caseStage(c.trays) + (late ? ' st-late' : '');
   el.innerHTML = `<div class="xrow" role="button" tabindex="0" aria-expanded="${open}">
     <span class="c-name">${CHEV}<span>${escapeHtml(caseTitle(c))}</span>${caseNoTag(c)}${tags.join('')}</span>
     <span class="x-c1 c-sub">${escapeHtml(c.territory||'—')}</span>
@@ -3209,7 +3214,7 @@ function buildDayCaseRow(c, iso, prefix, mode){
     note.textContent = [mode==='sst' ? '' : `Send by ${fmtDate(c.sendBy)}`, mode==='sst' ? `Pull by ${fmtDate(c.pullBy)}` : '', who.length ? 'Requested by '+who.join(', ') : ''].filter(Boolean).join(' · ');
     box.appendChild(note);
     c.trays.forEach(r=>{
-      const w=document.createElement('div'); w.className='tline'; w.appendChild(buildTrayRow(r));
+      const w=document.createElement('div'); w.className='tline' + (lateDel(r) ? ' late' : ''); w.appendChild(buildTrayRow(r));
       const un = urgentNote(r); if(un){ const d=document.createElement('div'); d.className='urgent-note'; d.textContent=un; w.appendChild(d); }
       box.appendChild(w);
     });

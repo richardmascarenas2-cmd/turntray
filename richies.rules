@@ -71,8 +71,9 @@ service cloud.firestore {
     }
 
     // Owner's billing settings: Stripe payment link, price shown, trial length.
+    // Public, so the website can show the price to visitors who aren't signed in.
     match /config/{doc} {
-      allow read: if signedIn();
+      allow read: if true;
       allow write: if isOwner();
     }
 

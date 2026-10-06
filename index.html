@@ -3,7 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Inventory Requests</title>
+<title>TurnTray: tray requests and tracking for device agencies</title>
+<meta name="description" content="Tray requests, pulls, deliveries, returns and biologics for orthopedic device agencies. Free 14-day trial.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,400..800&display=swap" rel="stylesheet">
 <meta name="theme-color" content="#0b1320">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -100,6 +103,7 @@ details.import textarea{font-family:ui-monospace,Menlo,monospace; font-size:13px
 .agency-row small{display:block; color:var(--sub); font-size:.78rem; margin-top:3px; overflow-wrap:anywhere;}
 .agency-row .acts{display:flex; gap:8px; flex-wrap:wrap; margin-top:10px;}
 .agency-row .acts button{padding:8px 12px; border:1px solid var(--line); background:var(--panel);}
+.agency-row .acts button.danger{color:var(--danger); border-color:color-mix(in srgb, var(--danger) 40%, var(--line));}
 .agency-row .acts button.go{background:var(--accent); color:#fff; border-color:var(--accent);}
 .st{font-size:.7rem; font-weight:700; padding:2px 8px; border-radius:999px; text-transform:uppercase; letter-spacing:.04em; background:var(--line); color:var(--sub);}
 .st.pending{background:#fff4d6; color:#8a5a00;}
@@ -107,6 +111,96 @@ details.import textarea{font-family:ui-monospace,Menlo,monospace; font-size:13px
 .st.here{background:var(--accent); color:#fff;}
 .st.free{background:#e7e9ff; color:#3a3f9e;}
 .st.expired{background:#ffe1e1; color:#a11;}
+
+
+/* ---------- public site (signed out) ---------- */
+.landing{--lp-gut:clamp(16px,5vw,64px); --lp-edge:max(var(--lp-gut), calc((100% - 1240px)/2 + var(--lp-gut)));
+  --lp-ink:#0F1B2D; --lp-blue:#3D7DCA; --lp-steel:#D5DCE4; --lp-paper:#F6F8FA; --lp-amber:#E6A23C; --lp-sub:#4A5568;
+  font-family:'Archivo', system-ui, sans-serif; color:var(--lp-ink); background:var(--lp-paper); min-height:100vh;}
+.landing h1, .landing h2, .landing h3{font-stretch:78%; font-weight:800; letter-spacing:-.01em; line-height:1.02; margin:0;}
+.landing a{color:var(--lp-blue);}
+.lp-nav{display:flex; align-items:center; justify-content:space-between; gap:16px; padding:calc(16px + var(--sat)) clamp(16px,5vw,64px) 16px; max-width:1240px; margin:0 auto;}
+.lp-logo{display:flex; align-items:center; gap:10px; text-decoration:none; color:var(--lp-ink) !important; font-weight:800; font-stretch:78%; font-size:1.35rem;}
+.lp-logo img{width:34px; height:34px; border-radius:8px;}
+.lp-nav nav{display:flex; align-items:center; gap:22px; font-size:.95rem;}
+.lp-nav nav a{color:var(--lp-ink); text-decoration:none; font-weight:500;}
+.lp-nav nav a:hover{color:var(--lp-blue);}
+.lp-signin{background:var(--lp-ink); color:#fff; padding:9px 16px; border-radius:8px; font-size:.92rem;}
+.lp-hero{display:grid; grid-template-columns:1.05fr .95fr; gap:clamp(28px,5vw,72px); align-items:center; max-width:1240px; margin:0 auto; padding:clamp(28px,6vw,80px) clamp(16px,5vw,64px) clamp(48px,7vw,96px);}
+.lp-hero h1{font-size:clamp(2.6rem,6.2vw,4.9rem); max-width:11ch;}
+.lp-lede{font-size:clamp(1.05rem,1.4vw,1.2rem); line-height:1.55; color:var(--lp-sub); margin:22px 0 28px; max-width:34em;}
+.lp-ctas{display:flex; gap:12px; flex-wrap:wrap;}
+.lp-btn{padding:14px 20px; font-size:1rem; font-weight:700; border-radius:10px; background:#fff; border:1.5px solid var(--lp-ink); color:var(--lp-ink);}
+.lp-btn.primary{background:var(--lp-blue); border-color:var(--lp-blue); color:#fff;}
+.lp-btn:hover{filter:brightness(.95);}
+.lp-fine{font-size:.88rem; color:var(--lp-sub); margin:14px 0 0;}
+/* the case board: the one bold thing on the page */
+.lp-board{margin:0; background:var(--lp-ink); border-radius:18px; padding:18px; color:#E8EEF5; box-shadow:0 30px 60px -30px rgba(15,27,45,.55); transform:rotate(-1.2deg);}
+.lp-board-head{display:flex; justify-content:space-between; align-items:baseline; padding:2px 4px 12px; border-bottom:3px solid #4FC3F7; margin-bottom:12px;}
+.lp-board-head b{font-stretch:78%; font-size:1.25rem; font-weight:800;}
+.lp-board-head span{font-size:.85rem; color:#9FB0C3;}
+.lp-case{background:#17263C; border-radius:12px; padding:12px 14px; margin-bottom:10px;}
+.lp-case.dim{opacity:.6;}
+.lp-case-top{display:flex; justify-content:space-between; gap:10px; font-size:.92rem; margin-bottom:8px;}
+.lp-case-top span{color:#9FB0C3;}
+.lp-case ul{list-style:none; margin:0; padding:0; display:grid; gap:6px;}
+.lp-case li{display:flex; justify-content:space-between; align-items:center; gap:10px;}
+.lp-case .tag{background:#fff; color:var(--lp-ink); font-weight:700; font-size:.85rem; padding:5px 10px 5px 14px; border-radius:4px 6px 6px 4px; position:relative;}
+.lp-case .tag::before{content:""; position:absolute; left:5px; top:50%; width:5px; height:5px; margin-top:-2.5px; border-radius:50%; background:var(--lp-steel);}
+.lp-case .state{font-size:.8rem; font-weight:700; padding:3px 9px; border-radius:99px;}
+.state.done{background:#1F4D35; color:#9BE3B7;} .state.pulled{background:#1E3A5F; color:#9CC9FF;}
+.state.urgent{background:var(--lp-amber); color:#2B1B00;} .state.open{background:#2A3A50; color:#C9D4E2;}
+.lp-note{margin:9px 0 0; font-size:.82rem; color:#F2CF8E; line-height:1.4;}
+.lp-band{background:var(--lp-ink); color:#fff; padding:clamp(48px,7vw,88px) var(--lp-edge);}
+.lp-band h2{font-size:clamp(2rem,4vw,3rem); margin:0 0 34px;}
+.lp-trip{list-style:none; counter-reset:trip; margin:0; padding:0; display:grid; grid-template-columns:repeat(4,1fr); gap:0;}
+.lp-trip li{counter-increment:trip; padding:18px 22px 6px 0; border-top:3px solid #4FC3F7; position:relative;}
+.lp-trip li + li{padding-left:22px; border-left:1px solid #26384F;}
+.lp-trip li::before{content:counter(trip); display:block; font-stretch:78%; font-weight:800; font-size:2.6rem; color:#4FC3F7; line-height:1; margin-bottom:10px;}
+.lp-trip b{display:block; font-size:1.25rem; font-stretch:85%; margin-bottom:6px;}
+.lp-trip span{color:#B9C6D6; line-height:1.55; font-size:.98rem;}
+.lp-features{max-width:1240px; margin:0 auto; padding:clamp(48px,7vw,96px) clamp(16px,5vw,64px); display:grid; grid-template-columns:repeat(3,1fr); gap:clamp(24px,4vw,56px);}
+.lp-who h3{font-size:1.6rem; padding-bottom:12px; border-bottom:2px solid var(--lp-ink); margin-bottom:14px;}
+.lp-who ul{list-style:none; padding:0; margin:0;}
+.lp-who li{padding:10px 0; border-bottom:1px solid var(--lp-steel); line-height:1.45; color:#25324A;}
+.lp-setup{max-width:1240px; margin:0 auto; padding:0 clamp(16px,5vw,64px) clamp(48px,7vw,96px); display:grid; grid-template-columns:1.1fr .9fr; gap:clamp(24px,5vw,72px); align-items:start;}
+.lp-setup h2{font-size:clamp(1.9rem,3.6vw,2.8rem); max-width:14ch; margin-bottom:16px;}
+.lp-setup p{color:var(--lp-sub); line-height:1.6; font-size:1.05rem; max-width:36em; margin:0;}
+.lp-steps{list-style:none; counter-reset:st; margin:0; padding:0; display:grid; gap:12px;}
+.lp-steps li{counter-increment:st; display:grid; grid-template-columns:44px 1fr; column-gap:14px; background:#fff; border:1px solid var(--lp-steel); border-radius:12px; padding:14px 16px;}
+.lp-steps li::before{content:counter(st); grid-row:1/3; width:44px; height:44px; border-radius:50%; background:var(--lp-paper); border:2px solid var(--lp-blue); color:var(--lp-blue); font-weight:800; display:flex; align-items:center; justify-content:center; font-size:1.1rem;}
+.lp-steps b{font-size:1.05rem;} .lp-steps span{color:var(--lp-sub); font-size:.93rem;}
+.lp-join{background:#E9EEF4; padding:clamp(48px,7vw,96px) var(--lp-edge);}
+.lp-join{display:grid; grid-template-columns:1fr minmax(320px,420px); gap:clamp(28px,5vw,80px); align-items:start; justify-items:start;}
+.lp-join > *{max-width:100%;}
+.lp-price h2{font-size:clamp(2rem,4vw,3rem); margin-bottom:12px;}
+.lp-amount{font-stretch:78%; font-weight:800; font-size:clamp(2.4rem,5vw,3.6rem); margin:8px 0 18px; color:var(--lp-blue);}
+.lp-price ul{list-style:none; padding:0; margin:0; max-width:28em;}
+.lp-price li{padding:9px 0 9px 26px; border-bottom:1px solid var(--lp-steel); position:relative;}
+.lp-price li::before{content:""; position:absolute; left:2px; top:15px; width:12px; height:7px; border-left:2.5px solid var(--lp-blue); border-bottom:2.5px solid var(--lp-blue); transform:rotate(-45deg);}
+.lp-get{width:100%; scroll-margin-top:24px;}
+.landing .gate-card{max-width:none; box-shadow:0 20px 40px -24px rgba(15,27,45,.35); font-family:system-ui, -apple-system, sans-serif;}
+.landing .gate-card .brand, .landing .gate-card .gate-intro{display:none;}
+.landing .gate-card::before{content:"Get started"; display:block; font-family:'Archivo',sans-serif; font-stretch:78%; font-weight:800; font-size:1.6rem; margin-bottom:14px; color:var(--lp-ink);}
+.lp-foot{display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px; padding:24px var(--lp-edge) calc(24px + var(--sab)); font-size:.85rem; color:var(--lp-sub); background:var(--lp-paper);}
+.lp-foot span:first-child{font-weight:800; font-stretch:78%; color:var(--lp-ink); font-size:1rem;}
+.landing :focus-visible{outline:3px solid var(--lp-blue); outline-offset:2px;}
+@media (max-width:900px){
+  .lp-hero, .lp-setup, .lp-join{grid-template-columns:1fr;}
+  .lp-board{transform:none;}
+  .lp-trip{grid-template-columns:1fr 1fr;} .lp-trip li:nth-child(3){padding-left:0; border-left:none;}
+  .lp-features{grid-template-columns:1fr;}
+  .lp-nav nav a{display:none;}
+}
+@media (max-width:520px){ .lp-trip{grid-template-columns:1fr;} .lp-trip li{padding-left:0 !important; border-left:none !important;} }
+/* Home-screen app, signed out: just the sign-in card */
+.landing[hidden]{display:none !important;}
+.landing.app-mode > :not(.lp-join){display:none;}
+.landing.app-mode{display:flex; align-items:center; justify-content:center; padding:calc(24px + var(--sat)) 16px calc(24px + var(--sab));}
+.landing.app-mode .lp-join{background:none; padding:0; display:block; width:100%; max-width:380px;}
+.landing.app-mode .lp-price{display:none;}
+.landing.app-mode .gate-card::before{display:none;}
+.landing.app-mode .gate-card .brand{display:flex;}
 
 /* ---------- app bar ---------- */
 .appbar{background:#0b1320; border-bottom:3px solid #4FC3F7; padding:calc(12px + var(--sat)) 16px 12px; display:flex; align-items:center; gap:12px;}
@@ -745,8 +839,119 @@ textarea{resize:vertical; min-height:64px;}
 </section>
 
 <!-- ======== Sign in ======== -->
-<section class="gate" id="screen-auth" hidden>
-  <div class="gate-card">
+<section class="landing" id="screen-auth" hidden>
+  <header class="lp-nav">
+    <a class="lp-logo" href="#top"><img src="icon-192.png" alt=""><span>TurnTray</span></a>
+    <nav aria-label="Site">
+      <a href="#lp-how">How it works</a>
+      <a href="#lp-features">Features</a>
+      <a href="#lp-pricing">Pricing</a>
+      <button type="button" class="lp-signin" data-goto="signin">Sign in</button>
+    </nav>
+  </header>
+
+  <div class="lp-hero" id="top">
+    <div class="lp-hero-copy">
+      <h1>Every tray, every case, accounted for.</h1>
+      <p class="lp-lede">TurnTray is the request and tracking app for orthopedic device agencies. Reps request trays for their cases, the inventory team pulls and ships them, and everyone can see where every set is until it comes back complete.</p>
+      <div class="lp-ctas">
+        <button type="button" class="lp-btn primary" data-goto="register">Start a free trial</button>
+        <button type="button" class="lp-btn" data-goto="signin">Sign in</button>
+      </div>
+      <p class="lp-fine" id="lp-trial-line">Free for 14 days. Set up in an afternoon from the spreadsheets you already keep.</p>
+    </div>
+
+    <figure class="lp-board" aria-label="Example: a week of cases on TurnTray">
+      <div class="lp-board-head"><b>Tue, Oct 14</b><span>North territory</span></div>
+      <div class="lp-case">
+        <div class="lp-case-top"><b>Dr. Okafor · Swedish Medical</b><span>7:30 AM</span></div>
+        <ul>
+          <li><span class="tag">ACL Toolbox</span><span class="state done">Delivered</span></li>
+          <li><span class="tag">Knee Scope Set</span><span class="state done">Delivered</span></li>
+        </ul>
+      </div>
+      <div class="lp-case">
+        <div class="lp-case-top"><b>Dr. Lindqvist · Overlake ASC</b><span>12:15 PM</span></div>
+        <ul>
+          <li><span class="tag">Shoulder Anchor Set</span><span class="state pulled">Pulled</span></li>
+          <li><span class="tag">Labral Repair Tray</span><span class="state urgent">Urgent return</span></li>
+        </ul>
+        <p class="lp-note">Only set is at Harborview until Mon. Ask for it back or order a loaner.</p>
+      </div>
+      <div class="lp-case dim">
+        <div class="lp-case-top"><b>Dr. Haddad · Evergreen</b><span>Wed</span></div>
+        <ul><li><span class="tag">Foot &amp; Ankle Plating</span><span class="state open">Requested</span></li></ul>
+      </div>
+    </figure>
+  </div>
+
+  <section class="lp-band" id="lp-how">
+    <h2>A tray's trip, start to finish</h2>
+    <ol class="lp-trip">
+      <li><b>Request</b><span>A rep picks the surgery date, account and surgeon, and adds the trays. Preference cards fill in the usual trays for that procedure.</span></li>
+      <li><b>Pull</b><span>The pull queue sorts every tray by when it needs to leave. Shortages are caught days ahead: ask for an urgent return or order a loaner.</span></li>
+      <li><b>Deliver</b><span>Photos of the tray at drop-off are saved with the case, so there's no arguing later about what was sent.</span></li>
+      <li><b>Return</b><span>Returns are checked in with photos. Anything missing is flagged and stays on the board until it's found.</span></li>
+    </ol>
+  </section>
+
+  <section class="lp-features" id="lp-features">
+    <div class="lp-who">
+      <h3>For reps</h3>
+      <ul>
+        <li>Request a case's trays from a phone in under a minute</li>
+        <li>See your territory's week on the schedule, case by case</li>
+        <li>Know which of your trays are still sitting at an account</li>
+        <li>Save surgeon preference cards and reuse them</li>
+      </ul>
+    </div>
+    <div class="lp-who">
+      <h3>For the inventory team</h3>
+      <ul>
+        <li>One pull queue, sorted by ship date, with overdue items at the top</li>
+        <li>Counts of every set you own, what's out, and what's on the shelf</li>
+        <li>Loaner and urgent-return alerts before a case is at risk</li>
+        <li>Consigned trays, same-day turnovers and SST send-out reports</li>
+      </ul>
+    </div>
+    <div class="lp-who">
+      <h3>For agency owners</h3>
+      <ul>
+        <li>Your agency's own space, logo and team, separate from everyone else</li>
+        <li>Roles and territories for each person</li>
+        <li>Analysis of loaner use and how often cases waited on a return</li>
+        <li>Biologics: graft stock, par levels, case usage and POs</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="lp-setup">
+    <div>
+      <h2>Bring your lists, not a project plan</h2>
+      <p>Paste your accounts, territories and tray counts straight from Excel or Google Sheets, or upload the file. Add your team by email and they sign in to your agency, nobody else's. Works on any phone, and can be added to the home screen like an app.</p>
+    </div>
+    <ol class="lp-steps">
+      <li><b>Register your agency</b><span>A short form. You become its admin.</span></li>
+      <li><b>Import your lists</b><span>Accounts, territories, trays, biologics.</span></li>
+      <li><b>Invite your team</b><span>Reps and inventory sign in and start requesting.</span></li>
+    </ol>
+  </section>
+
+  <section class="lp-join" id="lp-pricing">
+    <div class="lp-price">
+      <h2>One price per agency</h2>
+      <p class="lp-amount" id="lp-amount">Monthly subscription</p>
+      <ul>
+        <li>Everyone on your team, no per-seat fees</li>
+        <li>Inventory requests and Biologics</li>
+        <li>Delivery and return photos</li>
+        <li>Cancel anytime</li>
+      </ul>
+      <p class="lp-fine" id="lp-trial-line2">Starts with a 14-day free trial once your agency is approved.</p>
+      <p class="lp-fine">Questions? <a href="mailto:richardmascarenas2@gmail.com?subject=TurnTray">Email us</a>.</p>
+    </div>
+    <div class="lp-get" id="get-started">
+  <div class="gate-card" id="auth-card">
     <div class="brand"><img src="icon-192.png" alt="" data-logo="inv"><div><small data-agency-name>TurnTray</small><b>Inventory Requests</b></div></div>
     <p class="gate-intro">Tray requests, pulls, deliveries and returns for your whole agency. Sign in and you go straight to your agency's requests.</p>
     <div class="seg" id="auth-mode" style="max-width:none;">
@@ -777,6 +982,10 @@ textarea{resize:vertical; min-height:64px;}
       <button type="button" class="btn-secondary" id="auth-register">Register your agency</button>
     </div>
   </div>
+    </div>
+  </section>
+
+  <footer class="lp-foot"><span>TurnTray</span><span>Tray and biologics tracking for orthopedic device agencies</span></footer>
 </section>
 
 <!-- ======== Verify email ======== -->
@@ -1615,7 +1824,7 @@ function roleFrom(member, selfRole, isOwner){
 async function handleUser(user){
   stopListeners();
   me = null;
-  if(!user){ showScreen('auth'); return; }
+  if(!user){ showScreen('auth'); if(window.landingPrice) landingPrice(); return; }
   const usesPassword = user.providerData.some(p=>p.providerId==='password');
   if(usesPassword && !user.emailVerified){
     $('#verify-email').textContent = user.email;
@@ -1795,6 +2004,29 @@ function startListeners(){
 }
 window.addEventListener('online', ()=>{ $('#offline-bar').hidden = true; });
 window.addEventListener('offline', ()=>{ if(me) $('#offline-bar').hidden = false; });
+
+
+/* ---- public site (signed out) ---- */
+(function(){
+  const standalone = window.navigator.standalone === true || matchMedia('(display-mode: standalone)').matches;
+  if(standalone) $('#screen-auth').classList.add('app-mode');
+  const card = ()=>{ $('#get-started').scrollIntoView({behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block:'start'}); };
+  document.querySelectorAll('[data-goto]').forEach(b=>b.addEventListener('click', ()=>{
+    if(b.dataset.goto==='register') $('#auth-register').click();
+    else { try{ sessionStorage.removeItem('tt-apply'); }catch(e){} $('#auth-mode button[data-m="signin"]').click(); }
+    card(); setTimeout(()=>$('#auth-email').focus({preventScroll:true}), 400);
+  }));
+  // Price and trial length from the owner's billing settings.
+  window.landingPrice = async function(){
+    try{
+      const d = await db.doc('config/billing').get(); if(!d.exists) return;
+      const c = d.data(), days = +c.trialDays || 14;
+      if(c.priceLabel) $('#lp-amount').textContent = c.priceLabel;
+      $('#lp-trial-line').textContent = `Free for ${days} days. Set up in an afternoon from the spreadsheets you already keep.`;
+      $('#lp-trial-line2').textContent = `Starts with a ${days}-day free trial once your agency is approved.`;
+    }catch(e){ /* signed-out visitors may not be allowed to read prices yet */ }
+  };
+})();
 
 /* ================= Sign-in UI ================= */
 let authMode = 'signin';
@@ -4343,11 +4575,40 @@ function renderAgencies(){
       });
     }
     if(!agency || a.id!==agency.id) btn('Open', ()=>TT.ownerOpen(a.id));
+    // Delete: everything in the agency, and its team's sign-in links. Portland and your admin space can't be deleted here.
+    if(!['portland','turntray-admin'].includes(a.id) && (!agency || a.id!==agency.id)){
+      const db2 = btn('Delete', async ()=>{
+        if(!armed(db2, `Tap again to delete ${a.name||a.id} and all its data`)) return;
+        db2.disabled = true; db2.textContent = 'Deleting…';
+        try{ const n = await deleteAgency(a.id, t=>{ db2.textContent = t; }); toast(`Deleted ${a.name||a.id} (${n} records).`); }
+        catch(e){ console.error(e); toast('Could not finish deleting. Tap Delete again to pick up where it stopped.'); db2.disabled = false; db2.textContent = 'Delete'; }
+      }, 'danger');
+    }
     if(a.createdByEmail) btn('Email admin', ()=>{ location.href = `mailto:${encodeURIComponent(a.createdByEmail)}?subject=${encodeURIComponent('TurnTray: '+(a.name||''))}`; });
     list.appendChild(el);
   });
 }
 
+
+/* Owner: permanently remove an agency, everything stored under it, and its team's directory entries. */
+async function deleteAgency(aid, progress){
+  const base = 'agencies/' + aid + '/';
+  let batch = db.batch(), ops = 0, total = 0;
+  const del = async ref => { batch.delete(ref); ops++; total++; if(ops >= 400){ await batch.commit(); batch = db.batch(); ops = 0; progress && progress(`Deleting… ${total}`); } };
+  const reqs = await db.collection(base + 'requests').get();
+  for(const r of reqs.docs){
+    for(const sub of ['photos','comments']){ const s = await db.collection(base + 'requests/' + r.id + '/' + sub).get(); for(const d of s.docs) await del(d.ref); }
+    await del(r.ref);
+  }
+  for(const c of ['members','users','prefCards','inventory','bioStock','bioRequests','bioNotes','bioFiles','bioPhotos','meta']){
+    const s = await db.collection(base + c).get(); for(const d of s.docs) await del(d.ref);
+  }
+  const dir = await db.collection('directory').where('agencyId','==',aid).get();
+  for(const d of dir.docs) await del(d.ref);
+  if(ops) await batch.commit();
+  await db.doc('agencies/' + aid).delete();
+  return total + 1;
+}
 async function renderBillingForm(){
   const cfg = await getBillingCfg(), f = $('#billing-form');
   if(f.contains(document.activeElement)) return;

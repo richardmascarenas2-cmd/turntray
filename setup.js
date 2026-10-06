@@ -87,10 +87,10 @@
     box.querySelector('input[type=file]').addEventListener('change', async e => {
       const f = e.target.files[0]; e.target.value = ''; if(!f) return;
       msg('#brand-msg', 'Saving…');
-      try{ const data = await TT.imageToData(f, k === 'popup' ? 480 : 256); await saveBranding({[k]: data}, 'Saved. Your team sees it next time they open the app.'); }
+      try{ const data = await TT.imageToData(f, 256); await saveBranding({[k]: data}, 'Saved. Your team sees it next time they open the app.'); }
       catch(err){ msg('#brand-msg', err.message, 'err'); }
     });
-    box.querySelector('[data-remove]').addEventListener('click', () => saveBranding({[k]: FV().delete()}, k === 'popup' ? 'Pop-up removed.' : 'Back to the default image.'));
+    box.querySelector('[data-remove]').addEventListener('click', () => saveBranding({[k]: FV().delete()}, 'Back to the default image.'));
   });
   $('#agency-form').addEventListener('submit', async e => {
     e.preventDefault();

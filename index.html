@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>TurnTray: tray requests and tracking for device agencies</title>
+<title>Sign in · TurnTray</title>
 <meta name="description" content="Tray requests, pulls, deliveries, returns and biologics for orthopedic device agencies. Free 14-day trial.">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,400..800&display=swap" rel="stylesheet">
@@ -2011,7 +2011,11 @@ window.addEventListener('offline', ()=>{ if(me) $('#offline-bar').hidden = false
 (function(){
   const standalone = window.navigator.standalone === true || matchMedia('(display-mode: standalone)').matches;
   // Home-screen app, or the team's sign-in link (turntray.com/login): just the sign-in card.
-  const loginOnly = new URLSearchParams(location.search).has('login');
+  // The public website is switched off for now: everyone gets just the sign-in card.
+  // To bring the website back, set SHOW_WEBSITE to true. You can preview it any time at turntray.com/?site
+  const SHOW_WEBSITE = false;
+  const params = new URLSearchParams(location.search);
+  const loginOnly = params.has('login') || (!SHOW_WEBSITE && !params.has('site'));
   if(standalone || loginOnly) $('#screen-auth').classList.add('app-mode');
   if(loginOnly) document.title = 'Sign in · TurnTray';
   const card = ()=>{ $('#get-started').scrollIntoView({behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block:'start'}); };

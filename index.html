@@ -201,6 +201,7 @@ details.import textarea{font-family:ui-monospace,Menlo,monospace; font-size:13px
 .landing.app-mode .lp-price{display:none;}
 .landing.app-mode .gate-card::before{display:none;}
 .landing.app-mode .gate-card .brand{display:flex;}
+.landing.app-mode .gate-register{display:none;}
 
 /* ---------- app bar ---------- */
 .appbar{background:#0b1320; border-bottom:3px solid #4FC3F7; padding:calc(12px + var(--sat)) 16px 12px; display:flex; align-items:center; gap:12px;}
@@ -2009,7 +2010,10 @@ window.addEventListener('offline', ()=>{ if(me) $('#offline-bar').hidden = false
 /* ---- public site (signed out) ---- */
 (function(){
   const standalone = window.navigator.standalone === true || matchMedia('(display-mode: standalone)').matches;
-  if(standalone) $('#screen-auth').classList.add('app-mode');
+  // Home-screen app, or the team's sign-in link (turntray.com/login): just the sign-in card.
+  const loginOnly = new URLSearchParams(location.search).has('login');
+  if(standalone || loginOnly) $('#screen-auth').classList.add('app-mode');
+  if(loginOnly) document.title = 'Sign in · TurnTray';
   const card = ()=>{ $('#get-started').scrollIntoView({behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block:'start'}); };
   document.querySelectorAll('[data-goto]').forEach(b=>b.addEventListener('click', ()=>{
     if(b.dataset.goto==='register') $('#auth-register').click();
@@ -4504,7 +4508,7 @@ $('#team-form').addEventListener('submit', async e=>{
   if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ msg.textContent='Enter a full email address.'; msg.className='status-msg err'; return; }
   try{
     await TT.addMember(db, adb.agencyId, email, {name, admin, role, territories, addedBy: me.email, addedAt: Date.now()});
-    msg.textContent = `Added ${email} as ${withArticle(roleLabel(role))}${territories.length ? ' ('+territories.join(', ')+')' : ''}. Send them the app link and tell them to sign in with this email.`; msg.className='status-msg ok';
+    msg.textContent = `Added ${email} as ${withArticle(roleLabel(role))}${territories.length ? ' ('+territories.join(', ')+')' : ''}. Send them turntray.com/login and tell them to sign in with this email.`; msg.className='status-msg ok';
     e.target.reset(); terrPicker($('#team-terrs'), []);
   }catch(err){ console.error(err); msg.textContent= err.code==='other-agency' ? err.message : 'Could not add. Only admins can change the team.'; msg.className='status-msg err'; }
 });

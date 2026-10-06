@@ -2114,7 +2114,7 @@ $('#team-form').addEventListener('submit', async e=>{
   if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ msg.textContent='Enter a full email address.'; msg.className='status-msg err'; return; }
   try{
     await TT.addMember(db, adb.agencyId, email, {name, admin, role, territories, addedBy: me.email, addedAt: Date.now()});
-    msg.textContent = `Added ${email} as ${withArticle(roleLabel(role))}${territories.length ? ' ('+territories.join(', ')+')' : ''}. Send them the app link and tell them to sign in with this email.`; msg.className='status-msg ok';
+    msg.textContent = `Added ${email} as ${withArticle(roleLabel(role))}${territories.length ? ' ('+territories.join(', ')+')' : ''}. Send them turntray.com/login and tell them to sign in with this email.`; msg.className='status-msg ok';
     e.target.reset(); terrPicker($('#team-terrs'), []);
   }catch(err){ console.error(err); msg.textContent= err.code==='other-agency' ? err.message : 'Could not add. Only admins can change the team.'; msg.className='status-msg err'; }
 });

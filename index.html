@@ -49,6 +49,22 @@ a{color:var(--accent);}
 .or::before,.or::after{content:""; flex:1; height:1px; background:var(--line);}
 .linkbtn{background:none; color:var(--accent); padding:6px 0; font-weight:600;}
 .gate-links{display:flex; justify-content:space-between; gap:10px; margin-top:8px; flex-wrap:wrap;}
+.gate p.gate-intro{margin-top:-6px;}
+.gate-register{margin-top:20px; padding-top:16px; border-top:1px solid var(--line); font-size:.85rem; color:var(--sub);}
+.gate-register b{display:block; color:var(--ink); font-size:.92rem; margin-bottom:2px;}
+.gate .hint{margin-top:10px;}
+/* ---------- agencies (owner) ---------- */
+.agency-row{border:1px solid var(--line); border-radius:12px; padding:12px; margin-bottom:10px; background:var(--bg);}
+.agency-row .top{display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
+.agency-row .top b{font-size:.95rem; overflow-wrap:anywhere;}
+.agency-row small{display:block; color:var(--sub); font-size:.78rem; margin-top:3px; overflow-wrap:anywhere;}
+.agency-row .acts{display:flex; gap:8px; flex-wrap:wrap; margin-top:10px;}
+.agency-row .acts button{padding:8px 12px; border:1px solid var(--line); background:var(--panel);}
+.agency-row .acts button.go{background:var(--accent); color:#fff; border-color:var(--accent);}
+.st{font-size:.7rem; font-weight:700; padding:2px 8px; border-radius:999px; text-transform:uppercase; letter-spacing:.04em; background:var(--line); color:var(--sub);}
+.st.pending{background:#fff4d6; color:#8a5a00;}
+.st.active{background:#dff5e6; color:#1d6b38;}
+.st.here{background:var(--accent); color:#fff;}
 
 /* ---------- app bar ---------- */
 .appbar{background:#0b1320; border-bottom:3px solid #4FC3F7; padding:calc(12px + var(--sat)) 16px 12px; display:flex; align-items:center; gap:12px;}
@@ -679,7 +695,7 @@ textarea{resize:vertical; min-height:64px;}
 <!-- ======== Loading ======== -->
 <section class="gate" id="screen-loading">
   <div class="gate-card">
-    <div class="brand"><img src="icon-192.png" alt=""><div><small>Arthrex Portland</small><b>Inventory Requests</b></div></div>
+    <div class="brand"><img src="icon-192.png" alt=""><div><small data-agency-name>TurnTray</small><b>Inventory Requests</b></div></div>
     <p id="loading-msg">Loading…</p>
   </div>
 </section>
@@ -687,7 +703,8 @@ textarea{resize:vertical; min-height:64px;}
 <!-- ======== Sign in ======== -->
 <section class="gate" id="screen-auth" hidden>
   <div class="gate-card">
-    <div class="brand"><img src="icon-192.png" alt=""><div><small>Arthrex Portland</small><b>Inventory Requests</b></div></div>
+    <div class="brand"><img src="icon-192.png" alt=""><div><small data-agency-name>TurnTray</small><b>Inventory Requests</b></div></div>
+    <p class="gate-intro">Tray requests, pulls, deliveries and returns for your whole agency. Sign in and you go straight to your agency's requests.</p>
     <div class="seg" id="auth-mode" style="max-width:none;">
       <button type="button" data-m="signin" class="active">Sign in</button>
       <button type="button" data-m="signup">Create account</button>
@@ -710,13 +727,18 @@ textarea{resize:vertical; min-height:64px;}
       <svg viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3 0 5.8 1.1 7.9 3l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="m6.3 14.7 6.6 4.8C14.7 15.1 19 12 24 12c3 0 5.8 1.1 7.9 3l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg>
       Continue with Google
     </button>
+    <div class="gate-register">
+      <b>New agency?</b>
+      <span>Create an account or sign in, then fill in a short form. Your agency opens once it's approved.</span>
+      <button type="button" class="btn-secondary" id="auth-register">Register your agency</button>
+    </div>
   </div>
 </section>
 
 <!-- ======== Verify email ======== -->
 <section class="gate" id="screen-verify" hidden>
   <div class="gate-card">
-    <div class="brand"><img src="icon-192.png" alt=""><div><small>Arthrex Portland</small><b>Inventory Requests</b></div></div>
+    <div class="brand"><img src="icon-192.png" alt=""><div><small data-agency-name>TurnTray</small><b>Inventory Requests</b></div></div>
     <h2>Check your email</h2>
     <p>We sent a confirmation link to <strong id="verify-email"></strong>. Tap the link, then come back here.</p>
     <button type="button" class="btn-primary" id="verify-done">I've confirmed my email</button>
@@ -729,12 +751,51 @@ textarea{resize:vertical; min-height:64px;}
 <!-- ======== Not on the team ======== -->
 <section class="gate" id="screen-noaccess" hidden>
   <div class="gate-card">
-    <div class="brand"><img src="icon-192.png" alt=""><div><small>Arthrex Portland</small><b>Inventory Requests</b></div></div>
-    <h2>You're not on the team list yet</h2>
-    <p>You're signed in as <strong id="noaccess-email"></strong>. Ask an admin to add this email under More → Team, then tap Check again.</p>
+    <div class="brand"><img src="icon-192.png" alt=""><div><small data-agency-name>TurnTray</small><b>Inventory Requests</b></div></div>
+    <h2>You're not on a team yet</h2>
+    <p>You're signed in as <strong id="noaccess-email"></strong>. Ask your agency's admin to add this email under Team, then tap Check again.</p>
     <button type="button" class="btn-primary" id="noaccess-retry">Check again</button>
+    <button type="button" class="btn-secondary" id="noaccess-apply">Register a new agency instead</button>
     <button type="button" class="btn-secondary" data-signout>Sign out</button>
     <div class="status-msg" id="noaccess-msg"></div>
+  </div>
+</section>
+
+<!-- ======== Register an agency ======== -->
+<section class="gate" id="screen-apply" hidden>
+  <div class="gate-card">
+    <div class="brand"><img src="icon-192.png" alt=""><div><small>TurnTray</small><b>Register your agency</b></div></div>
+    <p>You'll be your agency's first admin. Once it's approved you can add your team and your accounts.</p>
+    <form id="apply-form" novalidate>
+      <label for="apply-agency">Agency name</label>
+      <input id="apply-agency" autocomplete="organization" placeholder="e.g. Arthrex Seattle" maxlength="80">
+      <label for="apply-name">Your name</label>
+      <input id="apply-name" autocomplete="name" placeholder="First and last name" maxlength="80">
+      <label for="apply-region">City or region <span class="opt">(optional)</span></label>
+      <input id="apply-region" maxlength="80">
+      <label for="apply-phone">Phone <span class="opt">(optional)</span></label>
+      <input id="apply-phone" type="tel" autocomplete="tel" maxlength="40">
+      <label for="apply-note">Anything else <span class="opt">(optional)</span></label>
+      <textarea id="apply-note" rows="2" maxlength="500"></textarea>
+      <p class="hint">Signed in as <strong id="apply-email"></strong>. Everyone on your team signs in with their own email.</p>
+      <button type="submit" class="btn-primary" id="apply-submit">Send for approval</button>
+      <div class="status-msg" id="apply-msg"></div>
+    </form>
+    <button type="button" class="btn-secondary" id="apply-cancel">Back</button>
+    <button type="button" class="btn-secondary" data-signout>Sign out</button>
+  </div>
+</section>
+
+<!-- ======== Agency waiting for approval (or not approved) ======== -->
+<section class="gate" id="screen-pending" hidden>
+  <div class="gate-card">
+    <div class="brand"><img src="icon-192.png" alt=""><div><small id="pending-agency">TurnTray</small><b>Inventory Requests</b></div></div>
+    <h2 id="pending-title">Waiting for approval</h2>
+    <p id="pending-text"></p>
+    <button type="button" class="btn-primary" id="pending-retry">Check again</button>
+    <button type="button" class="btn-secondary" id="pending-withdraw">Cancel this application</button>
+    <button type="button" class="btn-secondary" data-signout>Sign out</button>
+    <div class="status-msg" id="pending-msg"></div>
   </div>
 </section>
 
@@ -743,7 +804,7 @@ textarea{resize:vertical; min-height:64px;}
 <header class="appbar">
   <img class="appbar-logo" src="icon-192.png" alt="">
   <div class="app-menu">
-    <button type="button" class="app-title" id="app-title-btn" aria-haspopup="menu" aria-expanded="false"><span><small>Arthrex Portland</small><span class="t">Inventory Requests</span></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></button>
+    <button type="button" class="app-title" id="app-title-btn" aria-haspopup="menu" aria-expanded="false"><span><small data-agency-name>TurnTray</small><span class="t">Inventory Requests</span></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></button>
     <div class="dd" id="app-dd" role="menu" hidden>
       <a href="index.html" role="menuitem" class="on" aria-current="page"><img src="icon-192.png" alt=""><span>Inventory Requests<small>Trays, pulls, deliveries, returns</small></span></a>
       <a href="bio.html" role="menuitem"><img src="bio-icon-64.png" alt=""><span>Biologics<small>Grafts, stock, reorder, usage</small></span></a>
@@ -754,7 +815,9 @@ textarea{resize:vertical; min-height:64px;}
     <button type="button" class="gear-btn" id="gear-btn" aria-label="Settings" aria-haspopup="menu" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
     <div class="dd" id="gear-dd" role="menu" hidden>
       <button type="button" role="menuitem" data-go="account"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4.2-6.5 8-6.5s7 2.5 8 6.5"/></svg><span>Account<small id="gear-account-sub">Your role and sign out</small></span></button>
-      <button type="button" role="menuitem" data-go="team" id="gear-team" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.5 3.4-5.5 6.5-5.5s5.7 2 6.5 5.5"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18 14.8c1.9.7 3.1 2.5 3.5 5.2"/></svg><span>Team<small>Who can sign in and their roles</small></span></button>
+      <button type="button" role="menuitem" data-go="team" id="gear-team" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.5 3.4-5.5 6.5-5.5s5.7 2 6.5 5.5"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18 14.8c1.9.7 3.1 2.5 3.5 5.2"/></svg><span>Team<small>Who can sign in, roles, accounts</small></span></button>
+      <button type="button" role="menuitem" data-go="agency" id="gear-agency" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V5a2 2 0 0 1 2-2h8l6 6v12"/><path d="M14 3v6h6M8 13h8M8 17h5"/></svg><span>Agency<small>Name and accounts list</small></span></button>
+      <button type="button" role="menuitem" data-go="agencies" id="gear-agencies" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6M9 10h.01M15 10h.01"/></svg><span>Agencies<small id="gear-agencies-sub">Approve and open agencies</small></span></button>
     </div>
   </div>
 </header>
@@ -1183,6 +1246,39 @@ textarea{resize:vertical; min-height:64px;}
     <div class="narrow" id="team-list"></div>
   </div>
 
+  <div class="view" id="view-agency">
+    <section class="panel narrow">
+      <div class="section-head"><h2>Agency</h2></div>
+      <form id="agency-form">
+        <label for="agency-name">Agency name</label>
+        <input id="agency-name" maxlength="80" required>
+        <label for="agency-accounts">Accounts <span class="opt">(one per line: code, name, territory)</span></label>
+        <textarea id="agency-accounts" rows="12" spellcheck="false" placeholder="PPMC, Providence Portland Medical Center, West&#10;STV, Providence St. Vincent Hospital, Central"></textarea>
+        <p class="hint">Territories come from the third column. Reps pick accounts and territories from this list on the request form. You can paste straight from a spreadsheet (code, name and territory columns).</p>
+        <button type="submit" class="btn-primary">Save</button>
+        <div class="status-msg" id="agency-msg"></div>
+      </form>
+    </section>
+  </div>
+
+  <div class="view" id="view-agencies">
+    <section class="panel narrow">
+      <div class="section-head"><h2>Agencies</h2><span class="hint" id="agencies-count" style="margin:0;"></span></div>
+      <p class="hint">You're viewing <strong id="agencies-current"></strong>. New agencies wait here until you approve them.</p>
+      <div id="agencies-list"></div>
+    </section>
+    <section class="panel narrow" id="migrate-panel" style="margin-top:18px;">
+      <div class="section-head"><h2>Copy Portland's current data</h2></div>
+      <p class="hint">Copies everything from the current single-agency app (requests, photos, comments, preference cards, inventory, biologics and the team) into an agency. Nothing in the current app is changed or deleted.</p>
+      <p class="hint"><b>Trial:</b> copy into <code>portland-test</code> and open it to check everything looks right. Nobody else is sent there.<br><b>Switch-over:</b> copy into <code>portland</code> with "Send the Portland team here" ticked, right before the new version goes live on turntray.com.</p>
+      <label for="mig-target">Copy into agency</label>
+      <select id="mig-target"><option value="portland-test">portland-test (trial)</option><option value="portland">portland (switch-over)</option></select>
+      <label class="check"><input type="checkbox" id="mig-directory"> Send the Portland team here when they sign in</label>
+      <button type="button" class="btn-primary" id="mig-run">Copy data</button>
+      <div class="status-msg" id="mig-msg"></div>
+    </section>
+  </div>
+
 </main>
 
 <div class="modal-overlay" id="photo-sheet" hidden>
@@ -1261,18 +1357,18 @@ textarea{resize:vertical; min-height:64px;}
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 <script src="firebase-config.js"></script>
+<script src="agency.js"></script>
 <script>
-/* The owner can always sign in and manage the team. Keep in sync with firestore.rules. */
-const OWNER_EMAIL = 'richardmascarenas2@gmail.com';
+/* The owner can see every agency and approve new ones. Set in agency.js; keep in sync with richies.rules. */
+const OWNER_EMAIL = TT.OWNER_EMAIL;
 
-const ACCOUNTS = [["AHCG","AHCG ADVENTIST HEALTH COLUMBIA GORGE","East"],["ALBANY","ALBANY GENERAL","CRV"],["AMC","Adventist Medical Center","West"],["BS","Building S Salem","SLM"],["CFAC","Clackamas Foot & Ankle Clinic","East"],["CGSC","COLUMBIA GORGE SURGERY CTR.","East"],["CHH","Center for Health and Healing","Central"],["CMH","COLUMBIA MEMORIAL HOSPITAL","North"],["CRSC","Columbia River Surgery Center","West"],["CSS","Center for Specialty Surgery","Central"],["DCH","Doernbechers Children's Hospital","Central"],["EFAA","Elite Foot & Ankle Associates","West"],["EPSC","East Pavilion Surgery Center","West"],["FOUNDATION","KAISER FOUNDATION","East"],["GSH","GOOD SAMARITAN CORVALLIS","CRV"],["HOOD RIVER","PROVIDENCE HOOD RIVER HOSP","East"],["KLICKITAT","KLICKITAT VALLEY HEALTH","East"],["KZR INTERSTATE","KAISER INTERSTATE","EAST"],["KZR SUNNYSIDE","KAISER FOUND. HOSP/SUNNYSIDE ATTN:ACCOUNTS PAYABLE","East"],["KZR SYB","KAISER SUNNYBROOK","East"],["KZR WESTSIDE","KAISER PERMANENTE WESTSIDE MEDICAL CENTER ATT AP","East"],["LAB","LAB at LC","LAB"],["LEB","Lebanon","CRV"],["LEH","Legacy Emanuel Medical Center","West"],["LGS","Legacy Good Samaritan","West"],["LSC","LEGACY SALMON CREEK HOSPITAL","North"],["MHMC","Legacy Mount Hood Medical center","West"],["MLW","Providence Milwaukie","West"],["MOC","Multnomah Orthopedic Clinic","West"],["MPH","LEGACY MERIDIAN PARK HOSP","West"],["MT SCOTT","Mt. Scott Surgery Center","West"],["NBG","Providence Newberg","SLM"],["NBSC","NORTHBANK SURGERY CENTER","SLM"],["NSC","Neaman's Surgery Center","SLM"],["NWASC","Northwest Ambulatory Surgery Center","West"],["OATH WEST","OATH West","Central"],["OHSU - SOR","OHSU - South OR","Central"],["OOSC","Oregon Outpatient Surgery Center","Central"],["OSI","OREGON SURGICAL INSTITUTE","East"],["OSM","Orthopedic & Sports Medicine","West"],["PEARL","Pearl Surgicenter","West"],["PLAZA","Plaza Ambulatory Surgery Center","West"],["PPMC","Providence Portland Medical Center","West"],["PRVM","Providence Milwaukie","West"],["PSC","LONGVIEW SURGERY CENTER dba PACIFIC SURGICAL CENTER","North"],["PWF","PROVIDENCE WILLAMETTE FALLS","East"],["SAL HOS","SALEM HOSPITAL","SLM"],["SAN","Santiam","SLM"],["SEASIDE","Providence Seaside Hospital","West"],["SHN","Sports Health NorthWest",""],["SHRINERS","Shriners","Central"],["SILV","Silverton","SLM"],["SKYLINE","SKYLINE HOSPITAL","SLM"],["SMO","Sports Medicine Oregon","Central"],["SPSC","SOUTH PORTLAND SURGICAL CTR","East"],["SSC","Sunset Surgical Centre",""],["St JOHNS","PEACEHEALTH ST JOHN MEDICAL CENTER","North"],["STV","Providence St. Vincent Hospital","Central"],["SWWASC","S.W. WASHINGTON REG SURG CTR","North"],["SWWMC","PEACEHEALTH SOUTHWEST MEDICAL CENTER","North"],["TCG","TILLAMOOK COUNTY GEN HOSP","North"],["TUALITY","Tuality","Central"],["TVC","THE VANCOUVER CLINIC, INC","North"],["VA","Portland Veteran Affairs","Central"],["WVMC","willamette valley medical center","SLM"],["CRVC","Corvallis Clinic","CRV"],["WLAKE","Waverly Lake Surgery Center","CRV"],["ALBERTY","Alberty Surgery Center","EAST"],["BSM","Beaver Sports Medicine","CRV"],["AO","Advantage Orthopedics","West"]];
-
+/* Each agency's accounts (code, name, territory) come from its agency record, set under Team -> Agency. */
+let ACCOUNTS = [];
 // One spelling per territory, so "EAST" and "East" count as the same territory.
 const TERR_CANON = new Map();
-ACCOUNTS.forEach(a=>{ const k=(a[2]||'').toLowerCase(); if(a[2] && (!TERR_CANON.has(k) || /[a-z]/.test(a[2]))) TERR_CANON.set(k, a[2]); });
 const canonTerr = s => TERR_CANON.get(String(s||'').toLowerCase()) || s || '';
-const accMap = new Map(ACCOUNTS.map(([c,n,t])=>[c.toUpperCase(), {name:n, territory:canonTerr(t)}]));
-const TERRITORIES = [...new Set(ACCOUNTS.map(a=>canonTerr(a[2])).filter(Boolean))].sort();
+const accMap = new Map();
+let TERRITORIES = [];
 const TYPE_VAR = {Surgery:'--t-surgery', Demo:'--t-demo', Lab:'--t-lab', Consigned:'--t-consigned'};
 
 const $ = (s,r)=> (r||document).querySelector(s);
@@ -1280,13 +1376,25 @@ function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<
 let toastTimer;
 function toast(msg){ const t=$('#toast'); t.textContent=msg; t.hidden=false; clearTimeout(toastTimer); toastTimer=setTimeout(()=>{t.hidden=true;}, 3500); }
 
-for(const sel of ['#cons-territory','#f-territory','#hist-territory','#board-territory','#returns-territory','#sst-territory','#fav-territory']){
-  TERRITORIES.forEach(t=>{const o=document.createElement('option'); o.value=t; o.textContent=t; $(sel).appendChild(o);});
+/* Load this agency's accounts and territories into every menu that lists them. */
+function setAccounts(rows){
+  ACCOUNTS = rows;
+  TERR_CANON.clear(); accMap.clear();
+  ACCOUNTS.forEach(a=>{ const k=(a[2]||'').toLowerCase(); if(a[2] && (!TERR_CANON.has(k) || /[a-z]/.test(a[2]))) TERR_CANON.set(k, a[2]); });
+  ACCOUNTS.forEach(([c,n,t])=>accMap.set(c.toUpperCase(), {name:n, territory:canonTerr(t)}));
+  TERRITORIES = [...new Set(ACCOUNTS.map(a=>canonTerr(a[2])).filter(Boolean))].sort();
+  for(const sel of ['#cons-territory','#f-territory','#hist-territory','#board-territory','#returns-territory','#sst-territory','#fav-territory']){
+    const el = $(sel), cur = el.value;
+    el.querySelectorAll('option[data-terr]').forEach(o=>o.remove());
+    TERRITORIES.forEach(t=>{const o=document.createElement('option'); o.value=t; o.textContent=t; o.dataset.terr='1'; el.appendChild(o);});
+    if(cur && [...el.options].some(o=>o.value===cur)) el.value = cur;
+  }
+  $('#dl-accounts').innerHTML = ACCOUNTS.map(a=>`<option value="${escapeHtml(a[0])}">${escapeHtml(a[1])}</option>`).join('');
+  if($('#team-terrs')) terrPicker($('#team-terrs'), pickedTerrs($('#team-terrs')));
 }
-$('#dl-accounts').innerHTML = ACCOUNTS.map(a=>`<option value="${escapeHtml(a[0])}">${escapeHtml(a[1])}</option>`).join('');
 
 /* ================= Screens ================= */
-const SCREENS = ['loading','auth','verify','noaccess'];
+const SCREENS = ['loading','auth','verify','noaccess','apply','pending'];
 function showScreen(name){
   SCREENS.forEach(s=>{ $('#screen-'+s).hidden = (s!==name); });
   $('#app').hidden = (name!=='app');
@@ -1294,6 +1402,8 @@ function showScreen(name){
 
 /* ================= Firebase ================= */
 let auth = null, db = null;
+let adb = null;         // this agency's data: adb.doc('requests/x') -> agencies/{id}/requests/x
+let agency = null;      // {id, name, status, accounts, ...}
 let me = null;          // {uid, email, name, isAdmin}
 let myRole = null;      // 'rep' | 'inventory' | 'product'
 let unsubs = [];
@@ -1307,7 +1417,7 @@ let invCountMode = '', invLoaded = false, reqLoaded = false, converting = false;
 function convertCountsOnce(){
   if(!invLoaded || !reqLoaded || invCountMode==='total' || converting || !isManager() || !db) return;
   converting = true;
-  const ref = db.doc('inventory/main');
+  const ref = adb.doc('inventory/main');
   db.runTransaction(async t=>{
     const snap = await t.get(ref);
     const d = snap.exists ? snap.data() : {};
@@ -1367,16 +1477,21 @@ async function handleUser(user){
   }
   const email = (user.email||'').toLowerCase();
   showScreen('loading'); $('#loading-msg').textContent = 'Checking your access…';
-  const isOwner = email === OWNER_EMAIL.toLowerCase();
-  let member = null;
-  try{
-    const snap = await db.doc('members/'+email).get();
-    if(snap.exists) member = snap.data();
-  }catch(e){ console.warn(e); }
-  if(!isOwner && !member){
+  const isOwner = TT.isOwnerEmail(email);
+  const where = await TT.resolve(db, user);
+  if(where.state==='pending' || where.state==='rejected'){ showPending(user, where); return; }
+  if(where.state!=='active'){
+    let wantApply = false; try{ wantApply = sessionStorage.getItem('tt-apply')==='1'; }catch(e){}
+    if(wantApply){ showApply(user); return; }
     $('#noaccess-email').textContent = user.email;
     showScreen('noaccess'); return;
   }
+  try{ sessionStorage.removeItem('tt-apply'); }catch(e){}
+  agency = where.agency;
+  adb = TT.scoped(db, where.agencyId);
+  const member = where.member;
+  TT.brand(agency);
+  setAccounts(TT.accountsOf(agency));
   me = {
     uid: user.uid, email,
     name: user.displayName || (member && member.name) || email.split('@')[0],
@@ -1385,7 +1500,7 @@ async function handleUser(user){
     territories: (member && Array.isArray(member.territories)) ? member.territories : []
   };
   try{
-    const uref = db.doc('users/'+user.uid);
+    const uref = adb.doc('users/'+user.uid);
     const us = await uref.get();
     me.selfRole = us.exists ? (us.data().role || null) : null;
     myRole = roleFrom(member, me.selfRole, isOwner);
@@ -1404,6 +1519,8 @@ function enterApp(){
   $('#signed-in-as').textContent = me.name;
   $('#signedin-box').textContent = `Requesting as ${me.name}`;
   $('#gear-team').hidden = !me.isAdmin;
+  $('#gear-agency').hidden = !me.isAdmin;
+  $('#gear-agencies').hidden = !me.isOwner;
   renderAccount();
   applyMyTerritories();
   applyRoleUI();
@@ -1415,7 +1532,7 @@ function enterApp(){
   startListeners();
   // Pick up territory changes an admin makes while this person has the app open.
   // Pick up territory and role changes an admin makes while this person has the app open.
-  unsubs.push(db.doc('members/'+me.email).onSnapshot(s=>{
+  unsubs.push(adb.doc('members/'+me.email).onSnapshot(s=>{
     const tr = s.exists && Array.isArray(s.data().territories) ? s.data().territories : [];
     if(JSON.stringify(tr)!==JSON.stringify(me.territories)){ me.territories = tr; applyMyTerritories(); renderAccount(); }
     const role = roleFrom(s.exists ? s.data() : null, me.selfRole, me.isOwner);
@@ -1479,7 +1596,16 @@ function onListenError(err){
   }
 }
 function startListeners(){
-  unsubs.push(db.doc('inventory/main').onSnapshot(snap=>{
+  unsubs.push(adb.agencyDoc().onSnapshot(snap=>{
+    if(!snap.exists) return;
+    agency = {id: snap.id, ...snap.data()};
+    TT.brand(agency);
+    const rows = TT.accountsOf(agency);
+    if(JSON.stringify(rows)!==JSON.stringify(ACCOUNTS)){ setAccounts(rows); applyMyTerritories(); renderAll(); }
+    if(activeViewId()==='agency') renderAgencySettings();
+  }, onListenError));
+  if(me.isOwner) watchAgencies();
+  unsubs.push(adb.doc('inventory/main').onSnapshot(snap=>{
     inventoryMap = snap.exists ? (snap.data().trays || {}) : {};
     lowTrays = snap.exists ? (snap.data().lowTrays || {}) : {};
     bankTrays = snap.exists ? (snap.data().bankTrays || {}) : {};
@@ -1488,25 +1614,25 @@ function startListeners(){
     refreshTrayDatalist();
     renderAll();
   }, onListenError));
-  unsubs.push(db.collection('requests').onSnapshot({includeMetadataChanges:true}, snap=>{
+  unsubs.push(adb.collection('requests').onSnapshot({includeMetadataChanges:true}, snap=>{
     allDocs = snap.docs.map(d=>({id:d.id, ...d.data()}));
     reqLoaded = true; convertCountsOnce(); sweepOldPhotos();
     refreshSurgeonList();
     $('#offline-bar').hidden = !snap.metadata.fromCache || navigator.onLine;
     renderAll();
   }, onListenError));
-  unsubs.push(db.collection('prefCards').onSnapshot(snap=>{
+  unsubs.push(adb.collection('prefCards').onSnapshot(snap=>{
     prefCards = snap.docs.map(d=>({id:d.id, ...d.data()}));
     refreshSurgeonList(); refreshProcedureOptions(true);
     if(activeViewId()==='cards') renderCards();
   }, err=>{ console.error(err); $('#card-empty').hidden=false; $('#card-empty').textContent='Preference cards aren’t turned on yet. An admin needs to paste the latest security rules into Firebase.'; }));
-  unsubs.push(db.collection('users').onSnapshot(snap=>{
+  unsubs.push(adb.collection('users').onSnapshot(snap=>{
     usersMap = {};
     snap.docs.forEach(d=>{ usersMap[d.id] = d.data(); });
     renderAll(); renderTeam();
   }, onListenError));
   if(me.isAdmin){
-    unsubs.push(db.collection('members').onSnapshot(snap=>{
+    unsubs.push(adb.collection('members').onSnapshot(snap=>{
       membersList = snap.docs.map(d=>({email:d.id, ...d.data()}));
       renderTeam();
     }, console.error));
@@ -1627,7 +1753,7 @@ async function setBankTray(name, on){
   const FV = firebase.firestore.FieldValue;
   bankTrays = {...bankTrays}; if(on) bankTrays[name] = true; else delete bankTrays[name];
   renderAll();
-  try{ await db.doc('inventory/main').update(new firebase.firestore.FieldPath('bankTrays', name), on ? true : FV.delete()); toast(on ? `${name} is a Bank: no photos needed, and shortages become urgent returns.` : `${name} is a regular tray again.`); }
+  try{ await adb.doc('inventory/main').update(new firebase.firestore.FieldPath('bankTrays', name), on ? true : FV.delete()); toast(on ? `${name} is a Bank: no photos needed, and shortages become urgent returns.` : `${name} is a regular tray again.`); }
   catch(e){ console.error(e); toast('Could not save that. Try again.'); }
 }
 async function setLowTray(name, on){
@@ -1635,12 +1761,12 @@ async function setLowTray(name, on){
   const FV = firebase.firestore.FieldValue;
   lowTrays = {...lowTrays}; if(on) lowTrays[name] = true; else delete lowTrays[name];
   renderAll();
-  try{ await db.doc('inventory/main').update(new firebase.firestore.FieldPath('lowTrays', name), on ? true : FV.delete()); toast(on ? `${name} is marked low inventory. Shortages now go straight to Loaner needed.` : `${name} is back to normal.`); }
+  try{ await adb.doc('inventory/main').update(new firebase.firestore.FieldPath('lowTrays', name), on ? true : FV.delete()); toast(on ? `${name} is marked low inventory. Shortages now go straight to Loaner needed.` : `${name} is back to normal.`); }
   catch(e){ console.error(e); toast('Could not save that. Try again.'); }
 }
 async function upsertTray(name, qty){
   if(!db || !name) return;
-  const ref = db.doc('inventory/main');
+  const ref = adb.doc('inventory/main');
   try{ await ref.update(new firebase.firestore.FieldPath('trays', name), qty); }
   catch(e){
     try{ await ref.set({trays: {[name]: qty}}, {merge:true}); }catch(e2){ console.error(e2); toast('Could not save that count. Try again.'); }
@@ -1903,12 +2029,12 @@ async function submitAddToCase(trays){
     const caseId = a.caseId || ('c_'+Date.now()+'_'+Math.random().toString(36).slice(2,7));
     const batch = db.batch();
     // Older cases had no case id: give the existing trays one so the new trays stay with them.
-    if(!a.caseId) a.trays.forEach(t=>batch.update(db.doc('requests/'+t.id), {caseId}));
+    if(!a.caseId) a.trays.forEach(t=>batch.update(adb.doc('requests/'+t.id), {caseId}));
     const ids = [];
     trays.forEach((tray,i)=>{
       const id = 'r_'+Date.now()+'_'+Math.random().toString(36).slice(2,7)+'_'+i;
       ids.push(id);
-      batch.set(db.doc('requests/'+id), {
+      batch.set(adb.doc('requests/'+id), {
         caseId, dateNeeded:f.dateNeeded||'', dateRequired:f.dateRequired||'', territory:f.territory||'', account:f.account||'',
         type:f.type||'Surgery', surgeon:f.surgeon||'', procedure:f.procedure||'', notes: $('#f-notes').value.trim(),
         requestedById: me.uid, requestedByName: me.name, status:'open', createdAt: Date.now(), addedToCase:true, returned:false,
@@ -1982,7 +2108,7 @@ $('#req-form').addEventListener('submit', async (e)=>{
     trays.forEach((tray,i)=>{
       const id = 'r_'+Date.now()+'_'+Math.random().toString(36).slice(2,7)+'_'+i;
       ids.push(id);
-      batch.set(db.doc('requests/'+id), {...base, tray, createdAt: Date.now()});
+      batch.set(adb.doc('requests/'+id), {...base, tray, createdAt: Date.now()});
     });
     batch.commit().catch(err=>{ console.error(err); toast('A request could not be saved. Check that you still have access.'); });
     freshIds.clear(); ids.forEach(id=>freshIds.add(id));
@@ -2007,7 +2133,7 @@ $('#sent-undo').addEventListener('click', async ()=>{
   $('#sent-undo').hidden = true; $('#sent-text').textContent = 'Removing…';
   try{
     // Only cancelled requests can be deleted by the person who made them, so cancel first.
-    await Promise.all(ids.map(id=>db.doc('requests/'+id).update({status:'cancelled'})));
+    await Promise.all(ids.map(id=>adb.doc('requests/'+id).update({status:'cancelled'})));
     const n = await deleteRequests(ids.map(id=>({id})));
     $('#sent-banner').hidden = true;
     toast(n ? 'Request removed.' : 'Couldn’t remove it. Cancel it below instead.');
@@ -2015,7 +2141,7 @@ $('#sent-undo').addEventListener('click', async ()=>{
 });
 
 /* ================= Request actions ================= */
-function updateFields(id, fields){ return db.doc('requests/'+id).update(fields).catch(err=>{ console.error(err); toast('That change didn’t save. Try again.'); }); }
+function updateFields(id, fields){ return adb.doc('requests/'+id).update(fields).catch(err=>{ console.error(err); toast('That change didn’t save. Try again.'); }); }
 // Inventory counts are the total sets owned; pulling, cancelling and returning no longer change them.
 // What's free on a given day is worked out from the requests (see computeLoaners).
 async function fulfillRequest(r){
@@ -2026,11 +2152,11 @@ async function cancelRequest(r){
   const b = db.batch();
   // A tray that was already pulled has to go back on the shelf; the pull queue reminds the manager.
   // A turned-over tray was never pulled: the earlier case's set just comes back as usual.
-  b.update(db.doc('requests/'+r.id), {status:'cancelled', outgoing:false, ...(wasPulled ? {putBack:true} : {}), ...(r.turnoverFrom ? {turnoverFrom:''} : {})});
-  if(r.turnoverFrom && docById(r.turnoverFrom)) b.update(db.doc('requests/'+r.turnoverFrom), {turnedOverTo:''});
+  b.update(adb.doc('requests/'+r.id), {status:'cancelled', outgoing:false, ...(wasPulled ? {putBack:true} : {}), ...(r.turnoverFrom ? {turnoverFrom:''} : {})});
+  if(r.turnoverFrom && docById(r.turnoverFrom)) b.update(adb.doc('requests/'+r.turnoverFrom), {turnedOverTo:''});
   // If this set was staying for a later case, that case needs its own tray pulled again.
   const next = r.turnedOverTo && docById(r.turnedOverTo);
-  if(next && !next.delivered) b.update(db.doc('requests/'+next.id), {status:'open', outgoing:false, turnoverFrom:''});
+  if(next && !next.delivered) b.update(adb.doc('requests/'+next.id), {status:'open', outgoing:false, turnoverFrom:''});
   b.commit().catch(err=>{ console.error(err); toast('That change didn’t save. Try again.'); });
   if(next && !next.delivered) toast(`${next.tray} for ${fmtDate(next.dateNeeded)} is back in the pull queue, since this set won't be there.`);
 }
@@ -2065,17 +2191,17 @@ async function turnOver(r){
   const p = turnoverSourceFor(r);
   if(!p){ toast('There’s no earlier case at this account to turn this tray over from.'); return; }
   const now = Date.now(), b = db.batch();
-  b.update(db.doc('requests/'+r.id), {status:'fulfilled', outgoing:false, turnoverFrom:p.id, turnoverAt:now, turnoverById:me.uid, turnoverByName:me.name,
+  b.update(adb.doc('requests/'+r.id), {status:'fulfilled', outgoing:false, turnoverFrom:p.id, turnoverAt:now, turnoverById:me.uid, turnoverByName:me.name,
     fulfilledAt:now, fulfilledById:me.uid, fulfilledByName:me.name});
-  b.update(db.doc('requests/'+p.id), {turnedOverTo:r.id});
+  b.update(adb.doc('requests/'+p.id), {turnedOverTo:r.id});
   try{ await b.commit(); toast(`Turned over: ${r.tray} stays at ${r.account} after the ${fmtDate(p.dateNeeded)} case.`); }
   catch(err){ console.error(err); toast('That change didn’t save. Try again.'); }
 }
 async function undoTurnOver(r){
   if(r.delivered){ toast('This tray is already marked delivered.'); return; }
   const b = db.batch();
-  b.update(db.doc('requests/'+r.id), {status:'open', outgoing:false, turnoverFrom:'', turnoverUsed:firebase.firestore.FieldValue.delete()});
-  if(docById(r.turnoverFrom)) b.update(db.doc('requests/'+r.turnoverFrom), {turnedOverTo:''});
+  b.update(adb.doc('requests/'+r.id), {status:'open', outgoing:false, turnoverFrom:'', turnoverUsed:firebase.firestore.FieldValue.delete()});
+  if(docById(r.turnoverFrom)) b.update(adb.doc('requests/'+r.turnoverFrom), {turnedOverTo:''});
   try{ await b.commit(); toast(`${r.tray} is back in the pull queue.`); }
   catch(err){ console.error(err); toast('That change didn’t save. Try again.'); }
 }
@@ -2089,17 +2215,17 @@ function turnoverTags(r){
 /* Delivering a turned-over tray: if it was used in the earlier case, a new photo of it set up again;
    if not, the earlier case's delivery photo is reused. */
 async function deliverTurnoverUnused(r){
-  const src = await db.collection('requests/'+r.turnoverFrom+'/photos').get();
+  const src = await adb.collection('requests/'+r.turnoverFrom+'/photos').get();
   const photos = src.docs.map(d=>d.data()).filter(ph=>(ph.kind||'delivery')==='delivery' && ph.data);
   if(!photos.length){
-    await db.doc('requests/'+r.id).update({turnoverUsed:false});
+    await adb.doc('requests/'+r.id).update({turnoverUsed:false});
     toast('The earlier case has no delivery photo left. Add a photo, then mark it delivered.');
     return false;
   }
   const b = db.batch();
-  photos.forEach(ph=>b.set(db.collection('requests/'+r.id+'/photos').doc(),
+  photos.forEach(ph=>b.set(adb.collection('requests/'+r.id+'/photos').doc(),
     {data:ph.data, w:ph.w||0, h:ph.h||0, kind:'delivery', authorId:me.uid, authorName:me.name, at:ph.at||Date.now(), copiedFrom:r.turnoverFrom}));
-  b.update(db.doc('requests/'+r.id), {photoCount:(r.photoCount||0)+photos.length, turnoverUsed:false, delivered:true});
+  b.update(adb.doc('requests/'+r.id), {photoCount:(r.photoCount||0)+photos.length, turnoverUsed:false, delivered:true});
   await b.commit();
   toast(`Marked delivered with the original delivery photo${photos.length===1?'':'s'}.`);
   return true;
@@ -2220,7 +2346,7 @@ document.addEventListener('click', async e=>{
   const u = usersMap[me.uid] || (usersMap[me.uid] = {});
   u.favTrays = on ? (u.favTrays||[]).filter(k=>k!==key) : [...(u.favTrays||[]), key];
   renderAll();
-  try{ await db.doc('users/'+me.uid).set({favTrays: on ? FV.arrayRemove(key) : FV.arrayUnion(key)}, {merge:true}); toast(on ? `Removed ${key} from My Trays.` : `Added ${key} to My Trays.`); }
+  try{ await adb.doc('users/'+me.uid).set({favTrays: on ? FV.arrayRemove(key) : FV.arrayUnion(key)}, {merge:true}); toast(on ? `Removed ${key} from My Trays.` : `Added ${key} to My Trays.`); }
   catch(err){ console.error(err); toast('Couldn’t save the star. Try again.'); }
 }, true);
 function addBizDays(iso, n){
@@ -2384,7 +2510,7 @@ function computeLoaners(){
   // Remember each urgent return once, so Analysis can count them after the set is back.
   if(isManager() && db){
     for(const pool of urgentPools) for(const r of pool.needs){
-      if(!r.urgentReturnAt && r!==loanerProbe) db.doc('requests/'+r.id).update({urgentReturnAt:Date.now(), urgentReturnDate:pool.date}).catch(()=>{});
+      if(!r.urgentReturnAt && r!==loanerProbe) adb.doc('requests/'+r.id).update({urgentReturnAt:Date.now(), urgentReturnDate:pool.date}).catch(()=>{});
     }
   }
   urgentPools.sort((a,b)=>a.date.localeCompare(b.date));
@@ -2438,7 +2564,7 @@ function poolRepAlert(pool){
 }
 function markLoanerOrdered(ids){
   const batch = db.batch();
-  ids.forEach(id=>batch.update(db.doc('requests/'+id), {loanerStatus:'ordered', loanerOrderedAt:Date.now(), loanerOrderedByName:me.name}));
+  ids.forEach(id=>batch.update(adb.doc('requests/'+id), {loanerStatus:'ordered', loanerOrderedAt:Date.now(), loanerOrderedByName:me.name}));
   batch.commit().catch(err=>{ console.error(err); toast('That didn’t save. Try again.'); });
   toast(`Marked ${ids.length} loaner${ids.length===1?'':'s'} as ordered from Arthrex.`);
 }
@@ -2449,7 +2575,7 @@ function buildAlerts(){
   const out = [];
   for(const pool of urgentPools){
     if(pool.needs.every(x=>x.urgentAckAt)) continue;
-    out.push({...poolManagerAlert(pool), btn:'Arranged', fn:()=>{ const b=db.batch(); pool.needs.forEach(x=>b.update(db.doc('requests/'+x.id), {urgentAckAt:Date.now()})); b.commit().catch(console.error); }});
+    out.push({...poolManagerAlert(pool), btn:'Arranged', fn:()=>{ const b=db.batch(); pool.needs.forEach(x=>b.update(adb.doc('requests/'+x.id), {urgentAckAt:Date.now()})); b.commit().catch(console.error); }});
   }
   for(const s of shortageAlerts){
     const r = s.r;
@@ -2466,7 +2592,7 @@ function buildAlerts(){
   }
   const lateCases = groupCases(allDocs.filter(r=>isLate(r) && !r.lateAck));
   for(const c of lateCases){
-    out.push({cls:'late', title:`Late request · ${caseTitle(c)}`, sub:`${c.trays.length} tray${c.trays.length===1?'':'s'} for ${fmtDate(c.date)}, entered after the pull-by date`, btn:'Got it', fn:()=>{ const b=db.batch(); c.trays.forEach(r=>b.update(db.doc('requests/'+r.id), {lateAck:true})); b.commit().catch(console.error); }});
+    out.push({cls:'late', title:`Late request · ${caseTitle(c)}`, sub:`${c.trays.length} tray${c.trays.length===1?'':'s'} for ${fmtDate(c.date)}, entered after the pull-by date`, btn:'Got it', fn:()=>{ const b=db.batch(); c.trays.forEach(r=>b.update(adb.doc('requests/'+r.id), {lateAck:true})); b.commit().catch(console.error); }});
   }
   return out;
 }
@@ -2823,10 +2949,10 @@ async function deleteRequests(list){
     try{
       // Remove the request's photos and comments first so nothing is left behind.
       for(const sub of ['photos','comments']){
-        const snap = await db.collection('requests/'+r.id+'/'+sub).get();
-        await Promise.all(snap.docs.map(d=>db.doc('requests/'+r.id+'/'+sub+'/'+d.id).delete().catch(()=>{})));
+        const snap = await adb.collection('requests/'+r.id+'/'+sub).get();
+        await Promise.all(snap.docs.map(d=>adb.doc('requests/'+r.id+'/'+sub+'/'+d.id).delete().catch(()=>{})));
       }
-      await db.doc('requests/'+r.id).delete();
+      await adb.doc('requests/'+r.id).delete();
       done++;
     }catch(e){ console.error(e); }
   }
@@ -2965,7 +3091,7 @@ $('#cons-search').addEventListener('input', renderConsigned);
 function sheetHash(s){ let h=2166136261; for(const ch of s){ h^=ch.charCodeAt(0); h=Math.imul(h,16777619); } return (h>>>0).toString(36); }
 async function runSheetSync(rows){
   if(!db || !me) throw new Error('turntray is not signed in');
-  const stRef = db.doc('inventory/syncState');
+  const stRef = adb.doc('inventory/syncState');
   const st = (await stRef.get()).data() || {};
   const known = new Set(st.trayIds || []);
   const split = s=>{ s=String(s||'').trim(); const m=s.match(/^([^(\-]+?)\s*(?:\((.*)\)|-\s*(.*))?$/); return m ? {surgeon:(m[1]||'').trim(), notes:(m[2]||m[3]||'').trim()} : {surgeon:s, notes:''}; };
@@ -2974,24 +3100,24 @@ async function runSheetSync(rows){
   const fresh = items.filter(it=>!known.has(it.id));
   let added = 0; const addedList = [], dates = new Set(), cases = new Set();
   if(fresh.length){
-    const users = (await db.collection('users').get()).docs.map(d=>({uid:d.id, ...d.data()}));
+    const users = (await adb.collection('users').get()).docs.map(d=>({uid:d.id, ...d.data()}));
     const b = db.batch();
     for(const it of fresh){
-      if((await db.doc('requests/'+it.id).get()).exists) continue;
+      if((await adb.doc('requests/'+it.id).get()).exists) continue;
       const sp = split(it.surgeon); const u = users.find(x=>(x.email||'').toLowerCase()===it.email);
       const doc = {dateNeeded:it.date, dateRequired:'', territory:canonTerr(it.territory), account:it.account, type:'Surgery',
         surgeon:sp.surgeon, notes:sp.notes, procedure:'', requestedById: u ? u.uid : '', requestedByName: u ? (u.name||it.email) : (it.email || 'Google Sheet'),
         status:'open', createdAt:Date.now()+added, returned:false, currentTrays:'', sameDay:'', previousDay:'', sdOverload:false, pdOverload:false,
         turnover:'', outgoing:false, delivered:false, transfer:'', sst:false, sstPtId:'', sstStart:'', tray:it.tray, fromSheet:true, sheetRow:it.row, sheetTimestamp:it.ts};
       doc.caseId = 'sheet_'+sheetHash('case|'+caseKey(doc,true));
-      b.set(db.doc('requests/'+it.id), doc); added++; dates.add(it.date); cases.add(caseKey(doc,true)); addedList.push(it.tray+' · '+it.account+' · '+it.date);
+      b.set(adb.doc('requests/'+it.id), doc); added++; dates.add(it.date); cases.add(caseKey(doc,true)); addedList.push(it.tray+' · '+it.account+' · '+it.date);
     }
     if(added) await b.commit();
   }
   // Same surgeon, same day, same account = one case. Only the days that just got new rows are checked.
   let linked = 0; const ds = [...dates];
   for(let i=0;i<ds.length;i+=10){
-    const snap = await db.collection('requests').where('dateNeeded','in',ds.slice(i,i+10)).get();
+    const snap = await adb.collection('requests').where('dateNeeded','in',ds.slice(i,i+10)).get();
     const g = new Map();
     snap.docs.map(d=>({id:d.id, ...d.data()})).filter(r=>r.fromSheet && r.status!=='cancelled' && String(r.caseId||'').startsWith('sheet_'))
       .forEach(r=>{ const k=caseKey(r,true); if(!g.has(k)) g.set(k,[]); g.get(k).push(r); });
@@ -2999,7 +3125,7 @@ async function runSheetSync(rows){
     for(const rs of g.values()){
       if(new Set(rs.map(r=>r.caseId)).size<2) continue;
       rs.sort((a,b)=>(a.createdAt||0)-(b.createdAt||0)); const target = rs[0].caseId;
-      rs.forEach(r=>{ if(r.caseId!==target){ b2.update(db.doc('requests/'+r.id), {caseId:target}); n++; } });
+      rs.forEach(r=>{ if(r.caseId!==target){ b2.update(adb.doc('requests/'+r.id), {caseId:target}); n++; } });
     }
     if(n){ await b2.commit(); linked += n; }
   }
@@ -3135,7 +3261,7 @@ function toggleComments(reqId, card){
 async function loadComments(reqId, container){
   container.textContent = 'Loading…';
   try{
-    const snap = await db.collection('requests/'+reqId+'/comments').orderBy('createdAt').get();
+    const snap = await adb.collection('requests/'+reqId+'/comments').orderBy('createdAt').get();
     container.innerHTML = '';
     const listEl = document.createElement('div');
     if(!snap.docs.length) listEl.innerHTML = '<div class="no-comments">No comments yet.</div>';
@@ -3157,7 +3283,7 @@ async function loadComments(reqId, container){
       const send = async ()=>{
         const text = inp.value.trim(); if(!text) return;
         sbtn.disabled = true;
-        try{ await db.collection('requests/'+reqId+'/comments').add({text, authorId: me.uid, authorName: me.name, createdAt: Date.now()}); inp.value=''; loadComments(reqId, container); }
+        try{ await adb.collection('requests/'+reqId+'/comments').add({text, authorId: me.uid, authorName: me.name, createdAt: Date.now()}); inp.value=''; loadComments(reqId, container); }
         catch(e){ console.error(e); toast('Comment didn’t send. Try again.'); }
         finally{ sbtn.disabled = false; }
       };
@@ -3475,7 +3601,7 @@ function openPhotoSheet(reqId, mode){
   $('#ps-msg').textContent=''; $('#ps-msg').className='status-msg';
   $('#photo-sheet').hidden = false;
   renderPhotoSheet();
-  psUnsub = db.collection('requests/'+reqId+'/photos').onSnapshot(snap=>{
+  psUnsub = adb.collection('requests/'+reqId+'/photos').onSnapshot(snap=>{
     const all = snap.docs.map(d=>({id:d.id, ...d.data()})).sort((a,b)=>(a.at||0)-(b.at||0));
     psPhotos = all.filter(ph=>(ph.kind||'delivery')===psMode);
     psDelivery = all.filter(ph=>(ph.kind||'delivery')==='delivery');
@@ -3576,12 +3702,12 @@ $('#ps-complete').addEventListener('click', async ()=>{
   if((!count && !isBankTray(r.tray)) || !psMissing || (psMissing==='yes' && !note)){ renderPhotoSheet(); return; }
   const missing = psMissing==='yes';
   try{
-    await db.doc('requests/'+r.id).update({...bankFlag(r), returned:true, returnedAt:Date.now(), returnedById:me.uid, returnedByName:me.name, returnMissing:missing, returnMissingNote: missing ? note : '', missingResolved:false, missingResolvedAt:null, missingResolvedByName:''});
+    await adb.doc('requests/'+r.id).update({...bankFlag(r), returned:true, returnedAt:Date.now(), returnedById:me.uid, returnedByName:me.name, returnMissing:missing, returnMissingNote: missing ? note : '', missingResolved:false, missingResolvedAt:null, missingResolvedByName:''});
   }catch(err){ console.error(err); toast('That change didn’t save. Try again.'); return; }
   // Nothing missing: the return photos aren't needed, so free up the space.
   if(!missing) deleteReturnPhotos(r.id);
   if(missing){
-    db.collection('requests/'+r.id+'/comments').add({text:`Missing items on return: ${note}`, authorId:me.uid, authorName:me.name, createdAt:Date.now()}).catch(console.error);
+    adb.collection('requests/'+r.id+'/comments').add({text:`Missing items on return: ${note}`, authorId:me.uid, authorName:me.name, createdAt:Date.now()}).catch(console.error);
   }
   toast(missing ? `Returned ${r.tray}, with missing items noted.` : `Returned ${r.tray}.`);
   closePhotoSheet();
@@ -3608,12 +3734,12 @@ async function sweepOldPhotos(){
   const cand = allDocs.filter(r=>((r.photoCount||0) + (r.returnPhotoCount||0)) > 0 && (r.dateNeeded||'') && r.dateNeeded <= recentIso && !missingOpen(r));
   for(const r of cand){
     try{
-      const snap = await db.collection('requests/'+r.id+'/photos').get();
+      const snap = await adb.collection('requests/'+r.id+'/photos').get();
       const old = snap.docs.filter(d=>(d.data().at||0) && d.data().at < cutoff);
       if(!old.length) continue;
       const b = db.batch(); let del=0, delRet=0;
       old.forEach(d=>{ b.delete(d.ref); (d.data().kind==='return') ? delRet++ : del++; });
-      b.update(db.doc('requests/'+r.id), {
+      b.update(adb.doc('requests/'+r.id), {
         photoCount: Math.max(0, (r.photoCount||0) - del),
         returnPhotoCount: Math.max(0, (r.returnPhotoCount||0) - delRet),
         photosExpired: true
@@ -3624,7 +3750,7 @@ async function sweepOldPhotos(){
 }
 function missingOpen(r){ return !!(r && r.returned && r.returnMissing && !r.missingResolved); }
 async function returnPhotoDocs(reqId){
-  const snap = await db.collection('requests/'+reqId+'/photos').get();
+  const snap = await adb.collection('requests/'+reqId+'/photos').get();
   return snap.docs.filter(d=>d.data().kind==='return');
 }
 // Deletes every return photo on a request (used when a tray comes back complete).
@@ -3634,7 +3760,7 @@ async function deleteReturnPhotos(reqId){
     if(!docs.length) return;
     const batch = db.batch();
     docs.forEach(d=>batch.delete(d.ref));
-    batch.update(db.doc('requests/'+reqId), {returnPhotoCount: 0});
+    batch.update(adb.doc('requests/'+reqId), {returnPhotoCount: 0});
     await batch.commit();
   }catch(err){ console.error(err); toast('The return was saved, but its photos couldn’t be cleared.'); }
 }
@@ -3646,7 +3772,7 @@ async function shrinkReturnPhotos(reqId){
     const img = await loadImageSrc(ph.data);
     const {data, w, h} = drawJpeg(img, 400, 0.6);
     const batch = db.batch();
-    batch.set(db.collection('requests/'+reqId+'/photos').doc(), {data, w, h, kind:'return', small:true, authorId: me.uid, authorName: me.name, at: ph.at || Date.now()});
+    batch.set(adb.collection('requests/'+reqId+'/photos').doc(), {data, w, h, kind:'return', small:true, authorId: me.uid, authorName: me.name, at: ph.at || Date.now()});
     batch.delete(d.ref);
     await batch.commit();
   }
@@ -3655,8 +3781,8 @@ $('#ps-resolve').addEventListener('click', async ()=>{
   const r = allDocs.find(x=>x.id===psReqId); if(!missingOpen(r)) return;
   const btn = $('#ps-resolve'); btn.disabled = true;
   try{
-    await db.doc('requests/'+r.id).update({missingResolved:true, missingResolvedAt:Date.now(), missingResolvedById:me.uid, missingResolvedByName:me.name});
-    db.collection('requests/'+r.id+'/comments').add({text:`Missing items found: ${r.returnMissingNote||''}`, authorId:me.uid, authorName:me.name, createdAt:Date.now()}).catch(console.error);
+    await adb.doc('requests/'+r.id).update({missingResolved:true, missingResolvedAt:Date.now(), missingResolvedById:me.uid, missingResolvedByName:me.name});
+    adb.collection('requests/'+r.id+'/comments').add({text:`Missing items found: ${r.returnMissingNote||''}`, authorId:me.uid, authorName:me.name, createdAt:Date.now()}).catch(console.error);
     toast(`Marked found. ${r.tray}'s return photos were shrunk to save space.`);
     shrinkReturnPhotos(r.id).catch(err=>{ console.error(err); toast('Marked found, but the photos couldn’t be shrunk.'); });
   }catch(err){ console.error(err); toast('That change didn’t save. Try again.'); }
@@ -3684,7 +3810,7 @@ $('#ps-turn-used').addEventListener('click', async e=>{
   const r = allDocs.find(x=>x.id===psReqId); if(!r || !r.turnoverFrom) return;
   b.disabled = true;
   try{
-    if(b.dataset.v==='yes'){ await db.doc('requests/'+r.id).update({turnoverUsed:true}); $('#ps-file').click(); }
+    if(b.dataset.v==='yes'){ await adb.doc('requests/'+r.id).update({turnoverUsed:true}); $('#ps-file').click(); }
     else { await deliverTurnoverUnused(r); }
   }catch(err){ console.error(err); toast('That change didn’t save. Try again.'); }
   b.disabled = false;
@@ -3733,11 +3859,11 @@ $('#ps-file').addEventListener('change', async e=>{
   for(const f of files){
     try{
       const {data, w, h} = await compressPhoto(f, psMode==='return');
-      const ref = db.collection('requests/'+reqId+'/photos').doc();
+      const ref = adb.collection('requests/'+reqId+'/photos').doc();
       const batch = db.batch();
       const mode = psMode;
       batch.set(ref, {data, w, h, kind: mode, authorId: me.uid, authorName: me.name, at: Date.now()});
-      batch.update(db.doc('requests/'+reqId), {[PH_MODES[mode].count]: firebase.firestore.FieldValue.increment(1)});
+      batch.update(adb.doc('requests/'+reqId), {[PH_MODES[mode].count]: firebase.firestore.FieldValue.increment(1)});
       batch.commit().catch(err=>{ console.error(err); toast('A photo didn’t save. Check your access and try again.'); });
       added++;
     }catch(err){ console.error(err); msg.textContent = 'That file couldn’t be read as a photo. Try a JPEG or a photo from your camera.'; msg.className='status-msg err'; }
@@ -3785,8 +3911,8 @@ $('#pv-delete').addEventListener('click', ()=>{
   if(!pvArmed){ pvArmed=true; $('#pv-delete').textContent='Tap to confirm'; setTimeout(()=>{ pvArmed=false; $('#pv-delete').textContent='Delete'; }, 4000); return; }
   pvArmed = false;
   const batch = db.batch();
-  batch.delete(db.doc('requests/'+psReqId+'/photos/'+pvPhoto.id));
-  batch.update(db.doc('requests/'+psReqId), {[M.count]: firebase.firestore.FieldValue.increment(-1)});
+  batch.delete(adb.doc('requests/'+psReqId+'/photos/'+pvPhoto.id));
+  batch.update(adb.doc('requests/'+psReqId), {[M.count]: firebase.firestore.FieldValue.increment(-1)});
   batch.commit().catch(err=>{ console.error(err); toast('Couldn’t delete that photo.'); });
   closeViewer(); toast('Photo deleted.');
 });
@@ -3831,7 +3957,7 @@ $('#card-form').addEventListener('submit', async e=>{
   const dup = prefCards.find(c=>c.id!==editingCardId && normName(c.surgeon)===normName(surgeon) && (c.procedure||'').trim().toLowerCase()===procedure.toLowerCase());
   if(dup){ msg.textContent=`There's already a card for ${dup.surgeon} · ${dup.procedure}. Edit that one instead.`; msg.className='status-msg err'; return; }
   const data = {surgeon, procedure, trays, type: $('#ce-type').value, account: $('#ce-account').value.trim().toUpperCase(), notes: $('#ce-notes').value.trim(), updatedBy: me.name, updatedById: me.uid, updatedAt: Date.now()};
-  const ref = editingCardId ? db.doc('prefCards/'+editingCardId) : db.collection('prefCards').doc();
+  const ref = editingCardId ? adb.doc('prefCards/'+editingCardId) : adb.collection('prefCards').doc();
   ref.set(data).catch(err=>{ console.error(err); toast('That card didn’t save. Check your access and try again.'); });
   closeCardEditor();
   toast(`Saved ${surgeon} · ${procedure}.`);
@@ -3842,7 +3968,7 @@ $('#ce-delete').addEventListener('click', ()=>{
   const btn = $('#ce-delete');
   if(!deleteArmed){ deleteArmed = true; btn.textContent = 'Tap again to delete'; setTimeout(()=>{ deleteArmed=false; btn.textContent='Delete'; }, 4000); return; }
   deleteArmed = false;
-  db.doc('prefCards/'+editingCardId).delete().catch(err=>{ console.error(err); toast('Could not delete. Try again.'); });
+  adb.doc('prefCards/'+editingCardId).delete().catch(err=>{ console.error(err); toast('Could not delete. Try again.'); });
   closeCardEditor(); toast('Card deleted.');
 });
 function renderCards(){
@@ -3921,7 +4047,7 @@ function memberRow(m){
   rs.innerHTML = '<option value="rep">Sales Rep</option><option value="inventory">Inventory Manager</option><option value="product">Product Manager</option>';
   rs.value = curRole;
   rs.onchange = async ()=>{
-    try{ await db.doc('members/'+m.email).set({role: rs.value, ...(isOwnerRow ? {admin:true} : {})}, {merge:true}); toast(`${(u && u.name) || m.name || m.email} is now ${withArticle(roleLabel(rs.value))}.`); }
+    try{ await adb.doc('members/'+m.email).set({role: rs.value, ...(isOwnerRow ? {admin:true} : {})}, {merge:true}); toast(`${(u && u.name) || m.name || m.email} is now ${withArticle(roleLabel(rs.value))}.`); }
     catch(e){ console.error(e); rs.value = curRole; toast('Could not change the role. Only admins can.'); }
   };
   acts.appendChild(rs);
@@ -3933,7 +4059,7 @@ function memberRow(m){
     let armed = false;
     rm.onclick = async ()=>{
       if(!armed){ armed = true; rm.textContent='Tap to confirm'; setTimeout(()=>{ armed=false; rm.textContent='Remove'; }, 4000); return; }
-      try{ await db.doc('members/'+m.email).delete(); toast(`Removed ${m.email}.`); }catch(e){ console.error(e); toast('Could not remove. Try again.'); }
+      try{ await TT.removeMember(db, adb.agencyId, m.email); toast(`Removed ${m.email}.`); }catch(e){ console.error(e); toast('Could not remove. Try again.'); }
     };
     acts.appendChild(rm);
   }
@@ -3945,7 +4071,7 @@ function memberRow(m){
     box.querySelector('.save').onclick = async ()=>{
       const picked = pickedTerrs(box);
       try{
-        await db.doc('members/'+m.email).set({territories: picked, ...(isOwnerRow ? {admin:true} : {})}, {merge:true});
+        await adb.doc('members/'+m.email).set({territories: picked, ...(isOwnerRow ? {admin:true} : {})}, {merge:true});
         editingMember=null; toast(picked.length ? `${m.email}: ${picked.join(', ')}` : `Cleared territories for ${m.email}.`);
       }catch(e){ console.error(e); toast('Could not save. Only admins can change the team.'); }
     };
@@ -3957,7 +4083,6 @@ function renderTeam(){
   if(!me || !me.isAdmin) return;
   const list = $('#team-list'); list.innerHTML = '';
   const rows = [...membersList];
-  if(!rows.some(m=>m.email===OWNER_EMAIL.toLowerCase())) rows.unshift({email:OWNER_EMAIL.toLowerCase(), owner:true, admin:true});
   rows.sort((a,b)=> ((b.owner||b.email===OWNER_EMAIL.toLowerCase())?1:0)-((a.owner||a.email===OWNER_EMAIL.toLowerCase())?1:0) || (b.admin?1:0)-(a.admin?1:0) || a.email.localeCompare(b.email));
   $('#team-count').textContent = `${rows.length} ${rows.length===1?'person':'people'}`;
   // One section per territory; someone in two territories shows up in both.
@@ -3991,10 +4116,138 @@ $('#team-form').addEventListener('submit', async e=>{
   const msg = $('#team-msg');
   if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ msg.textContent='Enter a full email address.'; msg.className='status-msg err'; return; }
   try{
-    await db.doc('members/'+email).set({name, admin, role, territories, addedBy: me.email, addedAt: Date.now()}, {merge:true});
+    await TT.addMember(db, adb.agencyId, email, {name, admin, role, territories, addedBy: me.email, addedAt: Date.now()});
     msg.textContent = `Added ${email} as ${withArticle(roleLabel(role))}${territories.length ? ' ('+territories.join(', ')+')' : ''}. Send them the app link and tell them to sign in with this email.`; msg.className='status-msg ok';
     e.target.reset(); terrPicker($('#team-terrs'), []);
-  }catch(err){ console.error(err); msg.textContent='Could not add. Only admins can change the team.'; msg.className='status-msg err'; }
+  }catch(err){ console.error(err); msg.textContent= err.code==='other-agency' ? err.message : 'Could not add. Only admins can change the team.'; msg.className='status-msg err'; }
+});
+
+/* ---- this agency's settings (admins): name and accounts ---- */
+function renderAgencySettings(){
+  if(!agency) return;
+  const form = $('#agency-form');
+  if(document.activeElement && form.contains(document.activeElement)) return;   // don't overwrite while typing
+  $('#agency-name').value = agency.name || '';
+  $('#agency-accounts').value = TT.accountsToText(agency);
+}
+$('#agency-form').addEventListener('submit', async e=>{
+  e.preventDefault();
+  const msg = $('#agency-msg');
+  const name = $('#agency-name').value.trim();
+  if(!name){ msg.textContent = 'Enter the agency name.'; msg.className='status-msg err'; return; }
+  const accounts = TT.accountsFromText($('#agency-accounts').value);
+  try{
+    await adb.agencyDoc().update({name, accounts, updatedAt: Date.now(), updatedByName: me.name});
+    msg.textContent = `Saved. ${accounts.length} account${accounts.length===1?'':'s'}.`; msg.className='status-msg ok';
+  }catch(err){ console.error(err); msg.textContent = 'Could not save. Only admins can change the agency.'; msg.className='status-msg err'; }
+});
+
+/* ---- all agencies (owner): approve new ones, open any of them ---- */
+let agenciesUnsub = null, agenciesList = [];
+function watchAgencies(){
+  if(!me || !me.isOwner || agenciesUnsub) return;
+  agenciesUnsub = db.collection('agencies').onSnapshot(snap=>{
+    agenciesList = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    const waiting = agenciesList.filter(a=>(a.status||'pending')==='pending').length;
+    $('#gear-agencies-sub').textContent = waiting ? `${waiting} waiting for approval` : 'Approve and open agencies';
+    if(activeViewId()==='agencies') renderAgencies();
+  }, console.error);
+  unsubs.push(()=>{ agenciesUnsub(); agenciesUnsub = null; });
+}
+function renderAgencies(){
+  if(!me || !me.isOwner) return;
+  watchAgencies();
+  $('#agencies-current').textContent = agency ? `${agency.name} (${agency.id})` : '';
+  const order = {pending:0, active:1, rejected:2};
+  const rows = [...agenciesList].sort((a,b)=>(order[a.status||'pending']??3)-(order[b.status||'pending']??3) || String(a.name||'').localeCompare(String(b.name||'')));
+  $('#agencies-count').textContent = `${rows.length} ${rows.length===1?'agency':'agencies'}`;
+  const list = $('#agencies-list'); list.innerHTML = rows.length ? '' : '<p class="hint">No agencies yet.</p>';
+  rows.forEach(a=>{
+    const st = a.status || 'pending';
+    const el = document.createElement('div'); el.className='agency-row';
+    el.innerHTML = `<div class="top"><b></b><span class="st ${st}">${st==='active'?'Approved':(st==='pending'?'Waiting':'Not approved')}</span>${agency && a.id===agency.id ? '<span class="st here">Viewing</span>' : ''}</div><small class="who"></small><small class="extra"></small><div class="acts"></div>`;
+    el.querySelector('b').textContent = a.name || a.id;
+    el.querySelector('.who').textContent = [a.createdByName, a.createdByEmail, a.createdAt ? 'applied '+new Date(a.createdAt).toLocaleDateString() : ''].filter(Boolean).join(' · ');
+    el.querySelector('.extra').textContent = [a.region, a.phone, a.note, 'id: '+a.id].filter(Boolean).join(' · ');
+    const acts = el.querySelector('.acts');
+    const btn = (label, fn, cls)=>{ const b=document.createElement('button'); b.type='button'; b.textContent=label; if(cls) b.className=cls; b.onclick=fn; acts.appendChild(b); return b; };
+    const setStatus = async (status)=>{
+      try{ await db.doc('agencies/'+a.id).update({status, ...(status==='active' ? {approvedAt:Date.now()} : {}), reviewedAt:Date.now()}); toast(status==='active' ? `${a.name} is approved. Let ${a.createdByEmail||'their admin'} know they can sign in.` : `${a.name} was not approved.`); }
+      catch(e){ console.error(e); toast('Could not change it. Try again.'); }
+    };
+    if(st!=='active') btn('Approve', ()=>setStatus('active'), 'go');
+    if(st==='pending') btn('Don’t approve', ()=>setStatus('rejected'));
+    if(st==='active' && a.id!=='turntray-admin') btn('Suspend', ()=>{ if(confirm(`Suspend ${a.name}? Their team won't be able to open it until you approve it again.`)) setStatus('rejected'); });
+    if(!agency || a.id!==agency.id) btn('Open', ()=>TT.ownerOpen(a.id));
+    if(a.createdByEmail) btn('Email admin', ()=>{ location.href = `mailto:${encodeURIComponent(a.createdByEmail)}?subject=${encodeURIComponent('TurnTray: '+(a.name||''))}`; });
+    list.appendChild(el);
+  });
+}
+$('#mig-run').addEventListener('click', async ()=>{
+  const target = $('#mig-target').value, sendTeam = $('#mig-directory').checked;
+  const msg = $('#mig-msg'), btn = $('#mig-run');
+  if(sendTeam && target!=='portland'){ msg.textContent = 'Only send the team to the real portland agency, at the switch-over.'; msg.className='status-msg err'; return; }
+  if(!confirm(`Copy all of the current app's data into "${target}"${sendTeam ? ' and send the Portland team there when they sign in' : ''}? Existing data with the same names in "${target}" is overwritten.`)) return;
+  btn.disabled = true; msg.className='status-msg';
+  try{
+    if(!window.TTMigrate) await new Promise((res, rej)=>{ const sc=document.createElement('script'); sc.src='migrate.js'; sc.onload=res; sc.onerror=()=>rej(new Error('Could not load migrate.js')); document.head.appendChild(sc); });
+    const r = await TTMigrate.copyLegacy(db, target, {sendTeam, ownerEmail: me.email, onProgress: t=>{ msg.textContent = t; }});
+    msg.textContent = `Done: ${r.docs} records and ${r.photos} photos copied into ${target}.` + (sendTeam ? ` ${r.directory} team members will open it when they sign in.` : ` Open it from the list above to check it.`);
+    msg.className='status-msg ok';
+  }catch(e){ console.error(e); msg.textContent = 'Stopped: ' + (e.message || e) + '. You can run it again; it picks up where it left off.'; msg.className='status-msg err'; }
+  finally{ btn.disabled = false; }
+});
+
+/* ---- registering a new agency ---- */
+function showApply(user){
+  $('#apply-email').textContent = user.email;
+  if(!$('#apply-name').value) $('#apply-name').value = user.displayName || '';
+  $('#apply-msg').textContent = '';
+  showScreen('apply');
+}
+function showPending(user, where){
+  const a = where.agency || {};
+  const rejected = where.state==='rejected';
+  $('#pending-agency').textContent = a.name || 'TurnTray';
+  $('#pending-title').textContent = rejected ? 'Not approved' : 'Waiting for approval';
+  $('#pending-text').textContent = rejected
+    ? `${a.name || 'This agency'} isn't approved on TurnTray right now. Contact ${TT.OWNER_EMAIL} if you think that's a mistake.`
+    : `Thanks! ${a.name || 'Your agency'} is waiting for approval. You'll be able to sign in and set up your team once it's approved. Signed in as ${user.email}.`;
+  $('#pending-withdraw').hidden = !(where.member && where.member.admin && a.createdByEmail===String(user.email||'').toLowerCase());
+  $('#pending-msg').textContent = '';
+  showScreen('pending');
+}
+$('#auth-register').addEventListener('click', ()=>{
+  try{ sessionStorage.setItem('tt-apply','1'); }catch(e){}
+  $('#auth-mode button[data-m="signup"]').click();
+  authMsg('Create your account (or sign in if you already have one). The agency form comes next.');
+});
+$('#noaccess-apply').addEventListener('click', ()=>{ try{ sessionStorage.setItem('tt-apply','1'); }catch(e){} showApply(auth.currentUser); });
+$('#apply-cancel').addEventListener('click', ()=>{ try{ sessionStorage.removeItem('tt-apply'); }catch(e){} handleUser(auth.currentUser); });
+$('#apply-form').addEventListener('submit', async e=>{
+  e.preventDefault();
+  const msg = $('#apply-msg'), btn = $('#apply-submit');
+  const form = {agencyName: $('#apply-agency').value, yourName: $('#apply-name').value, region: $('#apply-region').value, phone: $('#apply-phone').value, note: $('#apply-note').value};
+  if(!form.agencyName.trim()){ msg.textContent = 'Enter your agency’s name.'; msg.className='status-msg err'; return; }
+  if(!form.yourName.trim()){ msg.textContent = 'Enter your name.'; msg.className='status-msg err'; return; }
+  btn.disabled = true; msg.textContent = 'Sending…'; msg.className='status-msg';
+  try{
+    await TT.applyForAgency(db, auth.currentUser, form);
+    try{ sessionStorage.removeItem('tt-apply'); }catch(e){}
+    handleUser(auth.currentUser);
+  }catch(err){
+    console.error(err);
+    msg.textContent = err && err.code==='permission-denied'
+      ? 'This email is already on an agency’s team. Ask that agency’s admin to remove you first, or sign in with a different email.'
+      : friendlyAuthError(err);
+    msg.className='status-msg err';
+  }finally{ btn.disabled = false; }
+});
+$('#pending-retry').addEventListener('click', ()=>handleUser(auth.currentUser));
+$('#pending-withdraw').addEventListener('click', async ()=>{
+  if(!confirm('Cancel this agency application?')) return;
+  try{ await TT.withdraw(db, auth.currentUser); handleUser(auth.currentUser); }
+  catch(e){ console.error(e); $('#pending-msg').textContent = 'Could not cancel. Try again.'; $('#pending-msg').className='status-msg err'; }
 });
 
 /* ---- render + navigation ---- */
@@ -4046,9 +4299,10 @@ function openHelpForRole(){
   document.querySelectorAll('#view-help details').forEach(d=>{ if(d.dataset.help===want) d.open = true; });
 }
 const MORE_VIEWS = ['more'];
-const SETTINGS_VIEWS = ['account','team'];   // opened from the gear menu in the header
+const SETTINGS_VIEWS = ['account','team','agency','agencies'];   // opened from the gear menu in the header
 function showView(view){
-  if(view==='team' && !(me && me.isAdmin)) view = 'more';
+  if((view==='team' || view==='agency') && !(me && me.isAdmin)) view = 'more';
+  if(view==='agencies' && !(me && me.isOwner)) view = 'more';
   if(!canSee(view)) view = isManager() ? 'requests' : 'add';
   document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active', v.id==='view-'+view));
   const mobile = matchMedia('(max-width:820px)').matches;
@@ -4071,6 +4325,8 @@ function showView(view){
   if(view==='sst'){ if(!$('#sst-report-date').value) $('#sst-report-date').value = todayIso(); renderSst(); }
   if(view==='inventory') renderInventory();
   if(view==='team') renderTeam();
+  if(view==='agency') renderAgencySettings();
+  if(view==='agencies') renderAgencies();
   if(view==='account') renderAccount();
   if(view==='cards') renderCards();
   if(view==='help') openHelpForRole();
@@ -4110,7 +4366,7 @@ else $('#loading-msg').textContent = 'Could not load. Check your connection and 
 </script>
 <script>
 /* Save a copy of the app on this device so it still opens on Wi-Fi networks that block turntray.com. */
-if('serviceWorker' in navigator && (location.protocol==='https:' || location.hostname==='localhost')) window.addEventListener('load', ()=>{ navigator.serviceWorker.register('sw.js').catch(()=>{}); });
+if('serviceWorker' in navigator && (location.protocol==='https:' || location.hostname==='localhost') && !location.pathname.startsWith('/beta/')) window.addEventListener('load', ()=>{ navigator.serviceWorker.register('sw.js').catch(()=>{}); });
 </script>
 </body>
 </html>

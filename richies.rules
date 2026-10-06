@@ -1,8 +1,15 @@
 rules_version = '2';
 
-// Who can use the Inventory Requests app.
-// - The owner (below) can always sign in and manage the team.
-// - Everyone else must be listed in the "members" collection (by email), which admins manage in the app under More -> Team.
+// TurnTray security rules, for many agencies.
+// Paste this whole file into Firebase Console -> Firestore Database -> Rules -> Publish.
+//
+// How access works
+// - Every agency's data lives under agencies/{agencyId}/... and only that agency's team can reach it.
+// - directory/{email} says which agency a person belongs to (one agency per person). Signing in reads it
+//   and opens that agency. A person needs BOTH a directory entry pointing at the agency AND a team
+//   record (agencies/{id}/members/{email}), and the agency must be approved ("active").
+// - New agencies apply from the sign-in page and wait as "pending" until the owner approves them.
+// - The owner (below) can see and manage every agency.
 // - Email + password accounts must confirm their email first; Google accounts are already confirmed.
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -14,121 +21,265 @@ service cloud.firestore {
     }
     function myEmail() { return request.auth.token.email.lower(); }
     function isOwner() { return signedIn() && myEmail() == 'richardmascarenas2@gmail.com'; }
-    function memberDoc() { return /databases/$(database)/documents/members/$(myEmail()); }
-    function isMember() { return isOwner() || (signedIn() && exists(memberDoc())); }
-    function isAdmin()  { return isOwner() || (isMember() && get(memberDoc()).data.admin == true); }
 
-    // Team list, keyed by lowercase email.
+    /* ================= Agencies ================= */
+
+    function agencyPath(aid) { return /databases/$(database)/documents/agencies/$(aid); }
+    function dirPath(email) { return /databases/$(database)/documents/directory/$(email); }
+    function memberPathIn(aid) { return /databases/$(database)/documents/agencies/$(aid)/members/$(myEmail()); }
+
+    // On this agency's team (approved or not): team record + directory entry pointing here.
+    function onTeam(aid) {
+      return signedIn()
+        && exists(memberPathIn(aid))
+        && exists(dirPath(myEmail()))
+        && get(dirPath(myEmail())).data.agencyId == aid;
+    }
+    function agencyActive(aid) { return get(agencyPath(aid)).data.get('status', '') == 'active'; }
+    function isMember(aid) { return isOwner() || (onTeam(aid) && agencyActive(aid)); }
+    function isAdmin(aid)  { return isOwner() || (isMember(aid) && get(memberPathIn(aid)).data.get('admin', false) == true); }
+
+    // Which agency each person belongs to, keyed by lowercase email.
+    match /directory/{email} {
+      allow read: if isOwner() || (signedIn() && email == myEmail());
+      // Admins add people to their own agency (only if the email isn't in another agency).
+      // Someone applying for a new agency adds themselves in the same step as the application.
+      allow create: if isOwner()
+        || isAdmin(request.resource.data.agencyId)
+        || (signedIn() && email == myEmail()
+            && !exists(agencyPath(request.resource.data.agencyId))
+            && getAfter(agencyPath(request.resource.data.agencyId)).data.createdByEmail == myEmail());
+      allow update: if isOwner()
+        || (isAdmin(resource.data.agencyId) && request.resource.data.agencyId == resource.data.agencyId);
+      // Admins remove people from their agency. A person can clear their own entry if their
+      // agency application wasn't approved, so they can apply again or join another agency.
+      allow delete: if isOwner()
+        || isAdmin(resource.data.agencyId)
+        || (signedIn() && email == myEmail()
+            && (!exists(agencyPath(resource.data.agencyId)) || !agencyActive(resource.data.agencyId)));
+    }
+
+    match /agencies/{aid} {
+      allow get: if isOwner() || onTeam(aid);
+      allow list: if isOwner();
+      // Apply: anyone signed in, for a new agency id, starting as pending, adding themselves as its admin.
+      allow create: if isOwner()
+        || (signedIn()
+            && request.resource.data.status == 'pending'
+            && request.resource.data.createdByEmail == myEmail()
+            && !exists(dirPath(myEmail()))
+            && getAfter(dirPath(myEmail())).data.agencyId == aid);
+      // The owner approves agencies. An agency's admins can change its name and settings, not its status.
+      allow update: if isOwner()
+        || (isAdmin(aid) && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['status', 'createdByEmail', 'approvedAt']));
+      allow delete: if isOwner();
+
+      // Team list, keyed by lowercase email.
+      match /members/{email} {
+        allow read: if isMember(aid) || (signedIn() && email == myEmail());
+        allow create: if isOwner()
+          || (isAdmin(aid) && getAfter(dirPath(email)).data.agencyId == aid)
+          || (signedIn() && email == myEmail()
+              && !exists(agencyPath(aid))
+              && getAfter(agencyPath(aid)).data.createdByEmail == myEmail()
+              && request.resource.data.admin == true);
+        allow update, delete: if isAdmin(aid);
+      }
+
+      // Each person's name, email and role (Sales Rep / Inventory Team).
+      match /users/{uid} {
+        allow read: if isMember(aid);
+        allow create, update: if isMember(aid) && (request.auth.uid == uid || isAdmin(aid));
+        allow delete: if isAdmin(aid);
+      }
+
+      // A request can only be marked Delivered once it has at least one photo.
+      function wasDelivered() { return resource.data.get('delivered', false) == true; }
+      // Trays marked as a Bank (bank: true) don't need photos.
+      function isBank() { return request.resource.data.get('bank', false) == true; }
+      function deliveredOk() {
+        return request.resource.data.get('delivered', false) != true
+          || wasDelivered()
+          || isBank()
+          || request.resource.data.get('photoCount', 0) > 0;
+      }
+      // ...and can only be marked Returned once it has at least one return photo.
+      function returnedOk() {
+        return request.resource.data.get('returned', false) != true
+          || resource.data.get('returned', false) == true
+          || isBank()
+          || request.resource.data.get('returnPhotoCount', 0) > 0;
+      }
+      // Lets the person who made a cancelled request clear out its photos and comments when deleting it.
+      function ownsCancelled(reqId) {
+        let req = get(/databases/$(database)/documents/agencies/$(aid)/requests/$(reqId)).data;
+        return isMember(aid) && req.get('status', '') == 'cancelled' && req.get('requestedById', '') == request.auth.uid;
+      }
+
+      match /requests/{id} {
+        allow read: if isMember(aid);
+        allow create: if isMember(aid) && (isAdmin(aid) || request.resource.data.get('delivered', false) != true);
+        allow update: if isMember(aid) && (isOwner() || (deliveredOk() && returnedOk()));
+        allow delete: if isAdmin(aid)
+          || (isMember(aid) && resource.data.get('status', '') == 'cancelled'
+              && resource.data.get('requestedById', '') == request.auth.uid);
+
+        // Delivery and return photos (compressed images stored as text, under 1 MB each).
+        match /photos/{photoId} {
+          allow read: if isMember(aid);
+          allow create: if isOwner() || (isMember(aid)
+            && request.resource.data.authorId == request.auth.uid
+            && request.resource.data.data is string
+            && request.resource.data.data.size() < 900000);
+          allow delete: if isMember(aid) && (resource.data.authorId == request.auth.uid || isAdmin(aid) || ownsCancelled(id)
+            || resource.data.get('kind', 'delivery') == 'return');
+        }
+
+        match /comments/{commentId} {
+          allow read: if isMember(aid);
+          allow create: if isOwner() || (isMember(aid) && request.resource.data.authorId == request.auth.uid);
+          allow update: if isAdmin(aid);
+          allow delete: if isAdmin(aid) || ownsCancelled(id);
+        }
+      }
+
+      // Surgeon preference cards: usual trays per procedure.
+      match /prefCards/{id} {
+        allow read, write: if isMember(aid);
+      }
+
+      match /inventory/{doc} {
+        allow read, write: if isMember(aid);
+      }
+
+      // Biologics (bio.html): stock and par levels, requests, and reorder notes / items of concern.
+      match /bioStock/{id} {
+        allow read, write: if isMember(aid);
+      }
+      match /bioRequests/{id} {
+        allow read: if isMember(aid);
+        allow create: if isOwner() || (isMember(aid) && request.resource.data.requestedById == request.auth.uid);
+        allow update: if isMember(aid);
+        allow delete: if isAdmin(aid) || (isMember(aid) && resource.data.get('status', '') == 'cancelled'
+          && resource.data.get('requestedById', '') == request.auth.uid);
+      }
+      match /bioNotes/{id} {
+        allow read, write: if isMember(aid);
+      }
+      // One PDF per biologic case (stored as text, under 1 MB). Only admins attach or remove them.
+      match /bioFiles/{caseId} {
+        allow read: if isMember(aid);
+        allow write: if isAdmin(aid)
+          && (request.resource == null || (request.resource.data.data is string && request.resource.data.data.size() < 1000000));
+        allow delete: if isAdmin(aid);
+      }
+      // Return photos for biologic cases (compressed images stored as text).
+      match /bioPhotos/{photoId} {
+        allow read: if isMember(aid);
+        allow create: if isOwner() || (isMember(aid)
+          && request.resource.data.authorId == request.auth.uid
+          && request.resource.data.data is string
+          && request.resource.data.data.size() < 900000);
+        allow delete: if isMember(aid) && (resource.data.authorId == request.auth.uid || isAdmin(aid));
+      }
+
+      // One-time import bookkeeping.
+      match /meta/{doc} {
+        allow read: if isMember(aid);
+        allow write: if isAdmin(aid);
+      }
+    }
+
+    /* ================= Old single-agency data (Portland, before the switch) =================
+       The current turntray.com app keeps reading and writing these until the switch to agencies,
+       and the owner copies them into agencies/portland at the switch.
+       Once the switch is done and checked, delete everything from here to the end of this section
+       so nobody can keep writing to the old data by accident. */
+
+    function legacyMemberDoc() { return /databases/$(database)/documents/members/$(myEmail()); }
+    function legacyMember() { return isOwner() || (signedIn() && exists(legacyMemberDoc())); }
+    function legacyAdmin()  { return isOwner() || (legacyMember() && get(legacyMemberDoc()).data.admin == true); }
+
     match /members/{email} {
-      allow read: if isMember() || (signedIn() && email == myEmail());
-      allow write: if isAdmin();
+      allow read: if legacyMember() || (signedIn() && email == myEmail());
+      allow write: if legacyAdmin();
     }
-
-    // Each person's name, email and role (Sales Rep / Inventory Team).
     match /users/{uid} {
-      allow read: if isMember();
-      allow create, update: if isMember() && (request.auth.uid == uid || isAdmin());
-      allow delete: if isAdmin();
+      allow read: if legacyMember();
+      allow create, update: if legacyMember() && (request.auth.uid == uid || legacyAdmin());
+      allow delete: if legacyAdmin();
     }
 
-    // A request can only be marked Delivered once it has at least one photo.
-    function wasDelivered() { return resource.data.get('delivered', false) == true; }
-    // Trays marked as a Bank (bank: true) don't need photos.
-    function isBank() { return request.resource.data.get('bank', false) == true; }
-    function deliveredOk() {
+    function legacyWasDelivered() { return resource.data.get('delivered', false) == true; }
+    function legacyIsBank() { return request.resource.data.get('bank', false) == true; }
+    function legacyDeliveredOk() {
       return request.resource.data.get('delivered', false) != true
-        || wasDelivered()
-        || isBank()
+        || legacyWasDelivered()
+        || legacyIsBank()
         || request.resource.data.get('photoCount', 0) > 0;
     }
-    // ...and can only be marked Returned once it has at least one return photo.
-    function returnedOk() {
+    function legacyReturnedOk() {
       return request.resource.data.get('returned', false) != true
         || resource.data.get('returned', false) == true
-        || isBank()
+        || legacyIsBank()
         || request.resource.data.get('returnPhotoCount', 0) > 0;
     }
-
-    // Lets the person who made a cancelled request clear out its photos and comments when deleting it.
-    function ownsCancelled(reqId) {
+    function legacyOwnsCancelled(reqId) {
       let req = get(/databases/$(database)/documents/requests/$(reqId)).data;
-      return isMember() && req.get('status', '') == 'cancelled' && req.get('requestedById', '') == request.auth.uid;
+      return legacyMember() && req.get('status', '') == 'cancelled' && req.get('requestedById', '') == request.auth.uid;
     }
 
     match /requests/{id} {
-      allow read: if isMember();
-      allow create: if isMember() && (isAdmin() || request.resource.data.get('delivered', false) != true);
-      allow update: if isMember() && deliveredOk() && returnedOk();
-      // Admins can delete any request. Anyone can delete their own request once it's cancelled.
-      allow delete: if isAdmin()
-        || (isMember() && resource.data.get('status', '') == 'cancelled'
+      allow read: if legacyMember();
+      allow create: if legacyMember() && (legacyAdmin() || request.resource.data.get('delivered', false) != true);
+      allow update: if legacyMember() && legacyDeliveredOk() && legacyReturnedOk();
+      allow delete: if legacyAdmin()
+        || (legacyMember() && resource.data.get('status', '') == 'cancelled'
             && resource.data.get('requestedById', '') == request.auth.uid);
-
-      // Delivery and return photos (compressed images stored as text, under 1 MB each).
       match /photos/{photoId} {
-        allow read: if isMember();
-        allow create: if isMember()
+        allow read: if legacyMember();
+        allow create: if legacyMember()
           && request.resource.data.authorId == request.auth.uid
           && request.resource.data.data is string
           && request.resource.data.data.size() < 900000;
-        // Return photos can be cleared by anyone on the team: they're deleted when a tray
-        // comes back complete, and shrunk once missing items are found.
-        allow delete: if isMember() && (resource.data.authorId == request.auth.uid || isAdmin() || ownsCancelled(id)
+        allow delete: if legacyMember() && (resource.data.authorId == request.auth.uid || legacyAdmin() || legacyOwnsCancelled(id)
           || resource.data.get('kind', 'delivery') == 'return');
       }
-
       match /comments/{commentId} {
-        allow read: if isMember();
-        allow create: if isMember() && request.resource.data.authorId == request.auth.uid;
-        allow update: if isAdmin();
-        allow delete: if isAdmin() || ownsCancelled(id);
+        allow read: if legacyMember();
+        allow create: if legacyMember() && request.resource.data.authorId == request.auth.uid;
+        allow update: if legacyAdmin();
+        allow delete: if legacyAdmin() || legacyOwnsCancelled(id);
       }
     }
-
-    // Surgeon preference cards: usual trays per procedure.
-    match /prefCards/{id} {
-      allow read, write: if isMember();
-    }
-
-    match /inventory/{doc} {
-      allow read, write: if isMember();
-    }
-
-    // Biologics (bio.html): stock and par levels, requests, and reorder notes / items of concern.
-    match /bioStock/{id} {
-      allow read, write: if isMember();
-    }
+    match /prefCards/{id} { allow read, write: if legacyMember(); }
+    match /inventory/{doc} { allow read, write: if legacyMember(); }
+    match /bioStock/{id} { allow read, write: if legacyMember(); }
     match /bioRequests/{id} {
-      allow read: if isMember();
-      allow create: if isMember() && request.resource.data.requestedById == request.auth.uid;
-      allow update: if isMember();
-      allow delete: if isAdmin() || (isMember() && resource.data.get('status', '') == 'cancelled'
+      allow read: if legacyMember();
+      allow create: if legacyMember() && request.resource.data.requestedById == request.auth.uid;
+      allow update: if legacyMember();
+      allow delete: if legacyAdmin() || (legacyMember() && resource.data.get('status', '') == 'cancelled'
         && resource.data.get('requestedById', '') == request.auth.uid);
     }
-    match /bioNotes/{id} {
-      allow read, write: if isMember();
-    }
-    // One PDF per biologic case (stored as text, under 1 MB). Only admins attach or remove them.
+    match /bioNotes/{id} { allow read, write: if legacyMember(); }
     match /bioFiles/{caseId} {
-      allow read: if isMember();
-      allow write: if isAdmin()
+      allow read: if legacyMember();
+      allow write: if legacyAdmin()
         && (request.resource == null || (request.resource.data.data is string && request.resource.data.data.size() < 1000000));
-      allow delete: if isAdmin();
+      allow delete: if legacyAdmin();
     }
-    // Return photos for biologic cases (compressed images stored as text).
     match /bioPhotos/{photoId} {
-      allow read: if isMember();
-      allow create: if isMember()
+      allow read: if legacyMember();
+      allow create: if legacyMember()
         && request.resource.data.authorId == request.auth.uid
         && request.resource.data.data is string
         && request.resource.data.data.size() < 900000;
-      allow delete: if isMember() && (resource.data.authorId == request.auth.uid || isAdmin());
+      allow delete: if legacyMember() && (resource.data.authorId == request.auth.uid || legacyAdmin());
     }
-
-    // One-time import bookkeeping.
     match /meta/{doc} {
-      allow read: if isMember();
-      allow write: if isAdmin();
+      allow read: if legacyMember();
+      allow write: if legacyAdmin();
     }
   }
 }

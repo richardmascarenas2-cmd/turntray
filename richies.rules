@@ -35,7 +35,18 @@ service cloud.firestore {
         && exists(dirPath(myEmail()))
         && get(dirPath(myEmail())).data.agencyId == aid;
     }
-    function agencyActive(aid) { return get(agencyPath(aid)).data.get('status', '') == 'active'; }
+    // Approved, and either free, on a free trial, or paid up. Agencies approved before billing started
+    // (no trialEndsAt) count as free. Keep in sync with billing() in agency.js.
+    function agencyActive(aid) {
+      let a = get(agencyPath(aid)).data;
+      return a.get('status', '') == 'active'
+        && (a.get('freeAccess', false) == true
+            || !('trialEndsAt' in a)
+            || request.time.toMillis() < a.trialEndsAt
+            || request.time.toMillis() < a.get('paidThrough', 0));
+    }
+    // Billing fields only the owner may set.
+    function billingKeys() { return ['freeAccess', 'trialEndsAt', 'paidThrough', 'lastPaidMarkedAt']; }
     function isMember(aid) { return isOwner() || (onTeam(aid) && agencyActive(aid)); }
     function isAdmin(aid)  { return isOwner() || (isMember(aid) && get(memberPathIn(aid)).data.get('admin', false) == true); }
 
@@ -59,6 +70,12 @@ service cloud.firestore {
             && (!exists(agencyPath(resource.data.agencyId)) || !agencyActive(resource.data.agencyId)));
     }
 
+    // Owner's billing settings: Stripe payment link, price shown, trial length.
+    match /config/{doc} {
+      allow read: if signedIn();
+      allow write: if isOwner();
+    }
+
     match /agencies/{aid} {
       allow get: if isOwner() || onTeam(aid);
       allow list: if isOwner();
@@ -67,11 +84,12 @@ service cloud.firestore {
         || (signedIn()
             && request.resource.data.status == 'pending'
             && request.resource.data.createdByEmail == myEmail()
+            && !request.resource.data.keys().hasAny(billingKeys())
             && !exists(dirPath(myEmail()))
             && getAfter(dirPath(myEmail())).data.agencyId == aid);
       // The owner approves agencies. An agency's admins can change its name and settings, not its status.
       allow update: if isOwner()
-        || (isAdmin(aid) && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['status', 'createdByEmail', 'approvedAt']));
+        || (isAdmin(aid) && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['status', 'createdByEmail', 'approvedAt'].concat(billingKeys())));
       allow delete: if isOwner();
 
       // Team list, keyed by lowercase email.

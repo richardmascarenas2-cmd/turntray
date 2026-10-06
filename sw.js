@@ -3,12 +3,13 @@
    page itself needs to come from this saved copy.
    - Pages and app files: try the network first (so updates show up), fall back to the saved copy.
    - Firebase library files from gstatic: use the saved copy, they never change for a given version. */
-const CACHE = 'turntray-v9';
+const CACHE = 'turntray-v10';
 const SHELL = [
-  './', 'index.html', 'bio.html', 'firebase-config.js', 'agency.js',
+  './', 'index.html', 'bio.html', 'firebase-config.js', 'agency.js', 'setup.js',
   'manifest.webmanifest', 'bio.webmanifest',
   'icon-180.png', 'icon-192.png', 'icon-512.png',
   'bio-icon-64.png', 'bio-icon-180.png', 'bio-icon-192.png', 'bio-icon-512.png',
+  'brands/portland/logo.png', 'brands/portland/bio-logo.png', 'brands/portland/popup.png',
   'https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js',
   'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js',
   'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js'

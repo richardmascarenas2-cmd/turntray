@@ -9,7 +9,9 @@ The website is hosted on GitHub Pages. Sign-in and all data (requests, photos, c
 - Everyone uses the same site. When someone signs in, TurnTray looks up which agency their email belongs to and opens that agency. Nobody picks from a list, and nobody can see another agency's data (the security rules enforce this, not just the app).
 - **New agency:** on the sign-in page, *Register your agency*. They create an account, fill in a short form and become that agency's first admin. The agency waits as **pending** until the owner approves it.
 - **Owner** (richardmascarenas2@gmail.com): gear menu → **Agencies** lists every agency. Approve or decline new ones, suspend one, or **Open** any agency to see it as its admin.
-- **Agency admins:** gear menu → **Team** to add people by email (one agency per email), and gear menu → **Agency** to set the agency name and its accounts list (code, name, territory; paste straight from a spreadsheet).
+- **Agency admins:** gear menu → **Setup** for the agency name, their own logos (Inventory, Biologics, optional fun pop-up), territories, accounts, trays and biologics stock. Lists can be typed in or imported from Excel / Google Sheets (paste, .csv or .xlsx). Gear menu → **Team** adds people by email (one agency per email).
+- **Paid access:** approving an agency starts a free trial (length set under Agencies → Billing). After it ends, the agency's admin sees a Subscribe button that opens the owner's Stripe payment link, tagged with the agency id. When Stripe reports a payment, the owner taps **Mark paid** (adds a month). **Give free access** lets an agency use TurnTray without paying (Arthrex Portland has it). The security rules enforce this, not just the app.
+- **Images:** agencies without their own logos get the plain TurnTray icons (`icon-*.png`, `bio-icon-*.png`). Portland's original images live in `brands/portland/`.
 
 Data layout in Firestore:
 
@@ -26,7 +28,9 @@ Data layout in Firestore:
 | `index.html` | Inventory Requests app, sign-in, agency sign-up and the owner's Agencies page |
 | `bio.html` | Biologics app |
 | `agency.js` | Finds each person's agency and points the app at that agency's data |
-| `migrate.js` | One-time copy of the original Portland data into an agency (owner only) |
+| `migrate.js` | One-time copy of the original Portland data into an agency (owner only, done) |
+| `setup.js` | The Setup page: logos, territories, accounts, trays, biologics import |
+| `brands/portland/` | Arthrex Portland's own logos and pop-up image |
 | `firebase-config.js` | Tells the app which Firebase project to use. The API key in it is meant to be public; the data is protected by `richies.rules`. |
 | `richies.rules` | Copy of the Firestore security rules. Changing this file does nothing on its own. Paste it into Firebase Console → Firestore Database → Rules → Publish. |
 | `sw.js` | Keeps a saved copy of the app on each device for networks that block turntray.com |

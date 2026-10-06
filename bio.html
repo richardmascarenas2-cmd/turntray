@@ -812,21 +812,21 @@ main{max-width:1200px; margin:0 auto; padding:18px clamp(16px,3vw,32px) 40px;}
 </head>
 <body>
 
-<section class="gate" id="screen-loading"><div class="gate-card"><div class="brand"><img src="bio-icon-192.png" alt=""><div><small data-agency-name>TurnTray</small><b>Biologics</b></div></div><p id="loading-msg">Loading…</p></div></section>
-<section class="gate" id="screen-signin" hidden><div class="gate-card"><div class="brand"><img src="bio-icon-192.png" alt=""><div><small data-agency-name>TurnTray</small><b>Biologics</b></div></div>
+<section class="gate" id="screen-loading"><div class="gate-card"><div class="brand"><img src="bio-icon-192.png" alt="" data-logo="bio"><div><small data-agency-name>TurnTray</small><b>Biologics</b></div></div><p id="loading-msg">Loading…</p></div></section>
+<section class="gate" id="screen-signin" hidden><div class="gate-card"><div class="brand"><img src="bio-icon-192.png" alt="" data-logo="bio"><div><small data-agency-name>TurnTray</small><b>Biologics</b></div></div>
   <h2>Sign in first</h2><p>Biologics uses the same sign-in as Inventory Requests.</p>
   <a class="btn-primary" style="display:block; text-align:center; text-decoration:none;" href="index.html?next=bio">Go to sign in</a></div></section>
-<section class="gate" id="screen-noaccess" hidden><div class="gate-card"><div class="brand"><img src="bio-icon-192.png" alt=""><div><small data-agency-name>TurnTray</small><b>Biologics</b></div></div>
+<section class="gate" id="screen-noaccess" hidden><div class="gate-card"><div class="brand"><img src="bio-icon-192.png" alt="" data-logo="bio"><div><small data-agency-name>TurnTray</small><b>Biologics</b></div></div>
   <h2>No access</h2><p><strong id="noaccess-email"></strong> isn't on a team yet. Ask your agency's admin to add you.</p><a href="index.html">Back to Inventory Requests</a></div></section>
 
 <div id="app" hidden>
 <header class="appbar">
-  <img class="appbar-logo" src="bio-icon-192.png" alt="">
+  <img class="appbar-logo" src="bio-icon-192.png" alt="" data-logo="bio">
   <div class="app-menu">
     <button type="button" class="app-title" id="app-title-btn" aria-haspopup="menu" aria-expanded="false"><span><small data-agency-name>TurnTray</small><span class="t">Biologics</span></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></button>
     <div class="dd" id="app-dd" role="menu" hidden>
-      <a href="index.html" role="menuitem"><img src="icon-192.png" alt=""><span>Inventory Requests<small>Trays, pulls, deliveries, returns</small></span></a>
-      <a href="bio.html" role="menuitem" class="on" aria-current="page"><img src="bio-icon-64.png" alt=""><span>Biologics<small>Grafts, stock, reorder, usage</small></span></a>
+      <a href="index.html" role="menuitem"><img src="icon-192.png" alt="" data-logo="inv"><span>Inventory Requests<small>Trays, pulls, deliveries, returns</small></span></a>
+      <a href="bio.html" role="menuitem" class="on" aria-current="page"><img src="bio-icon-64.png" alt="" data-logo="bio"><span>Biologics<small>Grafts, stock, reorder, usage</small></span></a>
     </div>
   </div>
   <div class="me-menu">
@@ -1084,11 +1084,12 @@ const TERR_CANON = new Map();
 const canonTerr = s => TERR_CANON.get(String(s||'').toLowerCase()) || s || '';
 const accMap = new Map();
 let TERRITORIES = [];
-function setAccounts(rows){
+function setAccounts(rows, extraTerrs){
   ACCOUNTS = rows; TERR_CANON.clear(); accMap.clear();
+  (extraTerrs||[]).forEach(t=>{ t=String(t||'').trim(); const k=t.toLowerCase(); if(t && !TERR_CANON.has(k)) TERR_CANON.set(k, t); });
   ACCOUNTS.forEach(a=>{ const k=(a[2]||'').toLowerCase(); if(a[2] && (!TERR_CANON.has(k) || /[a-z]/.test(a[2]))) TERR_CANON.set(k, a[2]); });
   ACCOUNTS.forEach(([c,n,t])=>accMap.set(c.toUpperCase(), {name:n, territory:canonTerr(t)}));
-  TERRITORIES = [...new Set(ACCOUNTS.map(a=>canonTerr(a[2])).filter(Boolean))].sort();
+  TERRITORIES = [...new Set([...(extraTerrs||[]).map(canonTerr), ...ACCOUNTS.map(a=>canonTerr(a[2]))].filter(Boolean))].sort();
 }
 const $ = (s,r)=> (r||document).querySelector(s);
 function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
@@ -1134,6 +1135,7 @@ function showScreen(name){
 async function boot(){
   const cfg = window.FIREBASE_CONFIG;
   if(!cfg){ $('#loading-msg').textContent = 'This app isn’t connected to its Firebase project yet.'; return; }
+  TT.applyBranding(null, 'bio');
   firebase.initializeApp(cfg);
   auth = firebase.auth(); db = firebase.firestore();
   auth.onAuthStateChanged(handleUser);
@@ -1147,7 +1149,8 @@ async function handleUser(user){
   const where = await TT.resolve(db, user);
   // Not in an approved agency yet: Inventory Requests explains why and handles signing up.
   if(where.state!=='active'){ if(where.state==='none'){ $('#noaccess-email').textContent = user.email; showScreen('noaccess'); } else location.replace('index.html'); return; }
-  agency = where.agency; adb = TT.scoped(db, where.agencyId); TT.brand(agency); setAccounts(TT.accountsOf(agency));
+  agency = where.agency; adb = TT.scoped(db, where.agencyId); TT.brand(agency); setAccounts(TT.accountsOf(agency), agency.territories);
+  TT.loadBranding(db, where.agencyId).then(b=>TT.applyBranding(b, 'bio'));
   const member = where.member;
   let selfRole = null;
   try{ const u = await adb.doc('users/'+user.uid).get(); if(u.exists) selfRole = u.data().role || null; }catch(e){}
@@ -2295,7 +2298,8 @@ wireMenu('#gear-btn', '#gear-dd');
 /* Brief pop-up on someone's 69th biologic request. Tap to close early. */
 function celebrate(){
   const d = document.createElement('div'); d.className='celebrate'; d.setAttribute('role','status'); d.setAttribute('aria-label','Request sent. Nice!');
-  d.innerHTML = '<img src="request-nice.png" alt="">';
+  const pic = TT.popupImage(); if(!pic) return;
+  d.innerHTML = '<img alt="">'; d.querySelector('img').src = pic;
   document.body.appendChild(d);
   requestAnimationFrame(()=>requestAnimationFrame(()=>d.classList.add('show')));
   const close = ()=>{ d.classList.remove('show'); setTimeout(()=>d.remove(), 250); };

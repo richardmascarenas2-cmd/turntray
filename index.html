@@ -50,6 +50,46 @@ a{color:var(--accent);}
 .linkbtn{background:none; color:var(--accent); padding:6px 0; font-weight:600;}
 .gate-links{display:flex; justify-content:space-between; gap:10px; margin-top:8px; flex-wrap:wrap;}
 .gate p.gate-intro{margin-top:-6px;}
+/* ---------- setup ---------- */
+.setup-card{margin-bottom:14px;}
+.setup-row{display:flex; gap:8px; align-items:center; flex-wrap:wrap;}
+.setup-row input{flex:1 1 200px;}
+.setup-row button, .setup-add button{padding:10px 14px; background:var(--accent); color:#fff;}
+.btn-file{display:inline-flex; align-items:center; padding:9px 12px; border:1px solid var(--line); border-radius:9px; font-size:.85rem; font-weight:600; cursor:pointer; background:var(--panel-2); margin:0;}
+.logo-grid{display:grid; gap:10px; margin-top:12px;}
+.logo-pick{display:flex; gap:12px; align-items:center; border:1px solid var(--line); border-radius:12px; padding:10px;}
+.logo-pick img{width:56px; height:56px; border-radius:12px; object-fit:cover; background:var(--panel-2); flex:none;}
+.logo-pick b{display:block; font-size:.9rem;}
+.logo-pick small{display:block; color:var(--sub); font-size:.78rem; margin-bottom:6px;}
+.logo-pick .linkbtn{margin-left:10px; font-size:.8rem;}
+.terr-chips{display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px;}
+.terr-chip{display:inline-flex; align-items:center; gap:6px; border:1px solid var(--line); border-radius:99px; padding:5px 6px 5px 12px; font-size:.85rem; font-weight:600; background:var(--panel-2);}
+.terr-chip button{background:none; padding:0 6px; color:var(--sub); font-size:1rem; line-height:1;}
+.terr-chip small{color:var(--sub); font-weight:500;}
+details.import{border:1px dashed var(--line); border-radius:10px; padding:8px 12px; margin-bottom:12px;}
+details.import summary{cursor:pointer; font-weight:700; font-size:.88rem; color:var(--accent);}
+details.import[open] summary{margin-bottom:8px;}
+details.import textarea{font-family:ui-monospace,Menlo,monospace; font-size:13px; margin-bottom:8px;}
+.setup-table{border:1px solid var(--line); border-radius:10px; max-height:420px; overflow:auto; margin-bottom:10px;}
+.setup-table:empty{display:none;}
+.st-row{display:grid; grid-template-columns:minmax(70px,1fr) minmax(110px,2.2fr) minmax(90px,1.2fr) 34px; gap:6px; align-items:center; padding:6px 8px; border-bottom:1px solid var(--line);}
+.st-row.tray{grid-template-columns:1fr 84px 34px;}
+.st-row:last-child{border-bottom:none;}
+.st-row input, .st-row select{min-height:36px; padding:6px 8px; font-size:15px;}
+.st-row .del{background:none; color:var(--sub); font-size:1.15rem; padding:4px;}
+.st-row .del:hover{color:var(--danger);}
+.st-more{padding:8px; text-align:center; font-size:.8rem; color:var(--sub);}
+.setup-add{display:grid; grid-template-columns:minmax(70px,1fr) minmax(110px,2.2fr) minmax(90px,1.2fr) auto; gap:6px;}
+.setup-add.trays{grid-template-columns:1fr 84px auto;}
+@media (max-width:560px){ .setup-add{grid-template-columns:1fr 1fr;} .setup-add input:nth-child(2){grid-column:1/-1; grid-row:2;} .st-row{grid-template-columns:1fr 1.6fr 34px;} .st-row select{grid-column:1/3;} }
+.setup-check{border:1px solid color-mix(in srgb, var(--accent) 35%, var(--line)); background:color-mix(in srgb, var(--accent) 5%, var(--panel)); border-radius:12px; padding:12px 14px; margin-bottom:14px;}
+.setup-check b{display:block; margin-bottom:6px;}
+.setup-check ul{list-style:none; padding:0; margin:0 0 10px; display:flex; flex-wrap:wrap; gap:6px 14px; font-size:.85rem;}
+.setup-check li.done{color:var(--good);}
+.setup-check li.todo{color:var(--sub);}
+.setup-check .row{display:flex; gap:8px;}
+.setup-check button{padding:8px 12px; background:var(--accent); color:#fff;}
+.setup-check button.skip{background:none; color:var(--sub);}
 .gate-register{margin-top:20px; padding-top:16px; border-top:1px solid var(--line); font-size:.85rem; color:var(--sub);}
 .gate-register b{display:block; color:var(--ink); font-size:.92rem; margin-bottom:2px;}
 .gate .hint{margin-top:10px;}
@@ -65,6 +105,8 @@ a{color:var(--accent);}
 .st.pending{background:#fff4d6; color:#8a5a00;}
 .st.active{background:#dff5e6; color:#1d6b38;}
 .st.here{background:var(--accent); color:#fff;}
+.st.free{background:#e7e9ff; color:#3a3f9e;}
+.st.expired{background:#ffe1e1; color:#a11;}
 
 /* ---------- app bar ---------- */
 .appbar{background:#0b1320; border-bottom:3px solid #4FC3F7; padding:calc(12px + var(--sat)) 16px 12px; display:flex; align-items:center; gap:12px;}
@@ -411,6 +453,8 @@ textarea{resize:vertical; min-height:64px;}
 .modal h3{margin:0 0 8px;}
 .modal p{color:var(--sub); font-size:.85rem; margin:0 0 8px;}
 .toast{position:fixed; left:50%; transform:translateX(-50%); bottom:calc(24px + var(--sab)); z-index:90; background:var(--ink); color:var(--bg); padding:10px 16px; border-radius:10px; font-size:.86rem; font-weight:600; max-width:calc(100% - 32px); box-shadow:0 6px 20px rgba(0,0,0,.3);}
+.trial-bar{background:#e8f3ff; color:#0b3a66; text-align:center; font-size:.8rem; font-weight:600; padding:6px 16px;}
+.trial-bar a{font-weight:800; margin-left:6px;}
 .offline{background:var(--warn); color:#1b1400; text-align:center; font-size:.78rem; font-weight:700; padding:4px 16px;}
 .fab{display:none;}
 
@@ -695,7 +739,7 @@ textarea{resize:vertical; min-height:64px;}
 <!-- ======== Loading ======== -->
 <section class="gate" id="screen-loading">
   <div class="gate-card">
-    <div class="brand"><img src="icon-192.png" alt=""><div><small data-agency-name>TurnTray</small><b>Inventory Requests</b></div></div>
+    <div class="brand"><img src="icon-192.png" alt="" data-logo="inv"><div><small data-agency-name>TurnTray</small><b>Inventory Requests</b></div></div>
     <p id="loading-msg">Loading…</p>
   </div>
 </section>
@@ -703,7 +747,7 @@ textarea{resize:vertical; min-height:64px;}
 <!-- ======== Sign in ======== -->
 <section class="gate" id="screen-auth" hidden>
   <div class="gate-card">
-    <div class="brand"><img src="icon-192.png" alt=""><div><small data-agency-name>TurnTray</small><b>Inventory Requests</b></div></div>
+    <div class="brand"><img src="icon-192.png" alt="" data-logo="inv"><div><small data-agency-name>TurnTray</small><b>Inventory Requests</b></div></div>
     <p class="gate-intro">Tray requests, pulls, deliveries and returns for your whole agency. Sign in and you go straight to your agency's requests.</p>
     <div class="seg" id="auth-mode" style="max-width:none;">
       <button type="button" data-m="signin" class="active">Sign in</button>
@@ -738,7 +782,7 @@ textarea{resize:vertical; min-height:64px;}
 <!-- ======== Verify email ======== -->
 <section class="gate" id="screen-verify" hidden>
   <div class="gate-card">
-    <div class="brand"><img src="icon-192.png" alt=""><div><small data-agency-name>TurnTray</small><b>Inventory Requests</b></div></div>
+    <div class="brand"><img src="icon-192.png" alt="" data-logo="inv"><div><small data-agency-name>TurnTray</small><b>Inventory Requests</b></div></div>
     <h2>Check your email</h2>
     <p>We sent a confirmation link to <strong id="verify-email"></strong>. Tap the link, then come back here.</p>
     <button type="button" class="btn-primary" id="verify-done">I've confirmed my email</button>
@@ -751,7 +795,7 @@ textarea{resize:vertical; min-height:64px;}
 <!-- ======== Not on the team ======== -->
 <section class="gate" id="screen-noaccess" hidden>
   <div class="gate-card">
-    <div class="brand"><img src="icon-192.png" alt=""><div><small data-agency-name>TurnTray</small><b>Inventory Requests</b></div></div>
+    <div class="brand"><img src="icon-192.png" alt="" data-logo="inv"><div><small data-agency-name>TurnTray</small><b>Inventory Requests</b></div></div>
     <h2>You're not on a team yet</h2>
     <p>You're signed in as <strong id="noaccess-email"></strong>. Ask your agency's admin to add this email under Team, then tap Check again.</p>
     <button type="button" class="btn-primary" id="noaccess-retry">Check again</button>
@@ -764,11 +808,12 @@ textarea{resize:vertical; min-height:64px;}
 <!-- ======== Register an agency ======== -->
 <section class="gate" id="screen-apply" hidden>
   <div class="gate-card">
-    <div class="brand"><img src="icon-192.png" alt=""><div><small>TurnTray</small><b>Register your agency</b></div></div>
+    <div class="brand"><img src="icon-192.png" alt="" data-logo="inv"><div><small>TurnTray</small><b>Register your agency</b></div></div>
     <p>You'll be your agency's first admin. Once it's approved you can add your team and your accounts.</p>
+    <p class="hint" id="apply-price" hidden></p>
     <form id="apply-form" novalidate>
       <label for="apply-agency">Agency name</label>
-      <input id="apply-agency" autocomplete="organization" placeholder="e.g. Arthrex Seattle" maxlength="80">
+      <input id="apply-agency" autocomplete="organization" placeholder="e.g. Northwest Ortho Partners" maxlength="80">
       <label for="apply-name">Your name</label>
       <input id="apply-name" autocomplete="name" placeholder="First and last name" maxlength="80">
       <label for="apply-region">City or region <span class="opt">(optional)</span></label>
@@ -789,7 +834,7 @@ textarea{resize:vertical; min-height:64px;}
 <!-- ======== Agency waiting for approval (or not approved) ======== -->
 <section class="gate" id="screen-pending" hidden>
   <div class="gate-card">
-    <div class="brand"><img src="icon-192.png" alt=""><div><small id="pending-agency">TurnTray</small><b>Inventory Requests</b></div></div>
+    <div class="brand"><img src="icon-192.png" alt="" data-logo="inv"><div><small id="pending-agency">TurnTray</small><b>Inventory Requests</b></div></div>
     <h2 id="pending-title">Waiting for approval</h2>
     <p id="pending-text"></p>
     <button type="button" class="btn-primary" id="pending-retry">Check again</button>
@@ -799,15 +844,28 @@ textarea{resize:vertical; min-height:64px;}
   </div>
 </section>
 
+<!-- ======== Trial over, not paid ======== -->
+<section class="gate" id="screen-unpaid" hidden>
+  <div class="gate-card">
+    <div class="brand"><img src="icon-192.png" alt="" data-logo="inv"><div><small id="unpaid-agency">TurnTray</small><b>Inventory Requests</b></div></div>
+    <h2>Subscription needed</h2>
+    <p id="unpaid-text"></p>
+    <a class="btn-primary" id="unpaid-pay" target="_blank" rel="noopener" style="display:block; text-align:center; text-decoration:none;" hidden>Subscribe</a>
+    <button type="button" class="btn-secondary" id="unpaid-retry">I've paid, check again</button>
+    <button type="button" class="btn-secondary" data-signout>Sign out</button>
+    <div class="status-msg" id="unpaid-msg"></div>
+  </div>
+</section>
+
 <!-- ======== App ======== -->
 <div id="app" hidden>
 <header class="appbar">
-  <img class="appbar-logo" src="icon-192.png" alt="">
+  <img class="appbar-logo" src="icon-192.png" alt="" data-logo="inv">
   <div class="app-menu">
     <button type="button" class="app-title" id="app-title-btn" aria-haspopup="menu" aria-expanded="false"><span><small data-agency-name>TurnTray</small><span class="t">Inventory Requests</span></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></button>
     <div class="dd" id="app-dd" role="menu" hidden>
-      <a href="index.html" role="menuitem" class="on" aria-current="page"><img src="icon-192.png" alt=""><span>Inventory Requests<small>Trays, pulls, deliveries, returns</small></span></a>
-      <a href="bio.html" role="menuitem"><img src="bio-icon-64.png" alt=""><span>Biologics<small>Grafts, stock, reorder, usage</small></span></a>
+      <a href="index.html" role="menuitem" class="on" aria-current="page"><img src="icon-192.png" alt="" data-logo="inv"><span>Inventory Requests<small>Trays, pulls, deliveries, returns</small></span></a>
+      <a href="bio.html" role="menuitem"><img src="bio-icon-64.png" alt="" data-logo="bio"><span>Biologics<small>Grafts, stock, reorder, usage</small></span></a>
     </div>
   </div>
   <div class="me-menu">
@@ -816,11 +874,12 @@ textarea{resize:vertical; min-height:64px;}
     <div class="dd" id="gear-dd" role="menu" hidden>
       <button type="button" role="menuitem" data-go="account"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4.2-6.5 8-6.5s7 2.5 8 6.5"/></svg><span>Account<small id="gear-account-sub">Your role and sign out</small></span></button>
       <button type="button" role="menuitem" data-go="team" id="gear-team" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.5 3.4-5.5 6.5-5.5s5.7 2 6.5 5.5"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18 14.8c1.9.7 3.1 2.5 3.5 5.2"/></svg><span>Team<small>Who can sign in, roles, accounts</small></span></button>
-      <button type="button" role="menuitem" data-go="agency" id="gear-agency" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V5a2 2 0 0 1 2-2h8l6 6v12"/><path d="M14 3v6h6M8 13h8M8 17h5"/></svg><span>Agency<small>Name and accounts list</small></span></button>
+      <button type="button" role="menuitem" data-go="agency" id="gear-agency" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V5a2 2 0 0 1 2-2h8l6 6v12"/><path d="M14 3v6h6M8 13h8M8 17h5"/></svg><span>Setup<small>Logos, territories, accounts, trays</small></span></button>
       <button type="button" role="menuitem" data-go="agencies" id="gear-agencies" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6M9 10h.01M15 10h.01"/></svg><span>Agencies<small id="gear-agencies-sub">Approve and open agencies</small></span></button>
     </div>
   </div>
 </header>
+<div class="trial-bar" id="trial-bar" hidden><span id="trial-text"></span> <a id="trial-pay" target="_blank" rel="noopener" hidden>Subscribe</a></div>
 <div class="offline" id="offline-bar" hidden>Offline. Changes will sync when you're back online.</div>
 
 <nav class="tabs" id="tabs">
@@ -1247,18 +1306,88 @@ textarea{resize:vertical; min-height:64px;}
   </div>
 
   <div class="view" id="view-agency">
-    <section class="panel narrow">
-      <div class="section-head"><h2>Agency</h2></div>
-      <form id="agency-form">
-        <label for="agency-name">Agency name</label>
-        <input id="agency-name" maxlength="80" required>
-        <label for="agency-accounts">Accounts <span class="opt">(one per line: code, name, territory)</span></label>
-        <textarea id="agency-accounts" rows="12" spellcheck="false" placeholder="PPMC, Providence Portland Medical Center, West&#10;STV, Providence St. Vincent Hospital, Central"></textarea>
-        <p class="hint">Territories come from the third column. Reps pick accounts and territories from this list on the request form. You can paste straight from a spreadsheet (code, name and territory columns).</p>
-        <button type="submit" class="btn-primary">Save</button>
+    <div class="narrow">
+      <div class="section-head"><h2>Setup</h2><span class="hint" id="setup-progress" style="margin:0;"></span></div>
+      <p class="hint">Everything your team picks from in the app comes from here. You can come back and change it anytime.</p>
+
+      <section class="panel setup-card" id="setup-brand">
+        <div class="section-head"><h2>1. Name and logos</h2></div>
+        <form id="agency-form" class="setup-row">
+          <input id="agency-name" maxlength="80" required aria-label="Agency name" placeholder="Agency name">
+          <button type="submit">Save name</button>
+        </form>
         <div class="status-msg" id="agency-msg"></div>
-      </form>
-    </section>
+        <div class="logo-grid">
+          <div class="logo-pick" data-key="logo"><img alt="" data-preview><div><b>Inventory logo</b><small>Header, sign-in and phone icon for trays</small><label class="btn-file">Choose image<input type="file" accept="image/*" hidden></label><button type="button" class="linkbtn" data-remove>Use default</button></div></div>
+          <div class="logo-pick" data-key="bioLogo"><img alt="" data-preview><div><b>Biologics logo</b><small>Same, for the Biologics app</small><label class="btn-file">Choose image<input type="file" accept="image/*" hidden></label><button type="button" class="linkbtn" data-remove>Use default</button></div></div>
+          <div class="logo-pick" data-key="popup"><img alt="" data-preview><div><b>Fun pop-up <span class="opt">(optional)</span></b><small>Shows for a moment on milestone requests</small><label class="btn-file">Choose image<input type="file" accept="image/*" hidden></label><button type="button" class="linkbtn" data-remove>None</button></div></div>
+        </div>
+        <div class="status-msg" id="brand-msg"></div>
+      </section>
+
+      <section class="panel setup-card" id="setup-terrs">
+        <div class="section-head"><h2>2. Territories</h2><span class="hint" id="terr-count" style="margin:0;"></span></div>
+        <p class="hint">Regions your reps cover. Reps and accounts are grouped by these.</p>
+        <div class="terr-chips" id="terr-chips"></div>
+        <form id="terr-form" class="setup-row"><input id="terr-new" placeholder="Add a territory, e.g. North" maxlength="40" autocomplete="off"><button type="submit">Add</button></form>
+        <div class="status-msg" id="terr-msg"></div>
+      </section>
+
+      <section class="panel setup-card" id="setup-accounts">
+        <div class="section-head"><h2>3. Accounts</h2><span class="hint" id="acct-count" style="margin:0;"></span></div>
+        <p class="hint">Hospitals and surgery centers. The code is what reps type on a request.</p>
+        <details class="import" id="acct-import"><summary>Import from a spreadsheet</summary>
+          <p class="hint">Paste rows copied from Excel or Google Sheets, or pick a .csv / .xlsx file. Columns: <b>Code, Name, Territory</b> (a header row is fine). Existing codes are updated, new ones added.</p>
+          <textarea rows="5" id="acct-paste" spellcheck="false" placeholder="PPMC&#9;Providence Portland Medical Center&#9;West"></textarea>
+          <div class="setup-row"><label class="btn-file">Choose file<input type="file" id="acct-file" accept=".csv,.tsv,.txt,.xlsx,.xls" hidden></label><button type="button" id="acct-import-go">Import</button></div>
+        </details>
+        <div class="toolbar"><input type="search" id="acct-search" placeholder="Search accounts…"></div>
+        <div class="setup-table" id="acct-table"></div>
+        <form id="acct-add" class="setup-add">
+          <input id="acct-new-code" placeholder="Code" maxlength="30" autocapitalize="characters" required>
+          <input id="acct-new-name" placeholder="Name" maxlength="120">
+          <select id="acct-new-terr" aria-label="Territory"></select>
+          <button type="submit">Add</button>
+        </form>
+        <div class="status-msg" id="acct-msg"></div>
+      </section>
+
+      <section class="panel setup-card" id="setup-trays">
+        <div class="section-head"><h2>4. Trays</h2><span class="hint" id="tray-count" style="margin:0;"></span></div>
+        <p class="hint">Each tray you loan out and how many sets you own. Reps pick from this list. Fine-tune Low inventory and Bank on the Inventory page.</p>
+        <details class="import" id="tray-import"><summary>Import from a spreadsheet</summary>
+          <p class="hint">Columns: <b>Tray, Quantity</b>. Existing trays get the new quantity.</p>
+          <textarea rows="5" id="tray-paste" spellcheck="false" placeholder="ACL TOOLBOX&#9;3"></textarea>
+          <div class="setup-row"><label class="btn-file">Choose file<input type="file" id="tray-file" accept=".csv,.tsv,.txt,.xlsx,.xls" hidden></label><button type="button" id="tray-import-go">Import</button></div>
+        </details>
+        <div class="toolbar"><input type="search" id="tray-search" placeholder="Search trays…"></div>
+        <div class="setup-table" id="tray-table"></div>
+        <form id="tray-add" class="setup-add trays">
+          <input id="tray-new-name" placeholder="Tray name" maxlength="80" autocapitalize="characters" required>
+          <input id="tray-new-qty" type="number" min="0" step="1" inputmode="numeric" placeholder="Qty">
+          <button type="submit">Add</button>
+        </form>
+        <div class="status-msg" id="tray-msg"></div>
+      </section>
+
+      <section class="panel setup-card" id="setup-bio">
+        <div class="section-head"><h2>5. Biologics stock <span class="opt">(optional)</span></h2><span class="hint" id="bio-count" style="margin:0;"></span></div>
+        <p class="hint">Grafts you keep on the shelf. Import a list here, then manage it in the Biologics app.</p>
+        <details class="import"><summary>Import from a spreadsheet</summary>
+          <p class="hint">Columns: <b>Reference, Description, Graft type, Quantity, Target</b> (only Reference is required).</p>
+          <textarea rows="5" id="bio-paste" spellcheck="false" placeholder="ABS-1010-BC&#9;BIOCARTILAGE 1CC&#9;&#9;4&#9;6"></textarea>
+          <div class="setup-row"><label class="btn-file">Choose file<input type="file" id="bio-file" accept=".csv,.tsv,.txt,.xlsx,.xls" hidden></label><button type="button" id="bio-import-go">Import</button></div>
+        </details>
+        <a href="bio.html" class="linkbtn">Open Biologics →</a>
+        <div class="status-msg" id="bio-msg"></div>
+      </section>
+
+      <section class="panel setup-card" id="setup-team">
+        <div class="section-head"><h2>6. Your team</h2><span class="hint" id="team-count2" style="margin:0;"></span></div>
+        <p class="hint">Add everyone by email and pick their role and territories. They sign in with that email and land in your agency.</p>
+        <button type="button" class="btn-secondary" id="setup-team-go" style="width:auto;">Add people</button>
+      </section>
+    </div>
   </div>
 
   <div class="view" id="view-agencies">
@@ -1267,7 +1396,21 @@ textarea{resize:vertical; min-height:64px;}
       <p class="hint">You're viewing <strong id="agencies-current"></strong>. New agencies wait here until you approve them.</p>
       <div id="agencies-list"></div>
     </section>
-    <section class="panel narrow" id="migrate-panel" style="margin-top:18px;">
+    <section class="panel narrow" style="margin-top:18px;">
+      <div class="section-head"><h2>Billing</h2></div>
+      <p class="hint">New agencies get a free trial when you approve them, then see a Subscribe button that opens your Stripe payment link. When Stripe emails you about a payment, tap <b>Mark paid</b> on that agency (the payment shows the agency id as its reference). <b>Give free access</b> lets an agency use TurnTray without paying, like Arthrex Portland.</p>
+      <form id="billing-form">
+        <label for="bill-link">Stripe payment link</label>
+        <input id="bill-link" type="url" inputmode="url" placeholder="https://buy.stripe.com/..." autocomplete="off">
+        <label for="bill-price">Price shown to agencies</label>
+        <input id="bill-price" placeholder="e.g. $99/month" maxlength="40">
+        <label for="bill-trial">Free trial (days)</label>
+        <input id="bill-trial" type="number" min="0" max="365" step="1">
+        <button type="submit" class="btn-primary">Save billing</button>
+        <div class="status-msg" id="bill-msg"></div>
+      </form>
+    </section>
+    <section class="panel narrow" id="migrate-panel" style="margin-top:18px;" hidden>
       <div class="section-head"><h2>Copy Portland's current data</h2></div>
       <p class="hint">Copies everything from the current single-agency app (requests, photos, comments, preference cards, inventory, biologics and the team) into an agency. Nothing in the current app is changed or deleted.</p>
       <p class="hint"><b>Trial:</b> copy into <code>portland-test</code> and open it to check everything looks right. Nobody else is sent there.<br><b>Switch-over:</b> copy into <code>portland</code> with "Send the Portland team here" ticked, right before the new version goes live on turntray.com.</p>
@@ -1358,6 +1501,7 @@ textarea{resize:vertical; min-height:64px;}
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 <script src="firebase-config.js"></script>
 <script src="agency.js"></script>
+<script src="setup.js" defer></script>
 <script>
 /* The owner can see every agency and approve new ones. Set in agency.js; keep in sync with richies.rules. */
 const OWNER_EMAIL = TT.OWNER_EMAIL;
@@ -1377,12 +1521,14 @@ let toastTimer;
 function toast(msg){ const t=$('#toast'); t.textContent=msg; t.hidden=false; clearTimeout(toastTimer); toastTimer=setTimeout(()=>{t.hidden=true;}, 3500); }
 
 /* Load this agency's accounts and territories into every menu that lists them. */
-function setAccounts(rows){
+function setAccounts(rows, extraTerrs){
   ACCOUNTS = rows;
   TERR_CANON.clear(); accMap.clear();
+  // Territories an admin added on Setup, plus any named on an account.
+  (extraTerrs||[]).forEach(t=>{ t=String(t||'').trim(); const k=t.toLowerCase(); if(t && !TERR_CANON.has(k)) TERR_CANON.set(k, t); });
   ACCOUNTS.forEach(a=>{ const k=(a[2]||'').toLowerCase(); if(a[2] && (!TERR_CANON.has(k) || /[a-z]/.test(a[2]))) TERR_CANON.set(k, a[2]); });
   ACCOUNTS.forEach(([c,n,t])=>accMap.set(c.toUpperCase(), {name:n, territory:canonTerr(t)}));
-  TERRITORIES = [...new Set(ACCOUNTS.map(a=>canonTerr(a[2])).filter(Boolean))].sort();
+  TERRITORIES = [...new Set([...(extraTerrs||[]).map(canonTerr), ...ACCOUNTS.map(a=>canonTerr(a[2]))].filter(Boolean))].sort();
   for(const sel of ['#cons-territory','#f-territory','#hist-territory','#board-territory','#returns-territory','#sst-territory','#fav-territory']){
     const el = $(sel), cur = el.value;
     el.querySelectorAll('option[data-terr]').forEach(o=>o.remove());
@@ -1394,7 +1540,7 @@ function setAccounts(rows){
 }
 
 /* ================= Screens ================= */
-const SCREENS = ['loading','auth','verify','noaccess','apply','pending'];
+const SCREENS = ['loading','auth','verify','noaccess','apply','pending','unpaid'];
 function showScreen(name){
   SCREENS.forEach(s=>{ $('#screen-'+s).hidden = (s!==name); });
   $('#app').hidden = (name!=='app');
@@ -1449,6 +1595,7 @@ async function boot(){
   }
   // On Firebase Hosting, sign in through the same domain the app is served from, so Google sign-in works in Safari and from the Home Screen.
   if(/\.(web\.app|firebaseapp\.com)$/.test(location.hostname)) cfg.authDomain = location.hostname;
+  TT.applyBranding(null, 'inv');
   firebase.initializeApp(cfg);
   auth = firebase.auth();
   db = firebase.firestore();
@@ -1480,6 +1627,7 @@ async function handleUser(user){
   const isOwner = TT.isOwnerEmail(email);
   const where = await TT.resolve(db, user);
   if(where.state==='pending' || where.state==='rejected'){ showPending(user, where); return; }
+  if(where.state==='unpaid'){ showUnpaid(user, where); return; }
   if(where.state!=='active'){
     let wantApply = false; try{ wantApply = sessionStorage.getItem('tt-apply')==='1'; }catch(e){}
     if(wantApply){ showApply(user); return; }
@@ -1491,7 +1639,8 @@ async function handleUser(user){
   adb = TT.scoped(db, where.agencyId);
   const member = where.member;
   TT.brand(agency);
-  setAccounts(TT.accountsOf(agency));
+  setAccounts(TT.accountsOf(agency), agency.territories);
+  TT.loadBranding(db, where.agencyId).then(b=>TT.applyBranding(b, 'inv'));
   me = {
     uid: user.uid, email,
     name: user.displayName || (member && member.name) || email.split('@')[0],
@@ -1516,6 +1665,7 @@ function enterApp(){
   if(new URLSearchParams(location.search).get('next')==='bio'){ location.replace('bio.html'); return; }
   boardTerrKey = null;
   showScreen('app');
+  renderTrialBar();
   $('#signed-in-as').textContent = me.name;
   $('#signedin-box').textContent = `Requesting as ${me.name}`;
   $('#gear-team').hidden = !me.isAdmin;
@@ -1595,14 +1745,20 @@ function onListenError(err){
     showScreen('noaccess');
   }
 }
+let lastTerrKey = '';
 function startListeners(){
   unsubs.push(adb.agencyDoc().onSnapshot(snap=>{
     if(!snap.exists) return;
     agency = {id: snap.id, ...snap.data()};
     TT.brand(agency);
     const rows = TT.accountsOf(agency);
-    if(JSON.stringify(rows)!==JSON.stringify(ACCOUNTS)){ setAccounts(rows); applyMyTerritories(); renderAll(); }
-    if(activeViewId()==='agency') renderAgencySettings();
+    const terrKey = JSON.stringify([rows, agency.territories||[]]);
+    if(terrKey!==lastTerrKey){ lastTerrKey = terrKey; setAccounts(rows, agency.territories); applyMyTerritories(); renderAll(); }
+    renderTrialBar();
+    if(typeof renderSetupChecklist==='function') renderSetupChecklist();
+    // Trial ran out (or the owner suspended billing) while the app was open.
+    if(!me.isOwner && !TT.billing(agency).ok){ handleUser(auth.currentUser); return; }
+    if(activeViewId()==='agency') renderSetup();
   }, onListenError));
   if(me.isOwner) watchAgencies();
   unsubs.push(adb.doc('inventory/main').onSnapshot(snap=>{
@@ -2467,7 +2623,7 @@ function computeLoaners(){
   for(const r of allDocs.concat(loanerProbe ? [loanerProbe] : [])){
     if(r.status==='cancelled' || !r.tray || r.returned) continue;
     if(r.turnedOverTo) continue;                              // the same set carries on to the later case
-    if((r.status||'open')==='open' && r.loanerStatus==='ordered') continue;   // a loaner from Arthrex covers it
+    if((r.status||'open')==='open' && r.loanerStatus==='ordered') continue;   // an ordered loaner covers it
     const w = trayWindow(r); if(!w) continue;                 // surgery is over
     const k = (getTrayKey(r.tray)||r.tray).toUpperCase();
     if(!byTray.has(k)) byTray.set(k, []);
@@ -2566,7 +2722,7 @@ function markLoanerOrdered(ids){
   const batch = db.batch();
   ids.forEach(id=>batch.update(adb.doc('requests/'+id), {loanerStatus:'ordered', loanerOrderedAt:Date.now(), loanerOrderedByName:me.name}));
   batch.commit().catch(err=>{ console.error(err); toast('That didn’t save. Try again.'); });
-  toast(`Marked ${ids.length} loaner${ids.length===1?'':'s'} as ordered from Arthrex.`);
+  toast(`Marked ${ids.length} loaner${ids.length===1?'':'s'} as ordered.`);
 }
 
 /* ---- heads up list ---- */
@@ -3217,7 +3373,7 @@ function buildReturnCase(c){
   }
   return el;
 }
-/* Analysis: how often each tray needed a loaner from Arthrex, and how often a case had to wait on an urgent return. */
+/* Analysis: how often each tray needed a loaner, and how often a case had to wait on an urgent return. */
 function renderAnalysis(){
   const range = $('#an-range').value;
   const since = range==='all' ? 0 : Date.now() - parseInt(range,10)*86400000;
@@ -4122,26 +4278,6 @@ $('#team-form').addEventListener('submit', async e=>{
   }catch(err){ console.error(err); msg.textContent= err.code==='other-agency' ? err.message : 'Could not add. Only admins can change the team.'; msg.className='status-msg err'; }
 });
 
-/* ---- this agency's settings (admins): name and accounts ---- */
-function renderAgencySettings(){
-  if(!agency) return;
-  const form = $('#agency-form');
-  if(document.activeElement && form.contains(document.activeElement)) return;   // don't overwrite while typing
-  $('#agency-name').value = agency.name || '';
-  $('#agency-accounts').value = TT.accountsToText(agency);
-}
-$('#agency-form').addEventListener('submit', async e=>{
-  e.preventDefault();
-  const msg = $('#agency-msg');
-  const name = $('#agency-name').value.trim();
-  if(!name){ msg.textContent = 'Enter the agency name.'; msg.className='status-msg err'; return; }
-  const accounts = TT.accountsFromText($('#agency-accounts').value);
-  try{
-    await adb.agencyDoc().update({name, accounts, updatedAt: Date.now(), updatedByName: me.name});
-    msg.textContent = `Saved. ${accounts.length} account${accounts.length===1?'':'s'}.`; msg.className='status-msg ok';
-  }catch(err){ console.error(err); msg.textContent = 'Could not save. Only admins can change the agency.'; msg.className='status-msg err'; }
-});
-
 /* Two-tap confirm (pop-up confirm() boxes don't show in some in-app browsers). First tap arms the button. */
 function armed(btn, label){
   if(btn.dataset.armed==='1'){ btn.dataset.armed=''; clearTimeout(btn._armT); btn.textContent = btn.dataset.label; return true; }
@@ -4164,7 +4300,7 @@ function watchAgencies(){
 }
 function renderAgencies(){
   if(!me || !me.isOwner) return;
-  watchAgencies();
+  watchAgencies(); renderBillingForm();
   $('#agencies-current').textContent = agency ? `${agency.name} (${agency.id})` : '';
   const order = {pending:0, active:1, rejected:2};
   const rows = [...agenciesList].sort((a,b)=>(order[a.status||'pending']??3)-(order[b.status||'pending']??3) || String(a.name||'').localeCompare(String(b.name||'')));
@@ -4177,20 +4313,55 @@ function renderAgencies(){
     el.querySelector('b').textContent = a.name || a.id;
     el.querySelector('.who').textContent = [a.createdByName, a.createdByEmail, a.createdAt ? 'applied '+new Date(a.createdAt).toLocaleDateString() : ''].filter(Boolean).join(' · ');
     el.querySelector('.extra').textContent = [a.region, a.phone, a.note, 'id: '+a.id].filter(Boolean).join(' · ');
+    // Billing: free / trial / paid / expired
+    const bs = TT.billing(a), fmtD = ms=>new Date(ms).toLocaleDateString();
+    if(st==='active' && a.id!=='turntray-admin'){
+      const tag = document.createElement('span'); tag.className = 'st ' + (bs.ok ? (bs.mode==='free' ? 'free' : 'active') : 'expired');
+      tag.textContent = bs.mode==='free' ? 'Free access' : bs.mode==='paid' ? `Paid to ${fmtD(bs.until)}` : bs.mode==='trial' ? `Trial · ${bs.daysLeft}d left` : 'Unpaid';
+      el.querySelector('.top').appendChild(tag);
+    }
     const acts = el.querySelector('.acts');
     const btn = (label, fn, cls)=>{ const b=document.createElement('button'); b.type='button'; b.textContent=label; if(cls) b.className=cls; b.onclick=fn; acts.appendChild(b); return b; };
     const setStatus = async (status)=>{
-      try{ await db.doc('agencies/'+a.id).update({status, ...(status==='active' ? {approvedAt:Date.now()} : {}), reviewedAt:Date.now()}); toast(status==='active' ? `${a.name} is approved. Let ${a.createdByEmail||'their admin'} know they can sign in.` : `${a.name} was not approved.`); }
+      // Approving starts the free trial (unless they already have one, or free access).
+      let extra = {};
+      if(status==='active' && a.trialEndsAt===undefined && a.freeAccess!==true){ const cfg = await getBillingCfg(); extra.trialEndsAt = Date.now() + (+cfg.trialDays||14)*864e5; }
+      try{ await db.doc('agencies/'+a.id).update({status, ...(status==='active' ? {approvedAt:Date.now()} : {}), ...extra, reviewedAt:Date.now()}); toast(status==='active' ? `${a.name} is approved. Let ${a.createdByEmail||'their admin'} know they can sign in.` : `${a.name} was not approved.`); }
       catch(e){ console.error(e); toast('Could not change it. Try again.'); }
     };
     if(st!=='active') btn('Approve', ()=>setStatus('active'), 'go');
     if(st==='pending') btn('Don’t approve', ()=>setStatus('rejected'));
     if(st==='active' && a.id!=='turntray-admin') { const sb = btn('Suspend', ()=>{ if(armed(sb, 'Tap again to suspend')) setStatus('rejected'); }); }
+    if(st==='active' && a.id!=='turntray-admin'){
+      const upd = async (patch, msg)=>{ try{ await db.doc('agencies/'+a.id).update(patch); toast(msg); }catch(e){ console.error(e); toast('Could not save. Try again.'); } };
+      if(bs.mode!=='free'){
+        const pb = btn(bs.mode==='paid' ? 'Paid: +1 month' : 'Mark paid (1 month)', ()=>{ if(armed(pb, 'Tap again to record a month paid')){ const until = TT.addMonth(Math.max(Date.now(), +a.paidThrough||0)); upd({paidThrough: until, lastPaidMarkedAt: Date.now()}, `${a.name} is paid through ${fmtD(until)}.`); } }, 'go');
+      }
+      const fb = btn(bs.mode==='free' ? 'Turn off free access' : 'Give free access', ()=>{
+        if(!armed(fb, bs.mode==='free' ? 'Tap again: they start a trial' : 'Tap again: free for good')) return;
+        if(bs.mode==='free') getBillingCfg().then(cfg=>upd({freeAccess:false, trialEndsAt: Date.now() + (+cfg.trialDays||14)*864e5}, `${a.name} now has a ${cfg.trialDays||14}-day trial, then needs to pay.`));
+        else upd({freeAccess:true}, `${a.name} can use TurnTray for free.`);
+      });
+    }
     if(!agency || a.id!==agency.id) btn('Open', ()=>TT.ownerOpen(a.id));
     if(a.createdByEmail) btn('Email admin', ()=>{ location.href = `mailto:${encodeURIComponent(a.createdByEmail)}?subject=${encodeURIComponent('TurnTray: '+(a.name||''))}`; });
     list.appendChild(el);
   });
 }
+
+async function renderBillingForm(){
+  const cfg = await getBillingCfg(), f = $('#billing-form');
+  if(f.contains(document.activeElement)) return;
+  $('#bill-link').value = cfg.paymentLink||''; $('#bill-price').value = cfg.priceLabel||''; $('#bill-trial').value = cfg.trialDays ?? 14;
+}
+$('#billing-form').addEventListener('submit', async e=>{
+  e.preventDefault();
+  const msg = $('#bill-msg'), link = $('#bill-link').value.trim();
+  if(link && !/^https:\/\/\S+$/.test(link)){ msg.textContent = 'The payment link should start with https://'; msg.className='status-msg err'; return; }
+  const data = {paymentLink: link, priceLabel: $('#bill-price').value.trim(), trialDays: Math.max(0, Math.min(365, parseInt($('#bill-trial').value,10)||0)), updatedAt: Date.now()};
+  try{ await db.doc('config/billing').set(data, {merge:true}); billingCfg = null; msg.textContent = 'Saved.'; msg.className='status-msg ok'; }
+  catch(err){ console.error(err); msg.textContent = 'Could not save. The latest security rules may not be published yet.'; msg.className='status-msg err'; }
+});
 $('#mig-run').addEventListener('click', async ()=>{
   const target = $('#mig-target').value, sendTeam = $('#mig-directory').checked;
   const msg = $('#mig-msg'), btn = $('#mig-run');
@@ -4206,11 +4377,45 @@ $('#mig-run').addEventListener('click', async ()=>{
   finally{ btn.disabled = false; }
 });
 
+
+/* ---- paid access ---- */
+let billingCfg = null;
+async function getBillingCfg(){ if(!billingCfg) billingCfg = await TT.billingConfig(db); return billingCfg; }
+async function showUnpaid(user, where){
+  const a = where.agency || {}, cfg = await getBillingCfg();
+  const isAdminHere = !!(where.member && where.member.admin);
+  $('#unpaid-agency').textContent = a.name || 'TurnTray';
+  const url = TT.payUrl(cfg, where.agencyId, user.email);
+  $('#unpaid-text').textContent = isAdminHere
+    ? `${a.name || 'Your agency'}'s free trial has ended. Subscribe${cfg.priceLabel ? ' ('+cfg.priceLabel+')' : ''} to keep using TurnTray. Your data is kept safe in the meantime.${url ? ' After you pay, access comes back once the payment is confirmed, usually the same day.' : ' Contact '+TT.OWNER_EMAIL+' to subscribe.'}`
+    : `${a.name || 'Your agency'}'s TurnTray subscription isn't active right now. Ask your agency's admin to subscribe. Your data is kept safe in the meantime.`;
+  const pay = $('#unpaid-pay'); pay.hidden = !(isAdminHere && url); if(url) pay.href = url;
+  pay.textContent = cfg.priceLabel ? `Subscribe · ${cfg.priceLabel}` : 'Subscribe';
+  $('#unpaid-msg').textContent = '';
+  showScreen('unpaid');
+}
+$('#unpaid-retry').addEventListener('click', async ()=>{ $('#unpaid-msg').textContent = 'Checking…'; await handleUser(auth.currentUser); if(!$('#screen-unpaid').hidden){ $('#unpaid-msg').textContent = 'Not confirmed yet. It can take a few hours after paying.'; } });
+async function renderTrialBar(){
+  const bar = $('#trial-bar');
+  const st = TT.billing(agency);
+  if(!me || !me.isAdmin || me.isOwner || st.mode!=='trial'){ bar.hidden = true; return; }
+  const cfg = await getBillingCfg(), url = TT.payUrl(cfg, agency.id, me.email);
+  $('#trial-text').textContent = `Free trial: ${st.daysLeft} day${st.daysLeft===1?'':'s'} left.`;
+  const a = $('#trial-pay'); a.hidden = !url; if(url){ a.href = url; a.textContent = cfg.priceLabel ? `Subscribe (${cfg.priceLabel})` : 'Subscribe'; }
+  bar.hidden = false;
+}
+async function showApplyPrice(){
+  const cfg = await getBillingCfg(), el = $('#apply-price');
+  el.textContent = `${cfg.trialDays||14}-day free trial once approved${cfg.priceLabel ? `, then ${cfg.priceLabel}` : ''}. Cancel anytime.`;
+  el.hidden = false;
+}
+
 /* ---- registering a new agency ---- */
 function showApply(user){
   $('#apply-email').textContent = user.email;
   if(!$('#apply-name').value) $('#apply-name').value = user.displayName || '';
   $('#apply-msg').textContent = '';
+  showApplyPrice();
   showScreen('apply');
 }
 function showPending(user, where){
@@ -4333,7 +4538,7 @@ function showView(view){
   if(view==='sst'){ if(!$('#sst-report-date').value) $('#sst-report-date').value = todayIso(); renderSst(); }
   if(view==='inventory') renderInventory();
   if(view==='team') renderTeam();
-  if(view==='agency') renderAgencySettings();
+  if(view==='agency') renderSetup();
   if(view==='agencies') renderAgencies();
   if(view==='account') renderAccount();
   if(view==='cards') renderCards();
@@ -4363,7 +4568,8 @@ wireMenu('#gear-btn', '#gear-dd');
 /* Brief pop-up on someone's 69th request. Tap to close early. */
 function celebrate(){
   const d = document.createElement('div'); d.className='celebrate'; d.setAttribute('role','status'); d.setAttribute('aria-label','Request sent. Nice!');
-  d.innerHTML = '<img src="request-nice.png" alt="">';
+  const pic = TT.popupImage(); if(!pic) return;
+  d.innerHTML = '<img alt="">'; d.querySelector('img').src = pic;
   document.body.appendChild(d);
   requestAnimationFrame(()=>requestAnimationFrame(()=>d.classList.add('show')));
   const close = ()=>{ d.classList.remove('show'); setTimeout(()=>d.remove(), 250); };

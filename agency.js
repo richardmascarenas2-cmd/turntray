@@ -76,6 +76,7 @@
      An agency approved before billing existed has no trialEndsAt and counts as free.
      Keep in sync with agencyActive() in richies.rules. */
   const DAY = 864e5;
+  const DEFAULT_PRICE = '$500/month';   // shown until a price is saved under Agencies -> Billing
   function billing(agency, now){
     now = now || Date.now();
     const a = agency || {};
@@ -87,8 +88,8 @@
   }
   /* Owner's billing settings (config/billing): Stripe payment link, price label, trial length. */
   async function billingConfig(db){
-    try{ const d = await db.doc('config/billing').get(); return {trialDays:14, priceLabel:'', paymentLink:'', ...(d.exists ? d.data() : {})}; }
-    catch(e){ return {trialDays:14, priceLabel:'', paymentLink:''}; }
+    try{ const d = await db.doc('config/billing').get(); const c = {trialDays:14, priceLabel:'', paymentLink:'', ...(d.exists ? d.data() : {})}; if(!c.priceLabel) c.priceLabel = DEFAULT_PRICE; return c; }
+    catch(e){ return {trialDays:14, priceLabel:DEFAULT_PRICE, paymentLink:''}; }
   }
   /* Stripe payment link, tagged with the agency id so the payment shows which agency paid. */
   function payUrl(cfg, agencyId, email){

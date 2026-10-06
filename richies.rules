@@ -33,15 +33,19 @@ service cloud.firestore {
 
     // A request can only be marked Delivered once it has at least one photo.
     function wasDelivered() { return resource.data.get('delivered', false) == true; }
+    // Trays marked as a Bank (bank: true) don't need photos.
+    function isBank() { return request.resource.data.get('bank', false) == true; }
     function deliveredOk() {
       return request.resource.data.get('delivered', false) != true
         || wasDelivered()
+        || isBank()
         || request.resource.data.get('photoCount', 0) > 0;
     }
     // ...and can only be marked Returned once it has at least one return photo.
     function returnedOk() {
       return request.resource.data.get('returned', false) != true
         || resource.data.get('returned', false) == true
+        || isBank()
         || request.resource.data.get('returnPhotoCount', 0) > 0;
     }
 

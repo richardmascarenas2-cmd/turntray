@@ -219,6 +219,9 @@ textarea{resize:vertical; min-height:64px;}
 .low-chip{flex:none; font-size:.74rem; white-space:nowrap;}
 .chip.low-chip.on, .chip.low-chip:has(input:checked){border-color:var(--danger); color:var(--danger); background:color-mix(in srgb, var(--danger) 8%, var(--panel));}
 .chip.low-chip input{accent-color:var(--danger);}
+.bank-chip{flex:none; font-size:.74rem; white-space:nowrap;}
+.chip.bank-chip.on, .chip.bank-chip:has(input:checked){border-color:var(--open); color:var(--open); background:color-mix(in srgb, var(--open) 8%, var(--panel));}
+.inv-name .inv-bank{display:block; color:var(--open); font-size:.7rem; font-weight:700;}
 .inv-row-msg{font-size:.7rem; color:var(--sub); width:40px; flex:none;}
 
 /* ---------- analysis ---------- */
@@ -1280,6 +1283,7 @@ let myRole = null;      // 'rep' | 'inventory' | 'product'
 let unsubs = [];
 let inventoryMap = {};
 let lowTrays = {};
+let bankTrays = {};   // trays marked as a Bank: no photos needed, and shortages become urgent returns instead of loaners
 let invCountMode = '', invLoaded = false, reqLoaded = false, converting = false;
 /* One-time switch: counts used to drop while a tray was out. Now they're the total owned,
    so add back every set that's currently pulled and not returned. Runs once, for the first manager to open the app. */
@@ -1459,6 +1463,7 @@ function startListeners(){
   unsubs.push(db.doc('inventory/main').onSnapshot(snap=>{
     inventoryMap = snap.exists ? (snap.data().trays || {}) : {};
     lowTrays = snap.exists ? (snap.data().lowTrays || {}) : {};
+    bankTrays = snap.exists ? (snap.data().bankTrays || {}) : {};
     invCountMode = snap.exists ? (snap.data().countMode || '') : 'total';
     invLoaded = true; convertCountsOnce();
     refreshTrayDatalist();
@@ -1597,6 +1602,15 @@ function getTrayKey(name){
 function getQty(name){ const key = getTrayKey(name); return key===undefined ? undefined : inventoryMap[key]; }
 function loanerNeeded(trayName){ return getQty(trayName)===0; }
 function isLowTray(name){ const k = getTrayKey(name) || (name||'').trim(); return !!lowTrays[k]; }
+function isBankTray(name){ const k = getTrayKey(name) || (name||'').trim(); return !!bankTrays[k]; }
+async function setBankTray(name, on){
+  if(!db || !name) return;
+  const FV = firebase.firestore.FieldValue;
+  bankTrays = {...bankTrays}; if(on) bankTrays[name] = true; else delete bankTrays[name];
+  renderAll();
+  try{ await db.doc('inventory/main').update(new firebase.firestore.FieldPath('bankTrays', name), on ? true : FV.delete()); toast(on ? `${name} is a Bank: no photos needed, and shortages become urgent returns.` : `${name} is a regular tray again.`); }
+  catch(e){ console.error(e); toast('Could not save that. Try again.'); }
+}
 async function setLowTray(name, on){
   if(!db || !name) return;
   const FV = firebase.firestore.FieldValue;
@@ -2073,7 +2087,7 @@ async function deliverTurnoverUnused(r){
 }
 async function toggleReturned(r){
   const returned = !!r.returned;
-  updateFields(r.id, {returned: !returned});
+  updateFields(r.id, {returned: !returned, ...bankFlag(r)});
 }
 
 /* ================= Rendering ================= */
@@ -2321,7 +2335,12 @@ function computeLoaners(){
       if(x.held || busy.length < owned){ busy.push({end:x.end, x}); continue; }
       // A set due back the same day this case has to be pulled: rush that return instead of ordering a loaner.
       // Trays marked Low inventory skip this and go straight to Loaner needed.
-      const back = isLowTray(x.r.tray) ? [] : busy.filter(e=>e.end===x.start);
+      let back = isLowTray(x.r.tray) ? [] : busy.filter(e=>e.end===x.start);
+      // Banks never get a loaner: the set due back soonest has to come back urgently instead.
+      if(!back.length && isBankTray(x.r.tray) && busy.length){
+        const soonest = busy.reduce((m,e)=>e.end<m ? e.end : m, busy[0].end);
+        back = busy.filter(e=>e.end===soonest);
+      }
       if(back.length){
         const pk = k+'|'+x.start;
         let pool = poolMap.get(pk);
@@ -2332,6 +2351,7 @@ function computeLoaners(){
         back[0].end = x.end; back[0].x = x;                   // one of those sets goes straight on to this case
         continue;
       }
+      if(isBankTray(x.r.tray)) continue;                       // no sets at all (count 0): nothing to flag for a bank
       shortIds.add(x.r.id);
       const clash = list.filter(y=>y!==x && y.start<=x.end && y.end>=x.start && !shortIds.has(y.r.id));
       shortageAlerts.push({r:x.r, tray:getTrayKey(x.r.tray)||x.r.tray, owned, start:x.start, end:x.end, clash:clash.length});
@@ -3069,7 +3089,7 @@ function buildTrayRow(r){
     <button type="button" class="chip photo-chip ${(r.photoCount||0)?'has':''}" aria-label="Delivery photos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13.5" r="3.5"/></svg>${r.photoCount||0}</button>
     <label class="chip ${needsPhoto(r)?'locked':''}"><input type="checkbox" data-f="delivered" ${r.delivered?'checked':''}> Delivered</label>`;
   row.querySelectorAll('input').forEach(inp=>{
-    inp.addEventListener('change', ()=> updateFields(r.id, {[inp.dataset.f]: inp.checked}));
+    inp.addEventListener('change', ()=> updateFields(r.id, {[inp.dataset.f]: inp.checked, ...(inp.dataset.f==='delivered' ? bankFlag(r) : {})}));
   });
   row.querySelector('.photo-chip').onclick = ()=>openPhotoSheet(r.id);
   const tb = row.querySelector('[data-act=turnover]'); if(tb) tb.onclick = ()=>turnOver(r);
@@ -3279,6 +3299,13 @@ function renderInventory(){
       lab.querySelector('input').addEventListener('change', e=>setLowTray(name, e.target.checked));
       row.insertBefore(lab, row.querySelector('.stepper'));
     }
+    const bank = !!bankTrays[name];
+    if(isManager()){
+      const lab = document.createElement('label'); lab.className='chip bank-chip' + (bank ? ' on' : '');
+      lab.innerHTML = `<input type="checkbox" ${bank?'checked':''}> Bank`;
+      lab.querySelector('input').addEventListener('change', e=>setBankTray(name, e.target.checked));
+      row.insertBefore(lab, row.querySelector('.stepper'));
+    }
     const nameEl = row.querySelector('.inv-name');
     nameEl.textContent = name;
     if(qty===0){ const z=document.createElement('span'); z.className='inv-zero'; z.textContent='None in stock'; nameEl.appendChild(z); }
@@ -3288,6 +3315,7 @@ function renderInventory(){
     }
     else if(unknown){ const z=document.createElement('span'); z.className='inv-zero'; z.textContent='Count unknown'; nameEl.appendChild(z); }
     if(low){ const z=document.createElement('span'); z.className='inv-low'; z.textContent='Low inventory · shortages go straight to Loaner needed'; nameEl.appendChild(z); }
+    if(bank){ const z=document.createElement('span'); z.className='inv-bank'; z.textContent='Bank · no photos needed · shortages become urgent returns'; nameEl.appendChild(z); }
     const inp = row.querySelector('input'); const msg = row.querySelector('.inv-row-msg');
     const cur = ()=>{ const n=parseInt(inp.value,10); return isNaN(n)?0:n; };
     row.querySelector('.dec').onclick = ()=>{ const n=Math.max(0,cur()-1); inp.value=n; saveTrayQty(name, n, msg); };
@@ -3311,8 +3339,11 @@ $('#inv-add-form').addEventListener('submit', (e)=>{
 });
 
 /* ---- delivery photos ---- */
-function needsPhoto(r){ return !r.delivered && !((r.photoCount||0) > 0); }
-function needsReturnPhoto(r){ return !r.returned && !((r.returnPhotoCount||0) > 0); }
+// Banks don't need photos to be delivered or returned.
+function needsPhoto(r){ return !r.delivered && !isBankTray(r.tray) && !((r.photoCount||0) > 0); }
+function needsReturnPhoto(r){ return !r.returned && !isBankTray(r.tray) && !((r.returnPhotoCount||0) > 0); }
+// The security rules let a request be delivered/returned without photos only when it's flagged bank:true.
+function bankFlag(r){ return isBankTray(r.tray) ? {bank:true} : {}; }
 // Delivery photos unlock "Delivered"; return photos unlock "Returned".
 const PH_MODES = {
   delivery: {count:'photoCount', flag:'delivered', label:'Delivered', title:'Delivery photos', empty:'No delivery photos yet. Add one when the tray is dropped off.', verb:'delivered'},
@@ -3380,7 +3411,7 @@ function renderPhotoSheet(){
   const box = $('#ps-delivered');
   box.checked = !!r[M.flag];
   $('#ps-deliver-text').textContent = M.label;
-  const locked = !r[M.flag] && count===0;
+  const locked = !r[M.flag] && count===0 && !isBankTray(r.tray);
   $('#ps-deliver-label').classList.toggle('locked', locked);
   $('#ps-deliver-hint').textContent = locked ? `Add at least one photo to mark this ${M.verb}.` : (r[M.flag] ? `Marked ${M.verb}.` : `Ready to mark ${M.verb}.`);
 }
@@ -3410,7 +3441,7 @@ function renderReturnForm(r, count){
   $('#ps-missing-wrap').hidden = psMissing!=='yes';
   const note = $('#ps-missing-note').value.trim();
   let hint = '';
-  if(!count) hint = 'Step 1: add a photo of the returned tray.';
+  if(!count && !isBankTray(r.tray)) hint = 'Step 1: add a photo of the returned tray.';
   else if(!psMissing) hint = 'Step 2: are any items missing?';
   else if(psMissing==='yes' && !note) hint = 'Step 3: say what’s missing.';
   $('#ps-return-hint').textContent = hint;
@@ -3426,10 +3457,10 @@ $('#ps-complete').addEventListener('click', async ()=>{
   const r = allDocs.find(x=>x.id===psReqId); if(!r || r.returned) return;
   const count = Math.max(psPhotos.length, r.returnPhotoCount||0);
   const note = $('#ps-missing-note').value.trim();
-  if(!count || !psMissing || (psMissing==='yes' && !note)){ renderPhotoSheet(); return; }
+  if((!count && !isBankTray(r.tray)) || !psMissing || (psMissing==='yes' && !note)){ renderPhotoSheet(); return; }
   const missing = psMissing==='yes';
   try{
-    await db.doc('requests/'+r.id).update({returned:true, returnedAt:Date.now(), returnedById:me.uid, returnedByName:me.name, returnMissing:missing, returnMissingNote: missing ? note : '', missingResolved:false, missingResolvedAt:null, missingResolvedByName:''});
+    await db.doc('requests/'+r.id).update({...bankFlag(r), returned:true, returnedAt:Date.now(), returnedById:me.uid, returnedByName:me.name, returnMissing:missing, returnMissingNote: missing ? note : '', missingResolved:false, missingResolvedAt:null, missingResolvedByName:''});
   }catch(err){ console.error(err); toast('That change didn’t save. Try again.'); return; }
   // Nothing missing: the return photos aren't needed, so free up the space.
   if(!missing) deleteReturnPhotos(r.id);
@@ -3518,7 +3549,7 @@ $('#photo-sheet').addEventListener('click', e=>{ if(e.target.id==='photo-sheet')
 $('#ps-delivered').addEventListener('click', e=>{
   const r = allDocs.find(x=>x.id===psReqId);
   const M = PH_MODES[psMode];
-  if(r && !r[M.flag] && Math.max(psPhotos.length, r[M.count]||0)===0){
+  if(r && !r[M.flag] && !isBankTray(r.tray) && Math.max(psPhotos.length, r[M.count]||0)===0){
     e.preventDefault(); $('#ps-msg').textContent=`Add a photo first, then check ${M.label}.`; $('#ps-msg').className='status-msg err';
   }
 });
@@ -3526,7 +3557,7 @@ $('#ps-delivered').addEventListener('change', e=>{
   if(!psReqId) return;
   const r = allDocs.find(x=>x.id===psReqId); if(!r) return;
   if(psMode==='return'){ if(!!r.returned !== e.target.checked) toggleReturned(r); }
-  else updateFields(psReqId, {delivered: e.target.checked});
+  else updateFields(psReqId, {delivered: e.target.checked, ...bankFlag(r)});
   if(e.target.checked) toast(`Marked ${PH_MODES[psMode].verb}.`);
 });
 $('#ps-add').addEventListener('click', ()=> $('#ps-file').click());

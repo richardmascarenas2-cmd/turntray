@@ -1156,6 +1156,8 @@ function enterApp(){
   const hv = location.hash.replace('#','');
   showView(['account','team'].includes(hv) ? hv : (isManager() ? 'requests' : 'add'));
   if(hv) history.replaceState(null, '', location.pathname + location.search);
+  // ?sync: opened by the hourly Google Sheet sync. Skip the live listeners so it costs only a few reads.
+  if(new URLSearchParams(location.search).has('sync')){ window.syncReady = true; return; }
   unsubs.push(db.collection('bioStock').onSnapshot(snap=>{ stock = snap.docs.map(d=>({id:d.id, ...d.data()})); refreshGraftList(); renderAll(); }, listenErr));
   unsubs.push(db.collection('bioRequests').onSnapshot(snap=>{ bioReqs = snap.docs.map(d=>({id:d.id, ...d.data()})); refreshSurgeons(); renderAll(); }, listenErr));
   unsubs.push(db.collection('users').onSnapshot(snap=>{ usersMap = {}; snap.docs.forEach(d=>{ usersMap[d.id] = d.data(); }); if(activeViewId()==='team') renderTeam(); }, console.error));
@@ -1168,8 +1170,84 @@ function enterApp(){
     const tr = Array.isArray(d.territories) ? d.territories.map(canonTerr) : [];
     if(role!==myRole || JSON.stringify(tr)!==JSON.stringify(me.territories)){ myRole = role; me.territories = tr; me.isAdmin = me.isOwner || !!d.admin; $('#gear-team').hidden = !me.isAdmin; applyRoleUI(); renderAll(); }
   }, ()=>{}));
-  db.collection('requests').get().then(s=>{ surgeonNames = s.docs.map(d=>d.data().surgeon).filter(Boolean); refreshSurgeons(); }).catch(()=>{});
+  // Surgeon names from the tray requests, for autocomplete. Reading every request is costly, so it's done at most once a day per device.
+  let cachedSurg = null;
+  try{ const c = JSON.parse(localStorage.getItem('surgeonNames')||'null'); if(c && Date.now()-c.at < 864e5) cachedSurg = c.names; }catch(e){}
+  if(cachedSurg){ surgeonNames = cachedSurg; refreshSurgeons(); }
+  else db.collection('requests').get().then(s=>{ surgeonNames = [...new Set(s.docs.map(d=>d.data().surgeon).filter(Boolean))]; refreshSurgeons();
+    try{ localStorage.setItem('surgeonNames', JSON.stringify({at:Date.now(), names:surgeonNames})); }catch(e){} }).catch(()=>{});
 }
+/* ---- Google Sheet sync for biologics (run by the hourly scheduled task on bio.html?sync) ----
+   values = the BIOLOGICS sheet's REQUESTS!L2:T rows exactly as returned. Rows already in the app are remembered in
+   inventory/syncState, so an hour with nothing new costs one read; stock is only loaded when there's something to add. */
+async function runBioSync(SHEET_ROWS){
+  if(!db || !me) throw new Error('turntray is not signed in');
+  const pad = n=>String(n).padStart(2,'0');
+  const now = new Date(new Date().toLocaleString('en-US',{timeZone:'America/Los_Angeles'}));
+  const today = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}`;
+  const toIso = s=>{ const m=String(s||'').trim().match(/^(\d{1,2})\/(\d{1,2})(?:\/(\d{2,4}))?$/); if(!m) return '';
+    const mo=+m[1], d=+m[2]; if(mo<1||mo>12||d<1||d>31) return '';
+    let y = m[3] ? (m[3].length===2 ? 2000+ +m[3] : +m[3]) : now.getFullYear();
+    if(!m[3] && mo < now.getMonth()+1-6) y++;
+    if(y<2000||y>2100) return ''; return `${y}-${pad(mo)}-${pad(d)}`; };
+  const hash = s=>{ let h=2166136261; for(const ch of s){ h^=ch.charCodeAt(0); h=Math.imul(h,16777619); } return (h>>>0).toString(36); };
+  const ALIAS = {'LEG GOOD SAM':'LGS','SUNNYBROOK':'KZR SYB','SALEM HOSP':'SAL HOS','GOOD SAM CORV':'GSH','PSC (LONGVIEW)':'PSC',
+    'LEG EMANUEL':'LEH','PROV PDX':'PPMC','WIL FALLS':'PWF','KAISER WEST':'KZR WESTSIDE','SALMON CR':'LSC','LEG MERIDIAN':'MPH',
+    'KAISER SUNNYSIDE':'KZR SUNNYSIDE','KAISER INTERSTATE':'KZR INTERSTATE','ST VINCENT':'STV','PROV ST V':'STV','LEG MT HOOD':'MHMC'};
+  const TERR_ALIAS = {salem:'SLM', corvallis:'CRV', crv:'CRV', slm:'SLM', lab:'LAB'};
+  const stRef = db.doc('inventory/syncState');
+  const st = (await stRef.get()).data() || {};
+  const known = new Set(st.bioIds || []);
+  const seen = {}, items = [];
+  for(let i=0;i<SHEET_ROWS.length;i++){
+    const r = (SHEET_ROWS[i]||[]).map(x=>String(x==null?'':x).trim());
+    const [rawGraft='', qtyS='', person='', dReq='', dPack='', amp='', terr='', acctRaw='', hcp=''] = r;
+    const date = toIso(dReq);
+    if(!rawGraft || !date || date < today) continue;
+    const base = [rawGraft.toUpperCase(), person.toLowerCase(), date, acctRaw.toUpperCase(), hcp.toLowerCase()].join('|');
+    seen[base] = (seen[base]||0) + 1;
+    items.push({i, rawGraft, qtyS, person, date, dPack, amp, terr, acctRaw, hcp, id:'bsheet_'+hash(base+'#'+seen[base])});
+  }
+  const fresh = items.filter(it=>!known.has(it.id));
+  let added = 0; const newCases = new Set(), addedList = [];
+  if(fresh.length){
+    if(!stock.length) stock = (await db.collection('bioStock').get()).docs.map(d=>({id:d.id, ...d.data()}));
+    const terrOf = (t, acct)=>{ const a=accMap.get(acct); if(a && a.territory) return a.territory;
+      const k=String(t||'').trim().toLowerCase().replace(/^pdx\s+/,''); return canonTerr(TERR_ALIAS[k] || k); };
+    const graftOf = raw=>{ const tries=[raw, raw.replace(/\s*\[\*\]\s*$/,'')];
+      for(const t of tries){ const s=stockFor(t); if(s) return {graft:s.ref, desc:s.desc||''}; const ty=typeForRef(t); if(ty) return {graft:ty, desc:(rowsOfType(ty)[0]||{}).desc||''}; }
+      return {graft:refKey(raw), desc:''}; };
+    const users = (await db.collection('users').get()).docs.map(d=>({uid:d.id, ...d.data()}));
+    const personOf = p=>{ const k=String(p||'').trim().toLowerCase(); if(!k) return null;
+      const hits = users.filter(u=>{ const parts=String(u.name||'').trim().toLowerCase().split(/\s+/); return parts[parts.length-1]===k || parts.join(' ')===k; });
+      return hits.length===1 ? hits[0] : null; };
+    const b = db.batch(); const owner = {};
+    for(const it of fresh){
+      if((await db.doc('bioRequests/'+it.id).get()).exists) continue;
+      const acct = ALIAS[it.acctRaw.toUpperCase()] || it.acctRaw.toUpperCase();
+      const u = personOf(it.person);
+      const caseId = 'bsheet_' + hash([it.date, acct, it.hcp.toLowerCase(), it.person.toLowerCase()].join('|'));
+      const g = graftOf(it.rawGraft);
+      const pulled = /^pulled$/i.test(it.amp);
+      const packOn = toIso(it.dPack);
+      const qty = Math.max(1, parseInt(it.qtyS,10)||1);
+      b.set(db.doc('bioRequests/'+it.id), {...g, qty, caseId, dateNeeded:it.date, packOn: packOn && packOn<=it.date ? packOn : '',
+        ampm: /^(AM|PM)$/i.test(it.amp) ? it.amp.toUpperCase() : '', account:acct, territory:terrOf(it.terr, acct), surgeon:it.hcp, notes:'',
+        status: pulled ? 'pulled' : 'requested', person: u ? (u.name||it.person) : it.person, requestedById: me.uid, importedById: me.uid,
+        createdAt: Date.now()+added, fromSheet:true, sheetRow:it.i+2, sheetGraft:it.rawGraft,
+        ...(pulled ? {pulledAt:Date.now(), pulledByName:'Google Sheet', lot:'', expiresAt:''} : {})});
+      owner[it.id] = u ? u.uid : '';
+      newCases.add(caseId); added++; addedList.push(qty+'× '+g.graft+' · '+acct+' · '+it.date);
+    }
+    if(added){ await b.commit();
+      const b2 = db.batch(); let moved=0;
+      for(const [id, uid] of Object.entries(owner)){ if(uid !== me.uid){ b2.update(db.doc('bioRequests/'+id), {requestedById: uid}); moved++; } }
+      if(moved) await b2.commit(); }
+  }
+  await stRef.set({bioIds: items.map(i=>i.id), bioAt: Date.now()}, {merge:true});
+  return {upcomingRows: items.length, newRows: fresh.length, added, newCases: newCases.size, addedList};
+}
+window.runBioSync = runBioSync;
 function listenErr(err){
   console.error(err);
   if(err && err.code==='permission-denied') toast('Biologics isn’t turned on yet. An admin needs to publish the latest security rules in Firebase.');

@@ -1298,6 +1298,7 @@ let me = null;          // {uid, email, name, isAdmin}
 let myRole = null;      // 'rep' | 'inventory' | 'product'
 let unsubs = [];
 let inventoryMap = {};
+const SYNC_MODE = new URLSearchParams(location.search).has('sync');
 let lowTrays = {};
 let bankTrays = {};   // trays marked as a Bank: no photos needed, and shortages become urgent returns instead of loaners
 let invCountMode = '', invLoaded = false, reqLoaded = false, converting = false;
@@ -1409,6 +1410,8 @@ function enterApp(){
   const hashView = location.hash.replace('#','');
   showView((SETTINGS_VIEWS.includes(hashView) || hashView==='help') ? hashView : (isManager() ? 'requests' : 'add'));
   if(hashView) history.replaceState(null, '', location.pathname + location.search);
+  // ?sync: opened by the hourly Google Sheet sync. Skip the live listeners so it costs only a few reads.
+  if(SYNC_MODE){ window.syncReady = true; return; }
   startListeners();
   // Pick up territory changes an admin makes while this person has the app open.
   // Pick up territory and role changes an admin makes while this person has the app open.
@@ -2956,6 +2959,54 @@ function renderConsigned(){
 }
 $('#cons-territory').addEventListener('change', renderConsigned);
 $('#cons-search').addEventListener('input', renderConsigned);
+/* ---- Google Sheet sync (run by the hourly scheduled task on index.html?sync) ----
+   Remembers which sheet rows are already in the app (inventory/syncState), so an hour with nothing new
+   costs one read instead of reading every request. rows = upcoming tray rows from the sheet. */
+function sheetHash(s){ let h=2166136261; for(const ch of s){ h^=ch.charCodeAt(0); h=Math.imul(h,16777619); } return (h>>>0).toString(36); }
+async function runSheetSync(rows){
+  if(!db || !me) throw new Error('turntray is not signed in');
+  const stRef = db.doc('inventory/syncState');
+  const st = (await stRef.get()).data() || {};
+  const known = new Set(st.trayIds || []);
+  const split = s=>{ s=String(s||'').trim(); const m=s.match(/^([^(\-]+?)\s*(?:\((.*)\)|-\s*(.*))?$/); return m ? {surgeon:(m[1]||'').trim(), notes:(m[2]||m[3]||'').trim()} : {surgeon:s, notes:''}; };
+  const seen = {};
+  const items = rows.map(r=>{ const base=[r.ts,r.email,r.date,r.tray,r.account,r.surgeon].join('|'); seen[base]=(seen[base]||0)+1; return {...r, id:'sheet_'+sheetHash(base+'#'+seen[base])}; });
+  const fresh = items.filter(it=>!known.has(it.id));
+  let added = 0; const addedList = [], dates = new Set(), cases = new Set();
+  if(fresh.length){
+    const users = (await db.collection('users').get()).docs.map(d=>({uid:d.id, ...d.data()}));
+    const b = db.batch();
+    for(const it of fresh){
+      if((await db.doc('requests/'+it.id).get()).exists) continue;
+      const sp = split(it.surgeon); const u = users.find(x=>(x.email||'').toLowerCase()===it.email);
+      const doc = {dateNeeded:it.date, dateRequired:'', territory:canonTerr(it.territory), account:it.account, type:'Surgery',
+        surgeon:sp.surgeon, notes:sp.notes, procedure:'', requestedById: u ? u.uid : '', requestedByName: u ? (u.name||it.email) : (it.email || 'Google Sheet'),
+        status:'open', createdAt:Date.now()+added, returned:false, currentTrays:'', sameDay:'', previousDay:'', sdOverload:false, pdOverload:false,
+        turnover:'', outgoing:false, delivered:false, transfer:'', sst:false, sstPtId:'', sstStart:'', tray:it.tray, fromSheet:true, sheetRow:it.row, sheetTimestamp:it.ts};
+      doc.caseId = 'sheet_'+sheetHash('case|'+caseKey(doc,true));
+      b.set(db.doc('requests/'+it.id), doc); added++; dates.add(it.date); cases.add(caseKey(doc,true)); addedList.push(it.tray+' · '+it.account+' · '+it.date);
+    }
+    if(added) await b.commit();
+  }
+  // Same surgeon, same day, same account = one case. Only the days that just got new rows are checked.
+  let linked = 0; const ds = [...dates];
+  for(let i=0;i<ds.length;i+=10){
+    const snap = await db.collection('requests').where('dateNeeded','in',ds.slice(i,i+10)).get();
+    const g = new Map();
+    snap.docs.map(d=>({id:d.id, ...d.data()})).filter(r=>r.fromSheet && r.status!=='cancelled' && String(r.caseId||'').startsWith('sheet_'))
+      .forEach(r=>{ const k=caseKey(r,true); if(!g.has(k)) g.set(k,[]); g.get(k).push(r); });
+    const b2 = db.batch(); let n = 0;
+    for(const rs of g.values()){
+      if(new Set(rs.map(r=>r.caseId)).size<2) continue;
+      rs.sort((a,b)=>(a.createdAt||0)-(b.createdAt||0)); const target = rs[0].caseId;
+      rs.forEach(r=>{ if(r.caseId!==target){ b2.update(db.doc('requests/'+r.id), {caseId:target}); n++; } });
+    }
+    if(n){ await b2.commit(); linked += n; }
+  }
+  await stRef.set({trayIds: items.map(i=>i.id), trayAt: Date.now()}, {merge:true});
+  return {sheetRows: rows.length, newRows: fresh.length, added, linkedIntoCases: linked, newCases: cases.size, addedList};
+}
+window.runSheetSync = runSheetSync;
 function todayIso(){ return isoDate(new Date()); }
 /* Returns: dropdown case rows, split into "Waiting to come back" and "Returned". */
 const returnsExpanded = new Set();
@@ -3548,10 +3599,12 @@ $('#ps-undo-return').addEventListener('click', ()=>{
 const PHOTO_KEEP_DAYS = 14;
 let photoSweepDone = false;
 async function sweepOldPhotos(){
-  if(photoSweepDone || !me || !me.isAdmin || !db) return;
+  if(photoSweepDone || !me || !me.isAdmin || !db || SYNC_MODE) return;
   photoSweepDone = true;
+  // Photos are large reads: check at most once a day per device, and only cases at least 2 weeks old.
+  try{ if(Date.now() - (+localStorage.getItem('photoSweepAt')||0) < 864e5) return; localStorage.setItem('photoSweepAt', String(Date.now())); }catch(e){}
   const cutoff = Date.now() - PHOTO_KEEP_DAYS*864e5;
-  const recentIso = isoDate(new Date(Date.now() - 7*864e5));
+  const recentIso = isoDate(new Date(Date.now() - PHOTO_KEEP_DAYS*864e5));
   const cand = allDocs.filter(r=>((r.photoCount||0) + (r.returnPhotoCount||0)) > 0 && (r.dateNeeded||'') && r.dateNeeded <= recentIso && !missingOpen(r));
   for(const r of cand){
     try{

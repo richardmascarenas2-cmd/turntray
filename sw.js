@@ -3,7 +3,7 @@
    page itself needs to come from this saved copy.
    - Pages and app files: try the network first (so updates show up), fall back to the saved copy.
    - Firebase library files from gstatic: use the saved copy, they never change for a given version. */
-const CACHE = 'turntray-v7';
+const CACHE = 'turntray-v8';
 const SHELL = [
   './', 'index.html', 'bio.html', 'firebase-config.js',
   'manifest.webmanifest', 'bio.webmanifest',
@@ -65,15 +65,13 @@ self.addEventListener('fetch', e=>{
       return res;
     });
     e.waitUntil(net.catch(()=>{}));
-    try{
-      return await withTimeout(net, NET_TIMEOUT_MS);
-    }catch(err){
-      let path = url.pathname;
-      if(path === '/' ) path = '/index.html';
-      const hit = await c.match(url.origin + path) || await c.match(req, {ignoreSearch:true})
-        || (req.mode === 'navigate' ? (await c.match(url.origin + '/index.html') || await c.match(url.origin + '/')) : null);
-      if(hit) return hit;
-      throw err;
-    }
+    // Only this exact page's saved copy is ever used (never another page in its place).
+    const path = url.pathname === '/' ? '/index.html' : url.pathname;
+    const saved = await c.match(url.origin + path) || (path === '/index.html' ? await c.match(url.origin + '/') : null);
+    // No saved copy yet: just wait for the network, however slow.
+    if(!saved) return net;
+    // Saved copy available: use the network if it answers quickly, otherwise the saved copy.
+    try{ return await withTimeout(net, NET_TIMEOUT_MS); }
+    catch(err){ return saved; }
   })());
 });

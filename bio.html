@@ -774,6 +774,15 @@ main{max-width:1200px; margin:0 auto; padding:18px clamp(16px,3vw,32px) 40px;}
 .pk-line{border:1px solid var(--line); border-radius:10px; padding:10px 12px; margin-bottom:8px;}
 .pk-line b{display:block;} .pk-line small{color:var(--sub);}
 .pk-line label{margin-top:8px;}
+.pk-src{max-width:none;}
+.so-box{display:flex; align-items:center; gap:8px; flex-wrap:wrap; padding:0 14px 12px;}
+.so-box input{flex:1; min-width:180px;}
+.so-box button{background:var(--panel); border:1px solid var(--line); padding:8px 12px; font-size:.8rem;}
+.so-box button.go{background:var(--accent); color:#fff; border-color:var(--accent);}
+.so-open{display:inline-flex; align-items:center; gap:6px; padding:8px 12px; border:1px solid color-mix(in srgb, var(--accent) 40%, var(--line)); border-radius:10px; color:var(--accent); font-size:.8rem; font-weight:700; text-decoration:none; background:var(--panel);}
+.so-open svg{width:16px; height:16px;}
+.so-mail{display:inline-flex; align-items:center; padding:8px 12px; border-radius:10px; background:var(--accent); color:#fff; font-size:.8rem; font-weight:700; text-decoration:none;}
+.so-box small{color:var(--sub); font-size:.74rem;}
 .po-form{display:flex; flex-wrap:wrap; gap:6px; align-items:center; padding:0 12px 12px 12px;}
 .po-form input{flex:1 1 180px; width:auto; min-height:38px; padding:7px 10px;}
 .po-num{font-size:.86rem; margin-right:auto;} .po-num small{color:var(--sub);}
@@ -908,7 +917,7 @@ main{max-width:1200px; margin:0 auto; padding:18px clamp(16px,3vw,32px) 40px;}
   <!-- Returns: after surgery, mark what was used and what came back -->
   <div class="view" id="view-returns">
     <div class="toolbar"><select id="ret-territory"><option value="All">All territories</option></select></div>
-    <p class="hint">After surgery, open the case, tick what was used and tap <b>Used</b> (it moves to the PO page). Tick what came back and tap <b>Returned</b>.</p>
+    <p class="hint">After surgery, open the case, tick what was used and tap <b>Used</b> (LifeNet and JRF grafts move to the PO page; RedSpot doesn't need a PO). Tick what came back and tap <b>Returned</b>.</p>
     <div id="ret-list"></div>
     <div class="empty" id="ret-empty" hidden>Nothing waiting to be used or returned.</div>
   </div>
@@ -1035,7 +1044,7 @@ main{max-width:1200px; margin:0 auto; padding:18px clamp(16px,3vw,32px) 40px;}
 <div class="modal-overlay" id="used-sheet" hidden>
   <form class="sheet-card" id="used-form" autocomplete="off">
     <div class="section-head"><h2 style="margin:0;">Mark used</h2><button type="button" class="linkbtn" data-close>Cancel</button></div>
-    <p class="hint">These come off stock and move to the PO page.</p>
+    <p class="hint">These come off stock. LifeNet and JRF grafts move to the PO page; RedSpot grafts don't need a PO.</p>
     <div id="used-lines"></div>
     <button type="submit" class="btn-primary">Mark used</button>
   </form>
@@ -1399,6 +1408,7 @@ function caseBody(c, opts){
     const desc = l.desc || (s && s.desc) || '';
     const avail = OPEN(l.status) ? availableOfType(typeForRef(l.graft)||'') : null;
     const meta = [
+      l.source ? escapeHtml(l.source) + (l.status==='used' && !needsPO(l) ? ' · no PO needed' : '') : '',
       l.lot ? 'Lot '+escapeHtml(l.lot) : '',
       l.expiresAt ? `<span class="${expClass(l.expiresAt)}">Exp ${escapeHtml(fmtShort(l.expiresAt))}</span>` : '',
       l.status==='used' && l.poNumber ? 'PO '+escapeHtml(l.poNumber) : '',
@@ -1551,19 +1561,28 @@ document.querySelectorAll('.modal-overlay [data-close]').forEach(b=>b.addEventLi
 document.querySelectorAll('.modal-overlay').forEach(o=>o.addEventListener('click', e=>{ if(e.target===o) o.hidden = true; }));
 function clearPicks(lines){ lines.forEach(l=>picked.forEach(s=>s.delete(l.id))); }
 
-// Pack: inventory adds the expiration for each graft.
+/* Where a graft came from. RedSpot grafts don't need a PO once used; LifeNet and JRF do.
+   Older grafts packed before this (no source) still go to the PO page. */
+const SOURCES = ['RedSpot', 'LifeNet', 'JRF'];
+function needsPO(l){ return l.source !== 'RedSpot'; }
+// Pack: inventory picks the source and adds the expiration for each graft.
 let packing = [];
 function packLines(lines){
   packing = lines.filter(l=>l.status==='requested'); if(!packing.length) return;
-  $('#pack-sub').textContent = `${packing.length} graft${packing.length===1?'':'s'} · add the expiration from each label.`;
+  $('#pack-sub').textContent = `${packing.length} graft${packing.length===1?'':'s'} · pick where each came from and add the expiration from the label.`;
   $('#pack-lines').innerHTML = packing.map((l,i)=>`<div class="pk-line"><b>${escapeHtml(l.graft)}${+l.qty>1?' ×'+l.qty:''}</b><small>${escapeHtml(l.desc||'')}</small>
+    <label>Source</label><div class="seg pk-src" data-i="${i}">${SOURCES.map(x=>`<button type="button" data-v="${x}" class="${l.source===x?'active':''}">${x}</button>`).join('')}</div>
     <div><label for="pk-exp-${i}">Expires</label><input id="pk-exp-${i}" type="date" value="${escapeHtml(l.expiresAt||'')}"></div></div>`).join('');
+  $('#pack-lines').querySelectorAll('.pk-src').forEach(seg=>seg.addEventListener('click', e=>{ const b=e.target.closest('button'); if(!b) return; seg.querySelectorAll('button').forEach(x=>x.classList.toggle('active', x===b)); }));
   openSheet('#pack-sheet');
 }
 $('#pack-form').addEventListener('submit', async e=>{
   e.preventDefault();
+  const srcOf = i=>{ const a = document.querySelector(`.pk-src[data-i="${i}"] button.active`); return a ? a.dataset.v : ''; };
+  const missing = packing.findIndex((l,i)=>!srcOf(i));
+  if(missing>=0){ toast(`Pick RedSpot, LifeNet or JRF for ${packing[missing].graft}.`); return; }
   const b = db.batch(), now = Date.now();
-  packing.forEach((l,i)=>b.update(db.doc('bioRequests/'+l.id), {status:'pulled', expiresAt:$('#pk-exp-'+i).value||'', pulledAt:now, pulledByName:me.name}));
+  packing.forEach((l,i)=>b.update(db.doc('bioRequests/'+l.id), {status:'pulled', source:srcOf(i), expiresAt:$('#pk-exp-'+i).value||'', pulledAt:now, pulledByName:me.name}));
   try{ await b.commit(); $('#pack-sheet').hidden = true; clearPicks(packing); toast(`Packed ${packing.length}.`); }catch(err){ console.error(err); toast('That didn’t save. Try again.'); }
 });
 
@@ -1598,7 +1617,7 @@ $('#used-form').addEventListener('submit', async e=>{
     b.update(db.doc('bioRequests/'+l.id), patch);
     if(s) b.update(db.doc('bioStock/'+s.id), {qty: FV().increment(-usedQty)});
   });
-  try{ await b.commit(); $('#used-sheet').hidden = true; clearPicks(using); toast(`Marked used. ${using.length===1?'It is':'They are'} on the PO page now.`); }catch(err){ console.error(err); toast('That didn’t save. Try again.'); }
+  try{ await b.commit(); $('#used-sheet').hidden = true; clearPicks(using); toast(using.some(needsPO) ? `Marked used. LifeNet/JRF grafts are on the PO page now.` : 'Marked used. RedSpot: no PO needed.'); }catch(err){ console.error(err); toast('That didn’t save. Try again.'); }
 });
 
 // Returned: asks if it's back on the shelf/freezer; optional photo.
@@ -1763,7 +1782,7 @@ let poFilter = 'need';
 function renderPO(){
   const terr = $('#po-territory').value, q = $('#po-search').value.trim().toLowerCase();
   $('#po-hint').textContent = poFilter==='need' ? 'Used grafts waiting for a PO. Enter the PO number for the case and save.' : (poFilter==='ready' ? (me.isAdmin ? 'PO entered. Add the sales order if you have it, then close.' : 'PO entered, waiting for an admin to close it.') : 'Closed.');
-  const used = bioReqs.filter(l=>l.status==='used' && (poFilter==='need' ? !l.poNumber : poFilter==='ready' ? (l.poNumber && !l.poClosed) : l.poClosed));
+  const used = bioReqs.filter(l=>l.status==='used' && needsPO(l) && (poFilter==='need' ? !l.poNumber : poFilter==='ready' ? (l.poNumber && !l.poClosed) : l.poClosed));
   const cases = groupCases(used).filter(c=>(terr==='All' || c.territory===terr) && caseMatches(c, q)).sort((a,b)=>(b.date||'').localeCompare(a.date||''));
   const wrap = $('#po-list'); wrap.innerHTML=''; $('#po-empty').hidden = cases.length>0;
   cases.forEach(c=>{
@@ -1774,8 +1793,9 @@ function renderPO(){
         <small>${escapeHtml(['Surgery '+fmtDate(c.date), c.territory, c.person].filter(Boolean).join(' · '))}</small>
         <div class="bc-grafts">${c.lines.map(l=>`<span>${escapeHtml(l.usedRef||l.graft)}${(+l.usedQty||+l.qty)>1?' ×'+(+l.usedQty||+l.qty):''}${l.lot?' · Lot '+escapeHtml(l.lot):''}</span>`).join('')}</div></div>
         <div class="bc-side">${c.link?`<a class="link-chip" href="${escapeHtml(c.link)}" target="_blank" rel="noopener noreferrer" title="${escapeHtml(c.link)}">LINK</a>`:''}${c.pdfName?'<button type="button" class="pdf-chip">PDF</button>':''}${l0.poClosed?`<span class="st used">Closed</span><small>${escapeHtml(l0.closedByName||'')}</small>`:''}</div></div>
-      <div class="po-form"></div>`;
+      <div class="po-form"></div><div class="so-box"></div>`;
     const pdf = el.querySelector('.pdf-chip'); if(pdf) pdf.onclick = ()=>openPdf(c);
+    el.querySelector('.so-box').replaceWith(soLinkBox(c, all));
     const f = el.querySelector('.po-form');
     if(poFilter==='need'){
       f.innerHTML = `<input placeholder="PO number" aria-label="PO number"><button type="button" class="go">Save PO</button>`;
@@ -1792,6 +1812,36 @@ function renderPO(){
     }
     wrap.appendChild(el);
   });
+}
+/* Updated Sales Order: the inventory manager pastes its link on the PO page; reps open it and email it to the account. */
+const soEditing = new Set();
+function soLinkBox(c, all){
+  const box = document.createElement('div'); box.className = 'so-box';
+  const l0 = c.lines.find(l=>l.soLink) || {};
+  const link = l0.soLink || '';
+  const canEdit = isManager();
+  if(link && !soEditing.has(c.id)){
+    const a = document.createElement('a'); a.className = 'so-open'; a.href = link; a.target = '_blank'; a.rel = 'noopener noreferrer';
+    a.innerHTML = LINK_ICON + '<span>Updated Sales Order</span>'; box.appendChild(a);
+    const subj = `Updated sales order · ${[c.account, c.surgeon].filter(Boolean).join(' · ')} · ${fmtDate(c.date)}`;
+    const body = `Hi,\n\nHere is the updated sales order for ${[c.surgeon ? 'Dr. '+c.surgeon.replace(/^dr\.?\s+/i,'') : '', 'the '+fmtDate(c.date)+' case'].filter(Boolean).join(', ')}${c.poNumber ? ' (PO '+c.poNumber+')' : ''}:\n${link}\n\nThank you,\n${me.name}`;
+    const m = document.createElement('a'); m.className = 'so-mail'; m.href = `mailto:?subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(body)}`; m.textContent = 'Email to account'; box.appendChild(m);
+    if(canEdit){ const e = document.createElement('button'); e.type='button'; e.textContent='Change'; e.onclick=()=>{ soEditing.add(c.id); renderPO(); }; box.appendChild(e); }
+    if(l0.soLinkByName){ const s = document.createElement('small'); s.textContent = 'Added by '+l0.soLinkByName; box.appendChild(s); }
+    return box;
+  }
+  if(!canEdit){ if(!link){ const s=document.createElement('small'); s.className='so-wait'; s.textContent='Updated Sales Order: not added yet.'; box.appendChild(s); } return box; }
+  box.innerHTML = `<input type="url" placeholder="Updated Sales Order link (paste)" aria-label="Updated Sales Order link"><button type="button" class="go">Save link</button>`;
+  const inp = box.querySelector('input'); inp.value = link;
+  box.querySelector('.go').onclick = async ()=>{
+    let v = inp.value.trim();
+    if(v && !/^https?:\/\//i.test(v)) v = 'https://' + v;
+    const b = db.batch(), now = Date.now();
+    all.forEach(l=>b.update(db.doc('bioRequests/'+l.id), v ? {soLink:v, soLinkByName:me.name, soLinkAt:now} : {soLink:null, soLinkByName:null, soLinkAt:null}));
+    try{ await b.commit(); soEditing.delete(c.id); toast(v ? 'Updated Sales Order link saved.' : 'Link removed.'); }catch(e){ console.error(e); toast('That didn’t save.'); }
+  };
+  if(link){ const x = document.createElement('button'); x.type='button'; x.textContent='Cancel'; x.onclick=()=>{ soEditing.delete(c.id); renderPO(); }; box.appendChild(x); }
+  return box;
 }
 $('#po-status').addEventListener('click', e=>{ const b=e.target.closest('button'); if(!b) return; poFilter=b.dataset.s; document.querySelectorAll('#po-status button').forEach(x=>x.classList.toggle('active', x===b)); renderPO(); });
 $('#po-territory').addEventListener('change', renderPO);

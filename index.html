@@ -19,7 +19,7 @@
   --line:#e3e8ef; --accent:#1a5fd6; --accent-ink:#ffffff;
   --baby:#dceeff; --baby-ink:#0f3f8c; --baby-soft:#f3f8ff; --baby-strong:#9fcbff;
   --danger:#b42318; --warn:#a87a06; --open:#1a5fd6; --good:#2f8f4e;
-  --t-surgery:#1a5fd6; --t-demo:#a87a06; --t-lab:#0f3f8c; --loaner:#0b0d12;
+  --t-surgery:#1a5fd6; --t-demo:#a87a06; --t-lab:#0f3f8c; --t-consigned:#6b3fa0; --loaner:#0b0d12;
   --radius:12px; --nav-h:62px;
   --sat:env(safe-area-inset-top,0px); --sab:env(safe-area-inset-bottom,0px);
 }
@@ -326,6 +326,15 @@ textarea{resize:vertical; min-height:64px;}
 .ret-head small{color:var(--sub); font-size:.78rem; overflow-wrap:anywhere;}
 .ret-head .badge{text-transform:none; flex:none;}
 /* History: one line per account visit, date on the left and the trays that went. Tap to see full details. */
+.cons-row{display:flex; align-items:center; gap:10px; padding:9px 12px; border-top:1px solid var(--line);}
+.h-acct-head + .cons-row{border-top:0;}
+.cons-main{flex:1; min-width:0; display:flex; flex-direction:column; gap:2px;}
+.cons-main b{font-size:.9rem; overflow-wrap:anywhere;}
+.cons-sub{color:var(--sub); font-size:.78rem;}
+.cons-act{display:flex; gap:6px; flex:none;}
+.cons-act button{background:var(--panel); border:1px solid var(--line); padding:5px 10px; min-height:34px; font-size:.76rem; display:inline-flex; align-items:center; gap:4px;}
+.cons-act button svg{width:14px; height:14px;}
+.cons-act button.ret{border-color:var(--ink); font-weight:700;}
 .h-acct{margin-bottom:16px; border:1px solid var(--line); border-radius:12px; overflow:hidden; background:var(--panel);}
 .h-acct-head{display:flex; align-items:baseline; gap:8px; padding:10px 12px; background:var(--panel-2); border-bottom:1px solid var(--line);}
 .h-acct-head b{font-size:.98rem;}
@@ -774,9 +783,9 @@ textarea{resize:vertical; min-height:64px;}
       <div class="signedin-box" id="signedin-box">Signed in</div>
       <form id="req-form">
         <div class="row2">
-          <div><label for="f-date">Surgery date</label><input type="date" id="f-date" required></div>
+          <div><label for="f-date" id="f-date-label">Surgery date</label><input type="date" id="f-date" required></div>
           <div><label for="f-type">Type</label>
-            <select id="f-type"><option value="Surgery">Surgery</option><option value="Demo">Demo</option><option value="Lab">Lab</option></select></div>
+            <select id="f-type"><option value="Surgery">Surgery</option><option value="Demo">Demo</option><option value="Lab">Lab</option><option value="Consigned">Consigned</option></select></div>
         </div>
         <label for="f-required">Date required at the account <span class="opt">(optional)</span></label>
         <input type="date" id="f-required">
@@ -883,6 +892,17 @@ textarea{resize:vertical; min-height:64px;}
     <div class="empty" id="empty" hidden>Nothing to pull here.</div>
   </div>
 
+  <div class="view" id="view-consigned">
+    <h2 class="page-title">Consigned trays</h2>
+    <p class="hint">Trays consigned up at an account. They have no return date and count as out of inventory until they're returned. Tap Return when one comes back.</p>
+    <div class="toolbar">
+      <select id="cons-territory"><option value="All">All territories</option></select>
+      <input type="search" id="cons-search" placeholder="Search account, tray…">
+    </div>
+    <div id="cons-list"></div>
+    <div class="empty" id="cons-empty" hidden>No consigned trays right now.</div>
+  </div>
+
   <div class="view" id="view-history">
     <div class="toolbar">
       <select id="hist-territory"><option value="All">All territories</option></select>
@@ -975,6 +995,7 @@ textarea{resize:vertical; min-height:64px;}
   <div class="view" id="view-more">
     <div class="more-list">
       <button data-go="history"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 8v4l3 2"/></svg><span>Territory History<small>Every request, filtered by territory</small></span></button>
+      <button data-go="consigned"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg><span>Consigned<small>Trays consigned at accounts, by location</small></span></button>
       <button data-go="inventory" class="m-only" id="more-inventory"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8 12 3 3 8v8l9 5 9-5z"/><path d="m3 8 9 5 9-5M12 13v8"/></svg><span>Inventory<small>Sets in stock, adjust counts</small></span></button>
       <button data-go="analysis" class="m-only" id="more-analysis"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><span>Analysis<small>Tray usage and overlap ranking</small></span></button>
       <button data-go="cards" class="m-only"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg><span>Preference Cards<small>Each surgeon's usual trays by procedure</small></span></button>
@@ -1036,6 +1057,7 @@ textarea{resize:vertical; min-height:64px;}
         <summary><span>Schedule, delivery and returns<small>Delivery photos, return photos, missing items</small></span></summary>
         <div class="h-body">
           <p><b>Schedule</b> shows every case by surgery date (reps see their own territory first). Tap a case to add <b>delivery photos</b> and mark trays <b>Delivered</b>.</p>
+          <p><b>Consigned:</b> pick Type <b>Consigned</b> when a tray is going to stay up at an account. It's pulled and delivered like any request but has no return date, and it counts as out of inventory until it's returned. <b>More → Consigned</b> lists every consigned tray by account; tap <b>Return</b> there when one comes back.</p>
           <p><b>Turn over:</b> if a tray is already at an account for a case, a request for the same tray at the same account up to a week later shows <b>Turn over</b> (in the pull queue and on the Schedule). That keeps the set there instead of pulling another. When delivering it, say whether it was used: if yes, take a new photo of it set up again; if not, the original delivery photo is kept. The earlier case's tray isn't expected back on Returns; it comes back after the later case.</p>
           <p><b>Returns</b> lists cases once surgery day arrives; trays are due back 1 business day after.</p>
           <ol>
@@ -1118,7 +1140,7 @@ textarea{resize:vertical; min-height:64px;}
         </div>
         <div class="row2">
           <div><label for="ce-type">Usual type</label>
-            <select id="ce-type"><option value="Surgery">Surgery</option><option value="Demo">Demo</option><option value="Lab">Lab</option></select></div>
+            <select id="ce-type"><option value="Surgery">Surgery</option><option value="Demo">Demo</option><option value="Lab">Lab</option><option value="Consigned">Consigned</option></select></div>
           <div><label for="ce-account">Usual account <span class="opt">(optional)</span></label><input id="ce-account" list="dl-accounts" placeholder="e.g. PPMC" autocapitalize="characters" autocomplete="off"></div>
         </div>
         <label>Trays</label>
@@ -1257,14 +1279,14 @@ ACCOUNTS.forEach(a=>{ const k=(a[2]||'').toLowerCase(); if(a[2] && (!TERR_CANON.
 const canonTerr = s => TERR_CANON.get(String(s||'').toLowerCase()) || s || '';
 const accMap = new Map(ACCOUNTS.map(([c,n,t])=>[c.toUpperCase(), {name:n, territory:canonTerr(t)}]));
 const TERRITORIES = [...new Set(ACCOUNTS.map(a=>canonTerr(a[2])).filter(Boolean))].sort();
-const TYPE_VAR = {Surgery:'--t-surgery', Demo:'--t-demo', Lab:'--t-lab'};
+const TYPE_VAR = {Surgery:'--t-surgery', Demo:'--t-demo', Lab:'--t-lab', Consigned:'--t-consigned'};
 
 const $ = (s,r)=> (r||document).querySelector(s);
 function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 let toastTimer;
 function toast(msg){ const t=$('#toast'); t.textContent=msg; t.hidden=false; clearTimeout(toastTimer); toastTimer=setTimeout(()=>{t.hidden=true;}, 3500); }
 
-for(const sel of ['#f-territory','#hist-territory','#board-territory','#returns-territory','#sst-territory','#fav-territory']){
+for(const sel of ['#cons-territory','#f-territory','#hist-territory','#board-territory','#returns-territory','#sst-territory','#fav-territory']){
   TERRITORIES.forEach(t=>{const o=document.createElement('option'); o.value=t; o.textContent=t; $(sel).appendChild(o);});
 }
 $('#dl-accounts').innerHTML = ACCOUNTS.map(a=>`<option value="${escapeHtml(a[0])}">${escapeHtml(a[1])}</option>`).join('');
@@ -1793,7 +1815,7 @@ $('#to-mine').addEventListener('click', ()=>{ if(editingReqId) exitEditMode(); i
 
 /* ---- editing an existing request (one tray per request) ---- */
 function resetRequestForm(){
-  $('#req-form').reset(); $('#f-type').value='Surgery'; renderTrayLines(1, false); refreshProcedureOptions(false); applyMyTerritories();
+  $('#req-form').reset(); $('#f-type').value='Surgery'; syncTypeLabels(); renderTrayLines(1, false); refreshProcedureOptions(false); applyMyTerritories();
   $('#f-sst').value='No'; $('#sst-template').hidden = true; $('#pref-note').hidden = true; $('#form-msg').textContent='';
   updateRequiredHelp();
 }
@@ -1809,7 +1831,7 @@ function openEdit(r){
   $('#f-date').value = r.dateNeeded || '';
   $('#f-required').value = r.dateRequired || '';
   updateRequiredHelp();
-  $('#f-type').value = r.type || 'Surgery';
+  $('#f-type').value = r.type || 'Surgery'; syncTypeLabels();
   $('#f-surgeon').value = r.surgeon || '';
   refreshProcedureOptions(false);
   const card = cardsForSurgeon(r.surgeon).find(c=>(c.procedure||'').toLowerCase()===(r.procedure||'').toLowerCase());
@@ -1851,7 +1873,7 @@ function openAddToCase(c){
   resetRequestForm();
   const f = c.trays[0];
   addingToCase = {caseId: c.trays.find(t=>t.caseId)?.caseId || null, first:f, trays:c.trays, label:`${caseTitle(c)} · ${fmtDate(c.date)}`};
-  $('#f-date').value = f.dateNeeded||''; $('#f-required').value = f.dateRequired||''; $('#f-type').value = f.type||'Surgery';
+  $('#f-date').value = f.dateNeeded||''; $('#f-required').value = f.dateRequired||''; $('#f-type').value = f.type||'Surgery'; syncTypeLabels();
   $('#f-surgeon').value = f.surgeon||''; refreshProcedureOptions(false);
   $('#f-account').value = f.account||'';
   if(f.territory && ![...$('#f-territory').options].some(o=>o.value===f.territory)){ const o=document.createElement('option'); o.value=f.territory; o.textContent=f.territory; $('#f-territory').appendChild(o); }
@@ -2030,7 +2052,7 @@ function docById(id){ return id ? allDocs.find(x=>x.id===id) : null; }
 function addDaysIso(iso, n){ const d=new Date(iso+'T00:00:00'); d.setDate(d.getDate()+n); return isoDate(d); }
 function acctKey(a){ return String(a||'').trim().toUpperCase(); }
 function turnoverSourceFor(r){
-  if(!r || (r.status||'open')!=='open' || r.turnoverFrom || !r.tray || !r.dateNeeded) return null;
+  if(!r || (r.status||'open')!=='open' || r.turnoverFrom || !r.tray || !r.dateNeeded || isConsigned(r)) return null;
   const k = trayKey(r.tray), a = acctKey(r.account), min = addDaysIso(r.dateNeeded, -TURNOVER_DAYS);
   let best = null;
   for(const p of allDocs){
@@ -2309,7 +2331,10 @@ function trayWindow(r){
   return {start, end, held:false};
 }
 let loanerProbe = null;   // a not-yet-saved request, checked against everything else (see availabilityFor)
-function returnDateFor(r){ return r.dateNeeded ? addBizDays(r.dateNeeded, RETURN_LAG_DAYS) : todayIso(); }
+/* Consigned trays stay at the account with no return date: they hold a set until someone returns them. */
+const NO_RETURN = '9999-12-31';
+function isConsigned(r){ return (r && r.type) === 'Consigned'; }
+function returnDateFor(r){ if(isConsigned(r)) return NO_RETURN; return r.dateNeeded ? addBizDays(r.dateNeeded, RETURN_LAG_DAYS) : todayIso(); }
 function computeLoaners(){
   shortIds = new Set(); shortageAlerts = [];
   urgentNeed = new Map(); urgentHold = new Map(); urgentPools = [];
@@ -2900,6 +2925,43 @@ function buildHistCase(c){
   el.appendChild(box);
   return el;
 }
+/* Consigned page: every consigned tray that hasn't come back, grouped by account (its location). */
+function renderConsigned(){
+  const terr = $('#cons-territory').value;
+  const q = $('#cons-search').value.trim().toLowerCase();
+  const rows = allDocs.filter(r=>{
+    if(!isConsigned(r) || r.status==='cancelled' || r.returned) return false;
+    if(terr!=='All' && canonTerr(r.territory)!==terr) return false;
+    if(!q) return true;
+    const acct = (accMap.get((r.account||'').trim().toUpperCase())||{}).name || '';
+    return [r.account, acct, r.tray, r.surgeon, r.notes].join(' ').toLowerCase().includes(q);
+  });
+  const wrap = $('#cons-list'); wrap.innerHTML = '';
+  $('#cons-empty').hidden = rows.length>0;
+  const byAcct = new Map();
+  rows.forEach(r=>{ const k=(r.account||'—').trim().toUpperCase(); if(!byAcct.has(k)) byAcct.set(k, []); byAcct.get(k).push(r); });
+  [...byAcct.keys()].sort().forEach(acct=>{
+    const list = byAcct.get(acct).sort((a,b)=>(a.tray||'').localeCompare(b.tray||''));
+    const sec = document.createElement('section'); sec.className='h-acct';
+    const name = (accMap.get(acct)||{}).name || '';
+    const terrs = [...new Set(list.map(r=>r.territory).filter(Boolean))].join(', ');
+    sec.innerHTML = `<div class="h-acct-head"><b>${escapeHtml(acct)}</b><span>${escapeHtml([name, terrs].filter(Boolean).join(' · '))}</span><small>${list.length} tray${list.length===1?'':'s'}</small></div>`;
+    list.forEach(r=>{
+      const st = r.delivered ? 'At the account' : ((r.status||'open')==='fulfilled' ? 'Pulled, on its way' : 'Not pulled yet');
+      const since = r.delivered ? 'since '+fmtDate(r.dateNeeded) : 'going up '+fmtDate(r.dateNeeded);
+      const row = document.createElement('div'); row.className='cons-row';
+      row.innerHTML = `<div class="cons-main"><b>${escapeHtml(r.tray||'—')}</b><span class="cons-sub">${escapeHtml([st, since, nameForRequest(r) ? 'requested by '+nameForRequest(r) : ''].filter(Boolean).join(' · '))}</span>${r.notes?`<span class="cons-sub">${escapeHtml(r.notes)}</span>`:''}</div><div class="cons-act"></div>`;
+      const act = row.querySelector('.cons-act');
+      const pb = document.createElement('button'); pb.type='button'; pb.className=(r.photoCount||0)?'has':''; pb.innerHTML = CAM + `<span>${(r.photoCount||0) ? `Photos (${r.photoCount})` : 'Photo'}</span>`;
+      pb.onclick = ()=>openPhotoSheet(r.id, 'delivery'); act.appendChild(pb);
+      if(r.delivered){ const rb = document.createElement('button'); rb.type='button'; rb.className='ret'; rb.textContent='Return'; rb.onclick = ()=>openPhotoSheet(r.id, 'return'); act.appendChild(rb); }
+      sec.appendChild(row);
+    });
+    wrap.appendChild(sec);
+  });
+}
+$('#cons-territory').addEventListener('change', renderConsigned);
+$('#cons-search').addEventListener('input', renderConsigned);
 function todayIso(){ return isoDate(new Date()); }
 /* Returns: dropdown case rows, split into "Waiting to come back" and "Returned". */
 const returnsExpanded = new Set();
@@ -2907,7 +2969,8 @@ function renderReturns(){
   const terr = $('#returns-territory').value;
   const today = todayIso();
   // Trays turned over to a later case stay at the account; they come back after that case instead.
-  const rows = allDocs.filter(r=> r.dateNeeded && r.dateNeeded <= today && r.status!=='cancelled' && !r.turnedOverTo && (terr==='All' || canonTerr(r.territory)===terr));
+  // Consigned trays have no due date: they're returned from the Consigned page, and only show here if something came back missing.
+  const rows = allDocs.filter(r=> r.dateNeeded && r.dateNeeded <= today && r.status!=='cancelled' && !r.turnedOverTo && !(isConsigned(r) && !r.returned) && (terr==='All' || canonTerr(r.territory)===terr));
   const cases = groupCases(rows, true);
   cases.forEach(c=>{ c.dueBack = returnDateFor(c.trays[0]); c.out = c.trays.filter(t=>!t.returned).length; });
   const waiting = cases.filter(c=>c.out).sort((a,b)=>a.dueBack.localeCompare(b.dueBack) || a.account.localeCompare(b.account));
@@ -3069,6 +3132,9 @@ $('#req-territory').addEventListener('change', renderRequests);
 $('#hist-territory').addEventListener('change', renderHistory);
 $('#hist-search').addEventListener('input', renderHistory);
 $('#returns-territory').addEventListener('change', renderReturns);
+// Consigned requests: the date is when it goes up to the account, and there's no surgery or return date.
+function syncTypeLabels(){ $('#f-date-label').textContent = $('#f-type').value==='Consigned' ? 'Date it goes up to the account' : 'Surgery date'; }
+$('#f-type').addEventListener('change', syncTypeLabels);
 
 /* ---- boards ---- */
 function mondayOf(date){ const d=new Date(date); const day=d.getDay(); const diff=(day===0?-6:1-day); d.setDate(d.getDate()+diff); d.setHours(0,0,0,0); return d; }
@@ -3311,7 +3377,8 @@ function renderInventory(){
     if(qty===0){ const z=document.createElement('span'); z.className='inv-zero'; z.textContent='None in stock'; nameEl.appendChild(z); }
     else if(!unknown){
       const out = allDocs.filter(r=>r.status==='fulfilled' && !r.returned && r.tray && (getTrayKey(r.tray)||r.tray)===name).length;
-      if(out){ const z=document.createElement('span'); z.className='inv-out'; z.textContent=`${out} out now · ${Math.max(0,qty-out)} on the shelf`; nameEl.appendChild(z); }
+      const cons = allDocs.filter(r=>isConsigned(r) && r.status==='fulfilled' && !r.returned && r.tray && (getTrayKey(r.tray)||r.tray)===name).length;
+      if(out){ const z=document.createElement('span'); z.className='inv-out'; z.textContent=`${out} out now${cons?` (${cons} consigned)`:''} · ${Math.max(0,qty-out)} on the shelf`; nameEl.appendChild(z); }
     }
     else if(unknown){ const z=document.createElement('span'); z.className='inv-zero'; z.textContent='Count unknown'; nameEl.appendChild(z); }
     if(low){ const z=document.createElement('span'); z.className='inv-low'; z.textContent='Low inventory · shortages go straight to Loaner needed'; nameEl.appendChild(z); }
@@ -3889,6 +3956,7 @@ function renderAll(){
   computeLoaners();
   if(isManager()){ renderRequests(); renderChart(); renderAlerts(); }
   renderMine(); renderHistory(); renderReturns(); renderAnalysis();
+  if(activeViewId()==='consigned') renderConsigned();
   if(psReqId) renderPhotoSheet();
   const v = activeViewId();
   if(v==='board') renderBoard();
@@ -3947,6 +4015,7 @@ function showView(view){
   if(view==='mytrays') renderMyTrays();
   if(view==='analysis') renderAnalysis();
   if(view==='history') renderHistory();
+  if(view==='consigned') renderConsigned();
   if(view==='returns') renderReturns();
   if(view==='sst'){ if(!$('#sst-report-date').value) $('#sst-report-date').value = todayIso(); renderSst(); }
   if(view==='inventory') renderInventory();

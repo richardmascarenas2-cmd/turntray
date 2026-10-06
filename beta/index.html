@@ -4142,6 +4142,14 @@ $('#agency-form').addEventListener('submit', async e=>{
   }catch(err){ console.error(err); msg.textContent = 'Could not save. Only admins can change the agency.'; msg.className='status-msg err'; }
 });
 
+/* Two-tap confirm (pop-up confirm() boxes don't show in some in-app browsers). First tap arms the button. */
+function armed(btn, label){
+  if(btn.dataset.armed==='1'){ btn.dataset.armed=''; clearTimeout(btn._armT); btn.textContent = btn.dataset.label; return true; }
+  btn.dataset.label = btn.dataset.label || btn.textContent;
+  btn.dataset.armed='1'; btn.textContent = label || 'Tap again to confirm';
+  btn._armT = setTimeout(()=>{ btn.dataset.armed=''; btn.textContent = btn.dataset.label; }, 5000);
+  return false;
+}
 /* ---- all agencies (owner): approve new ones, open any of them ---- */
 let agenciesUnsub = null, agenciesList = [];
 function watchAgencies(){
@@ -4177,7 +4185,7 @@ function renderAgencies(){
     };
     if(st!=='active') btn('Approve', ()=>setStatus('active'), 'go');
     if(st==='pending') btn('Don’t approve', ()=>setStatus('rejected'));
-    if(st==='active' && a.id!=='turntray-admin') btn('Suspend', ()=>{ if(confirm(`Suspend ${a.name}? Their team won't be able to open it until you approve it again.`)) setStatus('rejected'); });
+    if(st==='active' && a.id!=='turntray-admin') { const sb = btn('Suspend', ()=>{ if(armed(sb, 'Tap again to suspend')) setStatus('rejected'); }); }
     if(!agency || a.id!==agency.id) btn('Open', ()=>TT.ownerOpen(a.id));
     if(a.createdByEmail) btn('Email admin', ()=>{ location.href = `mailto:${encodeURIComponent(a.createdByEmail)}?subject=${encodeURIComponent('TurnTray: '+(a.name||''))}`; });
     list.appendChild(el);
@@ -4187,7 +4195,7 @@ $('#mig-run').addEventListener('click', async ()=>{
   const target = $('#mig-target').value, sendTeam = $('#mig-directory').checked;
   const msg = $('#mig-msg'), btn = $('#mig-run');
   if(sendTeam && target!=='portland'){ msg.textContent = 'Only send the team to the real portland agency, at the switch-over.'; msg.className='status-msg err'; return; }
-  if(!confirm(`Copy all of the current app's data into "${target}"${sendTeam ? ' and send the Portland team there when they sign in' : ''}? Existing data with the same names in "${target}" is overwritten.`)) return;
+  if(!armed(btn, `Tap again to copy into ${target}${sendTeam ? ' and send the team' : ''}`)) return;
   btn.disabled = true; msg.className='status-msg';
   try{
     if(!window.TTMigrate) await new Promise((res, rej)=>{ const sc=document.createElement('script'); sc.src='migrate.js'; sc.onload=res; sc.onerror=()=>rej(new Error('Could not load migrate.js')); document.head.appendChild(sc); });
@@ -4245,7 +4253,7 @@ $('#apply-form').addEventListener('submit', async e=>{
 });
 $('#pending-retry').addEventListener('click', ()=>handleUser(auth.currentUser));
 $('#pending-withdraw').addEventListener('click', async ()=>{
-  if(!confirm('Cancel this agency application?')) return;
+  if(!armed($('#pending-withdraw'), 'Tap again to cancel the application')) return;
   try{ await TT.withdraw(db, auth.currentUser); handleUser(auth.currentUser); }
   catch(e){ console.error(e); $('#pending-msg').textContent = 'Could not cancel. Try again.'; $('#pending-msg').className='status-msg err'; }
 });

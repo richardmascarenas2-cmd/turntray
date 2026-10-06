@@ -4198,7 +4198,7 @@ $('#mig-run').addEventListener('click', async ()=>{
   if(!armed(btn, `Tap again to copy into ${target}${sendTeam ? ' and send the team' : ''}`)) return;
   btn.disabled = true; msg.className='status-msg';
   try{
-    if(!window.TTMigrate) await new Promise((res, rej)=>{ const sc=document.createElement('script'); sc.src='migrate.js'; sc.onload=res; sc.onerror=()=>rej(new Error('Could not load migrate.js')); document.head.appendChild(sc); });
+    if(!window.TTMigrate) await new Promise((res, rej)=>{ const sc=document.createElement('script'); sc.src='migrate.js?v='+Date.now(); sc.onload=res; sc.onerror=()=>rej(new Error('Could not load migrate.js')); document.head.appendChild(sc); });
     const r = await TTMigrate.copyLegacy(db, target, {sendTeam, ownerEmail: me.email, onProgress: t=>{ msg.textContent = t; }});
     msg.textContent = `Done: ${r.docs} records and ${r.photos} photos copied into ${target}.` + (sendTeam ? ` ${r.directory} team members will open it when they sign in.` : ` Open it from the list above to check it.`);
     msg.className='status-msg ok';

@@ -9,16 +9,33 @@
 
   /* Writes in batches that stay under Firestore's limits (500 writes, ~10 MB per batch). */
   function writer(db){
-    let batch = db.batch(), ops = 0, bytes = 0, total = 0;
-    async function flush(){ if(!ops) return; await batch.commit(); total += ops; batch = db.batch(); ops = 0; bytes = 0; }
+    let batch = db.batch(), ops = [], bytes = 0, total = 0;
+    async function flush(){
+      if(!ops.length) return;
+      try{ await batch.commit(); }
+      catch(e){
+        // Find the record that was refused, so the error says what it was.
+        for(const [ref, data] of ops){
+          try{ await ref.set(data); }
+          catch(e2){ const err = new Error(`${e2.message || e2} (writing ${ref.path})`); err.code = e2.code; throw err; }
+        }
+      }
+      total += ops.length; batch = db.batch(); ops = []; bytes = 0;
+    }
     return {
       async set(ref, data){
         const size = JSON.stringify(data).length + 200;
-        if(ops >= 400 || bytes + size > 7e6) await flush();
-        batch.set(ref, data); ops++; bytes += size;
+        if(ops.length >= 400 || bytes + size > 7e6) await flush();
+        batch.set(ref, data); ops.push([ref, data]); bytes += size;
       },
-      flush, get total(){ return total + ops; }
+      flush, get total(){ return total + ops.length; }
     };
+  }
+
+  /* Reads that name what they were reading if they're refused. */
+  async function read(q, label){
+    try{ return await q.get(); }
+    catch(e){ const err = new Error(`${e.message || e} (reading ${label})`); err.code = e.code; throw err; }
   }
 
   async function copyLegacy(db, target, opts){
@@ -43,17 +60,17 @@
 
     for(const name of FLAT){
       say(`Copying ${name}…`);
-      const snap = await db.collection(name).get();
+      const snap = await read(db.collection(name), name);
       for(const d of snap.docs){ await w.set(db.doc(base + name + '/' + d.id), d.data()); docs++; }
       await w.flush();
     }
     // The owner is always an admin of Portland.
-    const om = await db.doc('members/' + opts.ownerEmail).get();
+    const om = await read(db.doc('members/' + opts.ownerEmail), 'members/' + opts.ownerEmail);
     await w.set(db.doc(base + 'members/' + opts.ownerEmail), {...(om.exists ? om.data() : {role: 'inventory'}), admin: true});
     await w.flush();
 
     say('Reading requests…');
-    const reqs = await db.collection('requests').get();
+    const reqs = await read(db.collection('requests'), 'requests');
     let i = 0;
     for(const r of reqs.docs){
       i++;
@@ -61,7 +78,7 @@
       if(i % 25 === 0) say(`Copying requests: ${i} of ${reqs.size} (${photos} photos so far)…`);
       await w.set(db.doc(base + 'requests/' + r.id), r.data()); docs++;
       for(const sub of ['comments', 'photos']){
-        const s = await db.collection('requests/' + r.id + '/' + sub).get();
+        const s = await read(db.collection('requests/' + r.id + '/' + sub), 'requests/' + r.id + '/' + sub);
         for(const d of s.docs){ await w.set(db.doc(base + 'requests/' + r.id + '/' + sub + '/' + d.id), d.data()); if(sub === 'photos') photos++; else docs++; }
       }
       await w.flush();
@@ -73,7 +90,7 @@
     let directory = 0;
     if(opts.sendTeam){
       say('Sending the team to the new agency…');
-      const members = await db.collection('members').get();
+      const members = await read(db.collection('members'), 'members');
       const emails = new Set(members.docs.map(d => d.id.toLowerCase()));
       emails.add(opts.ownerEmail.toLowerCase());
       for(const email of emails){ await w.set(db.doc('directory/' + email), {agencyId: target, addedAt: Date.now(), addedBy: 'migration'}); directory++; }

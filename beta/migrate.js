@@ -17,7 +17,11 @@
         // Find the record that was refused, so the error says what it was.
         for(const [ref, data] of ops){
           try{ await ref.set(data); }
-          catch(e2){ const err = new Error(`${e2.message || e2} (writing ${ref.path})`); err.code = e2.code; throw err; }
+          catch(e2){
+            // Photos can't be overwritten; one already copied by an earlier run is fine to skip.
+            const ex = await ref.get().catch(()=>null);
+            if(ex && ex.exists && /\/(photos|bioPhotos)\//.test(ref.path)) continue;
+            const err = new Error(`${e2.message || e2} (writing ${ref.path})`); err.code = e2.code; throw err; }
         }
       }
       total += ops.length; batch = db.batch(); ops = []; bytes = 0;

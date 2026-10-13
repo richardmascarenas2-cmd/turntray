@@ -426,6 +426,11 @@ textarea{resize:vertical; min-height:64px;}
 .danger-btn{background:var(--bg); border:1px solid var(--danger); color:var(--danger); padding:12px 14px; width:100%; margin-top:16px; font-size:.92rem;}
 
 /* ---------- preference cards ---------- */
+.save-card{margin:10px 0 4px; padding:10px 12px; border:1px dashed var(--line); border-radius:10px;}
+.save-card[hidden]{display:none;}
+.save-card .check{margin:0; font-weight:600;}
+.save-card #sc-body{margin-top:8px;}
+.save-card .tray-help{margin-bottom:0;}
 .pref-note{margin-top:8px; font-size:.8rem; color:var(--accent); background:color-mix(in srgb, var(--accent) 10%, var(--bg)); border:1px solid color-mix(in srgb, var(--accent) 35%, var(--line)); border-radius:9px; padding:8px 10px;}
 .btn-small{background:var(--accent); color:var(--accent-ink); padding:9px 14px;}
 .pc-group{margin-bottom:18px;}
@@ -1161,6 +1166,15 @@ textarea{resize:vertical; min-height:64px;}
         <div id="tray-lines"></div>
         <button type="button" class="ce-add" id="add-tray">+ Add another tray</button>
         <p class="tray-help" id="tray-help">Add every tray for the case at once. Picking a procedure fills in the trays from its preference card.</p>
+        <div class="save-card" id="save-card">
+          <label class="check"><input type="checkbox" id="sc-on"> <span id="sc-label">Save as a preference card</span></label>
+          <div id="sc-body" hidden>
+            <label for="sc-procedure">Procedure</label>
+            <input id="sc-procedure" list="dl-procedures" placeholder="e.g. ACL reconstruction" autocomplete="off" maxlength="80">
+            <datalist id="dl-procedures"></datalist>
+            <p class="tray-help" id="sc-help"></p>
+          </div>
+        </div>
         <label for="f-notes">Notes</label>
         <textarea id="f-notes" placeholder="Optional details…"></textarea>
         <button type="submit" class="btn-primary" id="submit-btn">Submit request</button>
@@ -2297,7 +2311,10 @@ function refreshProcedureOptions(keepSelection){
   if(!$('#f-surgeon').value.trim()){ sel.innerHTML = '<option value="">Pick a surgeon first</option>'; sel.disabled = true; }
   else if(!cards.length){ sel.innerHTML = '<option value="">No cards for this surgeon</option>'; sel.disabled = true; }
   else{
-    sel.innerHTML = '<option value="">Choose a procedure…</option>' + cards.map(c=>`<option value="${escapeHtml(c.id)}">${escapeHtml(c.procedure||'Untitled')}</option>`).join('');
+    const acct = $('#f-account').value.trim().toUpperCase();
+    const many = p => cards.filter(c=>sameText(c.procedure, p)).length > 1;
+    const ordered = [...cards].sort((a,b)=> (sameText(b.account,acct)?1:0)-(sameText(a.account,acct)?1:0) || (a.procedure||'').localeCompare(b.procedure||''));
+    sel.innerHTML = '<option value="">Choose a procedure…</option>' + ordered.map(c=>`<option value="${escapeHtml(c.id)}">${escapeHtml((c.procedure||'Untitled') + (c.account && many(c.procedure) ? ' · '+c.account : ''))}</option>`).join('');
     sel.disabled = false;
     if(prev && cards.some(c=>c.id===prev)) sel.value = prev;
   }
@@ -2322,6 +2339,47 @@ $('#f-procedure').addEventListener('change', ()=>{
   note.hidden = false;
   updateSstPreview();
 });
+/* ---- save the request's trays as a preference card ---- */
+const sameText = (a,b)=>String(a||'').trim().toLowerCase()===String(b||'').trim().toLowerCase();
+// A card belongs to a surgeon + procedure + account (a card with no account works anywhere).
+function matchingCard(surgeon, procedure, account){
+  const list = prefCards.filter(c=>normName(c.surgeon)===normName(surgeon) && sameText(c.procedure, procedure));
+  return list.find(c=>sameText(c.account, account)) || list.find(c=>!String(c.account||'').trim()) || null;
+}
+function refreshSaveCard(){
+  const box = $('#save-card');
+  box.hidden = !!editingReqId || !!addingToCase;
+  if(box.hidden) return;
+  const on = $('#sc-on').checked;
+  $('#sc-body').hidden = !on;
+  const surgeon = $('#f-surgeon').value.trim(), account = $('#f-account').value.trim().toUpperCase();
+  const proc = $('#sc-procedure').value.trim();
+  $('#dl-procedures').innerHTML = [...new Set(prefCards.map(c=>(c.procedure||'').trim()).filter(Boolean))].sort().map(p=>`<option value="${escapeHtml(p)}">`).join('');
+  const ex = surgeon && proc ? matchingCard(surgeon, proc, account) : null;
+  $('#sc-label').textContent = ex ? 'Update the preference card with these trays' : 'Save as a preference card';
+  const who = surgeon || 'this surgeon', where = account ? ` at ${account}` : '';
+  $('#sc-help').textContent = !surgeon ? 'Enter the surgeon above first.'
+    : ex ? `Replaces the trays on ${ex.surgeon}'s ${ex.procedure} card${ex.account ? ' at '+ex.account : ''} with the trays on this request.`
+    : `Saves ${who}'s trays for ${proc || 'this procedure'}${where}. Next time, pick the procedure to fill them in.`;
+}
+$('#sc-on').addEventListener('change', ()=>{
+  if($('#sc-on').checked && !$('#sc-procedure').value.trim()){
+    const card = prefCards.find(c=>c.id===$('#f-procedure').value); if(card) $('#sc-procedure').value = card.procedure || '';
+  }
+  refreshSaveCard();
+  if($('#sc-on').checked && !$('#sc-procedure').value.trim()) $('#sc-procedure').focus();
+});
+['#sc-procedure','#f-surgeon','#f-account'].forEach(sel=>$(sel).addEventListener('input', refreshSaveCard));
+$('#f-procedure').addEventListener('change', ()=>{ const card = prefCards.find(c=>c.id===$('#f-procedure').value); if(card && !$('#sc-on').checked) $('#sc-procedure').value = card.procedure || ''; refreshSaveCard(); });
+function saveRequestAsCard(surgeon, procedure, account, trays, type){
+  const keys = trays.map(v=>getTrayKey(v)||v);
+  const ex = matchingCard(surgeon, procedure, account);
+  const data = {surgeon: ex ? ex.surgeon : surgeon, procedure: ex ? ex.procedure : procedure, trays: keys, type, account: ex && !String(ex.account||'').trim() ? '' : account,
+    notes: ex ? (ex.notes||'') : '', updatedBy: me.name, updatedById: me.uid, updatedAt: Date.now()};
+  const ref = ex ? adb.doc('prefCards/'+ex.id) : adb.collection('prefCards').doc();
+  ref.set(data).catch(err=>{ console.error(err); toast('The preference card didn’t save. Check your access and try again.'); });
+  return {how: ex ? 'Updated' : 'Saved', name: `${data.surgeon} · ${data.procedure}`};
+}
 refreshProcedureOptions(false);
 /* The Add Request page: form, then "My requests". On a phone only one half shows at a time. */
 function setAddMode(mode){
@@ -2343,6 +2401,7 @@ $('#to-mine').addEventListener('click', ()=>{ if(editingReqId) exitEditMode(); i
 function resetRequestForm(){
   $('#req-form').reset(); $('#f-type').value='Surgery'; syncTypeLabels(); renderTrayLines(1, false); refreshProcedureOptions(false); applyMyTerritories();
   $('#f-sst').value='No'; $('#sst-template').hidden = true; $('#pref-note').hidden = true; $('#form-msg').textContent='';
+  $('#sc-on').checked = false; $('#sc-procedure').value = ''; refreshSaveCard();
   updateRequiredHelp();
 }
 function openEdit(r){
@@ -2413,6 +2472,7 @@ function openAddToCase(c){
   $('#signedin-box').textContent = `Adding to ${addingToCase.label} (${c.trays.length} tray${c.trays.length===1?'':'s'} already). Only the new trays go below.`;
   $('#edit-cancel').hidden = false; $('#edit-cancel').textContent = 'Cancel';
   $('#submit-btn').textContent = 'Add to case';
+  refreshSaveCard();
   showView('add'); setAddMode('form'); window.scrollTo(0,0);
   document.querySelector('.f-tray-input').focus();
 }
@@ -2489,6 +2549,10 @@ $('#req-form').addEventListener('submit', async (e)=>{
   if(!trays.length){ msg.textContent='Enter at least one tray / item.'; msg.className='status-msg err'; return; }
   if(!me){ msg.textContent='You’re signed out. Sign in and try again.'; msg.className='status-msg err'; return; }
   if(addingToCase){ await submitAddToCase(trays); return; }
+  const saveCard = $('#sc-on').checked;
+  const scProc = $('#sc-procedure').value.trim();
+  if(saveCard && !$('#f-surgeon').value.trim()){ msg.textContent='Enter the surgeon to save a preference card.'; msg.className='status-msg err'; return; }
+  if(saveCard && !scProc){ msg.textContent='Enter the procedure for the preference card.'; msg.className='status-msg err'; $('#sc-procedure').focus(); return; }
   // Count this person's requests before saving, for the 69th-request pop-up.
   const priorRequests = new Set(allDocs.filter(r=>r.requestedById===me.uid).map(r=>r.caseId || caseKey(r))).size;
   const isSst = $('#f-sst').value === 'Yes';
@@ -2497,7 +2561,7 @@ $('#req-form').addEventListener('submit', async (e)=>{
     dateNeeded: $('#f-date').value, dateRequired: $('#f-required').value || '', territory: $('#f-territory').value,
     account: $('#f-account').value.trim(),
     type: $('#f-type').value, surgeon: $('#f-surgeon').value.trim(), notes: $('#f-notes').value.trim(),
-    procedure: (prefCards.find(c=>c.id===$('#f-procedure').value)||{}).procedure || '',
+    procedure: (saveCard && scProc) || (prefCards.find(c=>c.id===$('#f-procedure').value)||{}).procedure || '',
     requestedById: me.uid, requestedByName: me.name, status: 'open', createdAt: Date.now(), returned: false,
     currentTrays:'', sameDay:'', previousDay:'', sdOverload:false, pdOverload:false,
     turnover:'', outgoing:false, delivered:false, transfer:'',
@@ -2515,9 +2579,11 @@ $('#req-form').addEventListener('submit', async (e)=>{
     });
     batch.commit().catch(err=>{ console.error(err); toast('A request could not be saved. Check that you still have access.'); });
     freshIds.clear(); ids.forEach(id=>freshIds.add(id));
+    let cardNote = '';
+    if(saveCard){ const r = saveRequestAsCard(base.surgeon, scProc, base.account.toUpperCase(), trays, base.type); cardNote = ` ${r.how} the ${r.name} preference card.`; }
     const who = [base.account, base.surgeon].filter(Boolean).join(' · ');
     lastSubmit = {ids, text: `${trays.length} tray${trays.length===1?'':'s'} for ${who} on ${fmtDate(base.dateNeeded)}.`};
-    $('#sent-text').innerHTML = `<b>Request sent.</b> ${escapeHtml(lastSubmit.text)}`;
+    $('#sent-text').innerHTML = `<b>Request sent.</b> ${escapeHtml(lastSubmit.text + cardNote)}`;
     $('#sent-banner').hidden = false; $('#sent-undo').hidden = false;
     if(priorRequests + 1 === 69) celebrate();
     mineTab = base.dateNeeded < todayIso() ? 'past' : 'upcoming';
@@ -4395,8 +4461,9 @@ $('#card-form').addEventListener('submit', async e=>{
   const trays = [...document.querySelectorAll('#ce-trays .ce-tray-input')].map(i=>i.value.trim()).filter(Boolean).map(v=>getTrayKey(v)||v);
   if(!surgeon || !procedure){ msg.textContent='Enter the surgeon and the procedure.'; msg.className='status-msg err'; return; }
   if(!trays.length){ msg.textContent='Add at least one tray.'; msg.className='status-msg err'; return; }
-  const dup = prefCards.find(c=>c.id!==editingCardId && normName(c.surgeon)===normName(surgeon) && (c.procedure||'').trim().toLowerCase()===procedure.toLowerCase());
-  if(dup){ msg.textContent=`There's already a card for ${dup.surgeon} · ${dup.procedure}. Edit that one instead.`; msg.className='status-msg err'; return; }
+  const acct = $('#ce-account').value.trim().toUpperCase();
+  const dup = prefCards.find(c=>c.id!==editingCardId && normName(c.surgeon)===normName(surgeon) && (c.procedure||'').trim().toLowerCase()===procedure.toLowerCase() && sameText(c.account, acct));
+  if(dup){ msg.textContent=`There's already a card for ${dup.surgeon} · ${dup.procedure}${dup.account ? ' at '+dup.account : ''}. Edit that one instead.`; msg.className='status-msg err'; return; }
   const data = {surgeon, procedure, trays, type: $('#ce-type').value, account: $('#ce-account').value.trim().toUpperCase(), notes: $('#ce-notes').value.trim(), updatedBy: me.name, updatedById: me.uid, updatedAt: Date.now()};
   const ref = editingCardId ? adb.doc('prefCards/'+editingCardId) : adb.collection('prefCards').doc();
   ref.set(data).catch(err=>{ console.error(err); toast('That card didn’t save. Check your access and try again.'); });

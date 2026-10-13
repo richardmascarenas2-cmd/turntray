@@ -537,6 +537,14 @@ textarea{resize:vertical; min-height:64px;}
 #ps-missing button.active[data-v=no]{background:var(--accent); color:#fff;}
 .viewer{position:fixed; inset:0; z-index:95; background:rgba(0,0,0,.92); display:flex; flex-direction:column; padding:calc(12px + var(--sat)) 12px calc(12px + var(--sab));}
 .viewer img{flex:1; min-height:0; width:100%; object-fit:contain;}
+.pv-stage{position:relative; flex:1; min-height:0; display:flex; touch-action:pan-y;}
+.pv-stage[hidden]{display:none;}
+.pv-stage img{flex:1; min-height:0; width:100%; object-fit:contain; user-select:none; -webkit-user-select:none; -webkit-touch-callout:none;}
+.pv-nav{position:absolute; top:50%; transform:translateY(-50%); width:48px; height:64px; border:0; border-radius:12px; background:rgba(0,0,0,.45); color:#fff; font-size:2.2rem; line-height:1; padding:0; display:flex; align-items:center; justify-content:center;}
+.pv-nav.prev{left:4px;} .pv-nav.next{right:4px;}
+.pv-nav[hidden]{display:none;}
+.pv-count{position:absolute; top:6px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,.55); color:#fff; font-size:.8rem; font-weight:700; padding:4px 10px; border-radius:99px; pointer-events:none;}
+.pv-count:empty{display:none;}
 .pv-bar{display:flex; align-items:center; gap:8px; padding-top:10px; color:#ddd; font-size:.8rem;}
 .pv-bar span{flex:1;}
 .pv-bar button{background:#222; border:1px solid #444; color:#fff; padding:10px 14px;}
@@ -1686,7 +1694,7 @@ textarea{resize:vertical; min-height:64px;}
   </div>
 </div>
 <div class="viewer" id="photo-viewer" hidden>
-  <img id="pv-img" alt="Delivery photo">
+  <div class="pv-stage" id="pv-stage"><img id="pv-img" alt="Delivery photo"><button type="button" class="pv-nav prev" id="pv-prev" aria-label="Previous photo">‹</button><button type="button" class="pv-nav next" id="pv-next" aria-label="Next photo">›</button><span class="pv-count" id="pv-count"></span></div>
   <div class="pv-split" id="pv-split" hidden>
     <div class="pv-pane"><div class="pv-cap"><span id="pv-dcap">Delivery</span><button type="button" id="pv-dprev" aria-label="Previous delivery photo">‹</button><button type="button" id="pv-dnext" aria-label="Next delivery photo">›</button></div><img id="pv-dimg" alt="Delivery photo"></div>
     <div class="pv-pane"><div class="pv-cap"><span>Return</span></div><img id="pv-rimg" alt="Return photo"></div>
@@ -4019,7 +4027,7 @@ function renderPhotoSheet(){
   psPhotos.forEach(ph=>{
     const b = document.createElement('button'); b.type='button';
     const img = document.createElement('img'); img.src = ph.data; img.alt = M.title; img.loading='lazy';
-    b.appendChild(img); b.onclick = ()=>openViewer(ph); grid.appendChild(b);
+    b.appendChild(img); b.onclick = ()=>openViewer(ph, psPhotos); grid.appendChild(b);
   });
   // Returns: show how the tray went out, so it can be compared with how it came back.
   $('#ps-compare').hidden = psMode!=='return';
@@ -4029,7 +4037,7 @@ function renderPhotoSheet(){
     psDelivery.forEach(ph=>{
       const b = document.createElement('button'); b.type='button';
       const img = document.createElement('img'); img.src = ph.data; img.alt = 'Delivery photo'; img.loading='lazy';
-      b.appendChild(img); b.onclick = ()=>openViewer(ph); dg.appendChild(b);
+      b.appendChild(img); b.onclick = ()=>openViewer(ph, psDelivery); dg.appendChild(b);
     });
   }
   const count = Math.max(psPhotos.length, r[M.count]||0);
@@ -4266,9 +4274,26 @@ $('#ps-file').addEventListener('change', async e=>{
   btn.disabled = false;
   if(added){ msg.textContent = added>1 ? `Added ${added} photos.` : 'Photo added.'; msg.className='status-msg ok'; }
 });
-function openViewer(ph){
+let pvList = [], pvIdx = 0;
+/* list: the photos shown alongside this one, so the viewer can step through them. */
+function openViewer(ph, list){
+  pvList = (list && list.length) ? list : [ph];
+  pvIdx = Math.max(0, pvList.indexOf(ph));
+  showViewerPhoto(ph);
+  $('#photo-viewer').hidden = false;
+}
+function stepViewer(d){
+  if(pvList.length < 2 || pvCompareOn) return;
+  pvIdx = (pvIdx + d + pvList.length) % pvList.length;
+  pvArmed = false;
+  showViewerPhoto(pvList[pvIdx]);
+}
+function showViewerPhoto(ph){
   pvPhoto = ph;
   $('#pv-img').src = ph.data;
+  const many = pvList.length > 1;
+  $('#pv-prev').hidden = !many; $('#pv-next').hidden = !many;
+  $('#pv-count').textContent = many ? `${pvIdx+1} of ${pvList.length}` : '';
   const who = (usersMap[ph.authorId]?.name) || ph.authorName || 'Someone';
   $('#pv-meta').textContent = `${who} · ${new Date(ph.at).toLocaleString(undefined,{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})}`;
   // Only photos from the list being worked on can be deleted here (keeps the photo counts right).
@@ -4277,13 +4302,12 @@ function openViewer(ph){
   pvCompareOn = false; showCompare();
   $('#pv-compare').hidden = !(psMode==='return' && (ph.kind||'delivery')==='return' && psDelivery.length);
   $('#pv-delete').hidden = !canDelete; $('#pv-delete').textContent='Delete';
-  $('#photo-viewer').hidden = false;
 }
-function closeViewer(){ $('#photo-viewer').hidden = true; pvPhoto = null; pvCompareOn = false; $('#pv-img').removeAttribute('src'); $('#pv-dimg').removeAttribute('src'); $('#pv-rimg').removeAttribute('src'); }
+function closeViewer(){ $('#photo-viewer').hidden = true; pvPhoto = null; pvList = []; pvCompareOn = false; $('#pv-img').removeAttribute('src'); $('#pv-dimg').removeAttribute('src'); $('#pv-rimg').removeAttribute('src'); }
 // Compare: delivery photo on top, return photo below. Arrows step through the delivery photos.
 let pvCompareOn = false, pvDIdx = 0;
 function showCompare(){
-  $('#pv-split').hidden = !pvCompareOn; $('#pv-img').hidden = pvCompareOn;
+  $('#pv-split').hidden = !pvCompareOn; $('#pv-stage').hidden = pvCompareOn;
   $('#pv-compare').textContent = pvCompareOn ? 'Single' : 'Compare';
   if(!pvCompareOn || !pvPhoto || !psDelivery.length) return;
   pvDIdx = (pvDIdx + psDelivery.length) % psDelivery.length;
@@ -4297,6 +4321,26 @@ $('#pv-compare').addEventListener('click', ()=>{ pvCompareOn = !pvCompareOn; pvD
 $('#pv-dprev').addEventListener('click', ()=>{ pvDIdx--; showCompare(); });
 $('#pv-dnext').addEventListener('click', ()=>{ pvDIdx++; showCompare(); });
 $('#pv-close').addEventListener('click', closeViewer);
+$('#pv-prev').addEventListener('click', e=>{ e.stopPropagation(); stepViewer(-1); });
+$('#pv-next').addEventListener('click', e=>{ e.stopPropagation(); stepViewer(1); });
+// Tap the left or right side of the photo, or swipe, to move between photos.
+(function(){
+  const stage = $('#pv-stage'); let x0 = null, y0 = 0, moved = false;
+  stage.addEventListener('touchstart', e=>{ if(e.touches.length!==1) return; x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; moved = false; }, {passive:true});
+  stage.addEventListener('touchend', e=>{
+    if(x0===null) return; const t = e.changedTouches[0], dx = t.clientX - x0, dy = t.clientY - y0; x0 = null;
+    if(Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)){ moved = true; stepViewer(dx < 0 ? 1 : -1); }
+  });
+  $('#pv-img').addEventListener('click', e=>{
+    if(moved){ moved = false; return; }
+    const r = e.currentTarget.getBoundingClientRect();
+    stepViewer(e.clientX < r.left + r.width/2 ? -1 : 1);
+  });
+  document.addEventListener('keydown', e=>{
+    if($('#photo-viewer').hidden) return;
+    if(e.key==='ArrowLeft') stepViewer(-1); else if(e.key==='ArrowRight') stepViewer(1); else if(e.key==='Escape') closeViewer();
+  });
+})();
 let pvArmed = false;
 $('#pv-delete').addEventListener('click', ()=>{
   if(!pvPhoto || !psReqId) return;
@@ -4309,7 +4353,9 @@ $('#pv-delete').addEventListener('click', ()=>{
   batch.delete(adb.doc('requests/'+psReqId+'/photos/'+pvPhoto.id));
   batch.update(adb.doc('requests/'+psReqId), {[M.count]: firebase.firestore.FieldValue.increment(-1)});
   batch.commit().catch(err=>{ console.error(err); toast('Couldn’t delete that photo.'); });
-  closeViewer(); toast('Photo deleted.');
+  const left = pvList.filter(p=>p!==pvPhoto);
+  if(left.length){ pvList = left; pvIdx = Math.min(pvIdx, left.length-1); showViewerPhoto(left[pvIdx]); } else closeViewer();
+  toast('Photo deleted.');
 });
 
 /* ---- preference cards page ---- */
